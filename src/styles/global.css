@@ -5,8 +5,8 @@ License MIT: https://github.com/HermanMartinus/bearblog/blob/master/LICENSE.md
  */
 
 :root {
-	--accent: #2337ff;
-	--accent-dark: #000d8a;
+	--accent: #16a372;
+	--accent-dark: #0d5c3c;
 	--black: 15, 18, 25;
 	--gray: 96, 115, 159;
 	--gray-light: 229, 233, 240;
@@ -155,11 +155,11 @@ hr {
 }
 
 [data-theme="dark"] {
-	--accent: #7b9fff;
-	--accent-dark: #2337ff;
+	--accent: #16a372;
+	--accent-dark: #0d5c3c;
 	--black: 240, 240, 245;
 	--gray: 180, 190, 210;
-	--gray-light: 32, 36, 48; /* slightly darker */
+	--gray-light: 32, 36, 48;
 	--gray-dark: 220, 220, 230;
 	--gray-gradient: rgba(var(--gray-light), 92%), #14151c; /* darker gradient */
 	--box-shadow:
