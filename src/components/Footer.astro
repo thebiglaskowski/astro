@@ -1,64 +1,66 @@
 ---
-import { Icon } from 'astro-icon/components';
 const today = new Date();
 ---
 
 <footer>
-  &copy; {today.getFullYear()} TheBigLaskowski. All rights reserved.
-  <div class="social-links">
-    <!-- GitHub -->
-    <a href="https://github.com/thebiglaskowski" target="_blank">
-      <span class="sr-only">View TheBigLaskowski on GitHub</span>
-      <Icon name="line-md:github" width="32" height="32" />
-    </a>
-
-    <!-- X (Twitter) -->
-    <a href="https://x.com/thebiglaskowski" target="_blank">
-      <span class="sr-only">Follow TheBigLaskowski on X</span>
-      <Icon name="line-md:twitter-x" width="32" height="32" />
-    </a>
-
-    <!-- LinkedIn -->
-    <a href="https://www.linkedin.com/in/thebiglaskowski" target="_blank">
-      <span class="sr-only">Connect on LinkedIn</span>
-      <Icon name="line-md:linkedin" width="32" height="32" />
-    </a>
-
-    <!-- YouTube -->
-    <a href="https://www.youtube.com/@JoeLaskowski" target="_blank">
-      <span class="sr-only">Subscribe on YouTube</span>
-      <Icon name="line-md:youtube" width="32" height="32" />
-    </a>
-
-    <!-- Discord -->
-    <a href="https://discord.com/users/bigski#2687" target="_blank">
-      <span class="sr-only">Join on Discord</span>
-      <Icon name="line-md:discord" width="32" height="32" />
-    </a>
+  <div class="container">
+    <div class="footer-content">
+      <p>&copy; {today.getFullYear()} TheBigLaskowski. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="/about">About</a>
+        <a href="/blog">Blog</a>
+        <a href="mailto:contact@thebiglaskowski.com">Contact</a>
+      </div>
+    </div>
   </div>
 </footer>
 
 <style>
   footer {
-    padding: 2em 1em 6em 1em;
-    background: linear-gradient(var(--gray-gradient)) no-repeat;
-    color: rgb(var(--gray));
-    text-align: center;
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    margin-top: 4rem;
+    padding: 2rem 0;
   }
 
-  .social-links {
+  .footer-content {
     display: flex;
-    justify-content: center;
-    gap: 1em;
-    margin-top: 1em;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
   }
-  .social-links a {
+
+  footer p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .footer-links a {
+    color: var(--text-muted);
     text-decoration: none;
-    color: rgb(var(--gray));
-    display: inline-block;
-    vertical-align: middle;
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
   }
-  .social-links a:hover {
-    color: rgb(var(--gray-dark));
+
+  .footer-links a:hover {
+    color: var(--accent-blue);
+  }
+
+  @media (max-width: 768px) {
+    .footer-content {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+    }
+
+    .footer-links {
+      justify-content: center;
+    }
   }
 </style>

@@ -1,79 +1,195 @@
 ---
-import Layout from '../layouts/BlogPost.astro';
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
 ---
 
-<Layout
-	title="About Me"
-	description="Lorem ipsum dolor sit amet"
-	pubDate={new Date('August 08 2021')}
-	heroImage="/blog-placeholder-about.jpg"
->
-	<main>
-		<img
-			src="/images/joe-circle-2.webp"
-			alt="Joe"
-			style="max-width:180px;border-radius:50%;margin-bottom:1.5em;"
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead 
+			title="About Me | TheBigLaskowski" 
+			description="Hello! I'm Joe Laskowski, an accomplished IT professional and passionate problem solver with a strong affinity for technology."
 		/>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="container">
+				<article class="about-content">
+					<div class="hero-section">
+						<img
+							src="/images/joe-circle-2.webp"
+							alt="Joe Laskowski"
+							class="profile-image"
+						/>
+						<div class="hero-text">
+							<h1 class="accent-green">About Joe Laskowski</h1>
+							<p class="lead">
+								An accomplished IT professional and passionate problem solver with a strong affinity for technology, exploring AI art, and building innovative solutions.
+							</p>
+						</div>
+					</div>
 
-		<p>
-			Hello! I'm Joe Laskowski, an accomplished IT professional and passionate problem solver with a
-			strong affinity for technology. For over 20 years, I've been delivering exceptional service
-			within the IT industry, driven by my insatiable curiosity and commitment to innovation.
-		</p>
+					<div class="prose">
+						<h2 class="accent-blue">My Journey into Technology</h2>
+						<p>
+							For over 20 years, I've been delivering exceptional service within the IT industry, driven by my insatiable curiosity and commitment to innovation. I've always been captivated by the transformative power of technology—its ability to solve complex problems and open new doors of opportunity.
+						</p>
+						
+						<p>
+							Currently, I hold the position of Lead Engineer at <a href="https://aunalytics.com/">Aunalytics</a>, a prestigious IT firm celebrated for its cutting-edge, AI-driven solutions throughout the Midwest. In this role, I wear multiple hats: I serve as the go-to Linux subject matter expert, provide comprehensive internal support, and also contribute to our Security Operations Center (SOC) as an analyst.
+						</p>
 
-		<h2>My Journey into Technology</h2>
-		<p>
-			I've always been captivated by the transformative power of technology—its ability to solve
-			complex problems and open new doors of opportunity. This lifelong fascination guided me into a
-			fulfilling career in Information Technology, where I've been fortunate to collaborate with some
-			of the industry's most brilliant minds. Currently, I hold the position of Lead Engineer at
-			<a href="https://aunalytics.com/" target="_blank" rel="noopener">Aunalytics</a>, a prestigious IT firm celebrated for its
-			cutting-edge, AI-driven solutions throughout the Midwest. In this role, I wear multiple hats: I
-			serve as the go-to Linux subject matter expert, provide comprehensive internal support, and
-			also contribute to our Security Operations Center (SOC) as an analyst. Each day presents a new
-			challenge and a chance to innovate, and I couldn't be more excited about what the future
-			holds.
-		</p>
+						<h2 class="accent-purple">Beyond the Professional Realm</h2>
+						<p>
+							When I'm not immersed in IT, I delve into various activities that fuel my curiosity and passion. I've been using the Linux operating system daily for over 16 years, reveling in the challenges of a terminal environment. I also explore the fascinating world of cryptocurrency, primarily focusing on $XRP and $XLM, and enjoy tinkering with AI tools for generating unique and intriguing art.
+						</p>
 
-		<h2>Beyond the Professional Realm</h2>
-		<p>
-			When I'm not immersed in IT, I delve into various activities that fuel my curiosity and
-			passion. I've been using the Linux operating system daily for over 16 years, reveling in the
-			challenges of a terminal environment. I also explore the fascinating world of cryptocurrency,
-			primarily focusing on $XRP and $XLM. I enjoy tinkering with AI tools for generating unique and
-			intriguing art.
-		</p>
+						<p>
+							Outside of technology, I delight in exploring the rich flavors of craft beers - mainly double IPAs and robust stouts. As a self-proclaimed hot-wing connoisseur, I constantly search for the perfect spicy bite. My fondness for the Star Wars universe often occupies my free time as I eagerly discuss and dissect every detail of the franchise.
+						</p>
 
-		<p>
-			Outside of technology, I delight in exploring the rich flavors of craft beers - mainly double
-			IPAs and robust stouts. As a self-proclaimed hot-wing connoisseur, I constantly search for the
-			perfect spicy bite. My fondness for the Star Wars universe often occupies my free time as I
-			eagerly discuss and dissect every detail of the franchise.
-		</p>
+						<div class="image-section">
+							<img src="/images/south-bend.webp" alt="South Bend, Indiana" class="location-image" />
+							<p class="image-caption">South Bend, Indiana</p>
+						</div>
 
-		<figure style="margin:2em 0;text-align:center;">
-			<img
-				src="/images/south-bend.webp"
-				alt="South Bend, Indiana"
-				style="max-width:100%;border-radius:8px;"
-			/>
-			<figcaption>South Bend, Indiana</figcaption>
-		</figure>
+						<h2 class="accent-purple">Family and Community</h2>
+						<p>
+							Family is essential to me, and I'm blessed to have three incredible children and four delightful 
+							grandchildren who always amaze me with their boundless energy and zest for life. I hail from South 
+							Bend, Indiana, a vibrant and dynamic city known for its rich history, strong sense of community, 
+							and diverse cultural offerings. I take pride in my roots and cherish the memories and experiences 
+							shaped by growing up in this beautiful and welcoming place.
+						</p>
 
-		<h2>Family and Community</h2>
-		<p>
-			Family is essential to me, and I'm blessed to have three incredible children and four
-			delightful grandchildren who always amaze me with their boundless energy and zest for life. I
-			hail from South Bend, Indiana, a vibrant and dynamic city known for its rich history, strong
-			sense of community, and diverse cultural offerings. I take pride in my roots and cherish the
-			memories and experiences shaped by growing up in this beautiful and welcoming place.
-		</p>
+						<h2 class="accent-pink">Let's Connect</h2>
+						<p>
+							Whether you're interested in discussing the latest IT solutions, exploring the world of 
+							cryptocurrency, or simply sharing your favorite Star Wars theory, I'd love to connect. Feel free 
+							to contact me, and let's start a conversation.
+						</p>
+						
+						<p>
+							I'm always excited to connect with fellow technology enthusiasts, AI art creators, and anyone passionate about innovation. Feel free to reach out through any of my social channels in the header, or check out my latest projects and experiments in the blog section.
+						</p>
+					</div>
+				</article>
+			</div>
+		</main>
+		<Footer />
 
-		<h2>Let's Connect</h2>
-		<p>
-			Whether you're interested in discussing the latest IT solutions, exploring the world of
-			cryptocurrency, or simply sharing your favorite Star Wars theory, I'd love to connect. Feel
-			free to contact me, and let's start a conversation.
-		</p>
-	</main>
-</Layout>
+		<style>
+			.about-content {
+				max-width: 800px;
+				margin: 0 auto;
+			}
+
+			.hero-section {
+				display: flex;
+				gap: 3rem;
+				align-items: center;
+				margin: 3rem 0;
+				padding: 2rem 0;
+				border-bottom: 1px solid var(--border-color);
+			}
+
+			.profile-image {
+				width: 180px;
+				height: 180px;
+				border-radius: 50%;
+				border: 4px solid var(--accent-green);
+				box-shadow: 0 8px 25px var(--shadow);
+				flex-shrink: 0;
+			}
+
+			.hero-text {
+				flex: 1;
+			}
+
+			.hero-text h1 {
+				font-size: 2.5rem;
+				margin: 0 0 1rem 0;
+				font-weight: 700;
+			}
+
+			.lead {
+				font-size: 1.25rem;
+				color: var(--text-secondary);
+				line-height: 1.6;
+				margin: 0;
+			}
+
+			.prose {
+				margin-top: 3rem;
+			}
+
+			.prose h2 {
+				font-size: 1.75rem;
+				margin: 2.5rem 0 1rem 0;
+				font-weight: 600;
+			}
+
+			.prose p {
+				margin: 1.5rem 0;
+				font-size: 1.1rem;
+				line-height: 1.7;
+			}
+
+			.prose a {
+				color: var(--accent-blue);
+				font-weight: 500;
+			}
+
+			.prose a:hover {
+				color: var(--accent-pink);
+				text-decoration: underline;
+			}
+
+			.image-section {
+				margin: 3rem 0;
+				text-align: center;
+			}
+
+			.location-image {
+				width: 100%;
+				max-width: 600px;
+				height: auto;
+				border-radius: 8px;
+				box-shadow: 0 4px 15px var(--shadow);
+				margin: 0 auto 1rem auto;
+				display: block;
+			}
+
+			.image-caption {
+				font-style: italic;
+				color: var(--text-secondary);
+				margin: 0;
+				font-size: 0.95rem;
+			}
+
+			@media (max-width: 768px) {
+				.hero-section {
+					flex-direction: column;
+					text-align: center;
+					gap: 2rem;
+				}
+
+				.hero-text h1 {
+					font-size: 2rem;
+				}
+
+				.lead {
+					font-size: 1.125rem;
+				}
+
+				.profile-image {
+					width: 150px;
+					height: 150px;
+				}
+			}
+		</style>
+	</body>
+</html>
+

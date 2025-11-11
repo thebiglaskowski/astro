@@ -1,0 +1,115 @@
+---
+interface Props {
+	images: string[];
+	columns?: number;
+	title?: string;
+}
+
+const { images, columns = 3, title } = Astro.props;
+---
+
+{title && <h3>{title}</h3>}
+<div class="pswp-gallery gallery" style={`--columns: ${columns}`} id={`gallery-${Math.random().toString(36).substr(2, 9)}`}>
+	{images.map((src, index) => (
+		<a
+			href={src}
+			data-pswp-width="0"
+			data-pswp-height="0"
+			target="_blank"
+			class="gallery-item"
+		>
+			<img 
+				src={src} 
+				alt={`Gallery image ${index + 1}`}
+				loading="lazy"
+			/>
+		</a>
+	))}
+</div>
+
+<script>
+import PhotoSwipeLightbox from 'photoswipe/lightbox';
+import 'photoswipe/style.css';
+
+// Function to get image dimensions
+function getImageDimensions(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = function() {
+      resolve({ width: this.naturalWidth, height: this.naturalHeight });
+    };
+    img.onerror = function() {
+      resolve({ width: 1200, height: 800 }); // fallback
+    };
+    img.src = src;
+  });
+}
+
+// Initialize all galleries on the page
+document.addEventListener('DOMContentLoaded', async () => {
+  const galleries = document.querySelectorAll('.pswp-gallery');
+  
+  for (const gallery of galleries) {
+    // Get dimensions for all images in this gallery
+    const links = gallery.querySelectorAll('a');
+    for (const link of links) {
+      const src = link.href;
+      const dimensions = await getImageDimensions(src);
+      link.setAttribute('data-pswp-width', dimensions.width.toString());
+      link.setAttribute('data-pswp-height', dimensions.height.toString());
+    }
+    
+    // Initialize PhotoSwipe for this gallery
+    const lightbox = new PhotoSwipeLightbox({
+      gallery: `#${gallery.id}`,
+      children: 'a',
+      pswpModule: () => import('photoswipe')
+    });
+    
+    lightbox.init();
+  }
+});
+</script>
+
+<style>
+	.gallery {
+		display: grid;
+		grid-template-columns: repeat(var(--columns), 1fr);
+		gap: 1rem;
+		margin: 2rem 0;
+	}
+
+	.gallery-item {
+		position: relative;
+		overflow: hidden;
+		border-radius: 8px;
+		cursor: pointer;
+		transition: transform 0.2s ease;
+		text-decoration: none;
+		display: block;
+	}
+
+	.gallery-item:hover {
+		transform: scale(1.05);
+	}
+
+	.gallery-item img {
+		width: 100%;
+		height: 200px;
+		object-fit: cover;
+		display: block;
+	}
+
+	/* Responsive */
+	@media (max-width: 768px) {
+		.gallery {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.gallery {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

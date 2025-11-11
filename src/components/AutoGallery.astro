@@ -1,0 +1,42 @@
+---
+import Gallery from './Gallery.astro';
+import fs from 'fs';
+import path from 'path';
+
+interface Props {
+	postSlug: string;
+	galleryName?: string;
+	columns?: number;
+	title?: string;
+}
+
+const { postSlug, galleryName = 'gallery', columns = 3, title } = Astro.props;
+
+// Function to get gallery images from public directory
+function getGalleryImages(postSlug: string, galleryName: string): string[] {
+	const galleryPath = path.join(process.cwd(), 'public', 'images', 'posts', postSlug, galleryName);
+	
+	try {
+		if (fs.existsSync(galleryPath)) {
+			const files = fs.readdirSync(galleryPath);
+			return files
+				.filter(file => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
+				.map(file => `/images/posts/${postSlug}/${galleryName}/${file}`);
+		}
+	} catch (error) {
+		console.warn(`Could not read gallery directory: ${galleryPath}`);
+	}
+	
+	return [];
+}
+
+const images = getGalleryImages(postSlug, galleryName);
+---
+
+{images.length > 0 && (
+	<Gallery images={images} columns={columns} title={title} />
+)}
+
+{images.length === 0 && (
+	<p><em>Gallery images not found in: /images/posts/{postSlug}/{galleryName}/</em></p>
+)}
