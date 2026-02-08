@@ -225,20 +225,17 @@ const posts = await getPublishedPosts();
 		<script>
 			const text = 'neural network navigator, crypto enthusiast, command-line cowboy';
 			const el = document.querySelector('.typewriter-text');
+			let i = 0;
 
-			if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-				el!.textContent = text;
-			} else {
-				let i = 0;
-				function type() {
-					if (i < text.length) {
-						el!.textContent += text[i];
-						i++;
-						setTimeout(type, 50);
-					}
+			function type() {
+				if (i < text.length) {
+					el!.textContent += text[i];
+					i++;
+					setTimeout(type, 50);
 				}
-				setTimeout(type, 500);
 			}
+
+			setTimeout(type, 500);
 		</script>
 	</body>
 </html>
