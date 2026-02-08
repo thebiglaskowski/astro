@@ -41,14 +41,42 @@ const fullSizeUrls = await Promise.all(
 <script>
 import GLightbox from 'glightbox';
 
-const lightbox = GLightbox({
-  selector: '.glightbox',
-  touchNavigation: true,
-  loop: true,
-  closeOnOutsideClick: true,
-  openEffect: 'fade',
-  closeEffect: 'fade',
-});
+function initGalleries() {
+	const galleryIds = new Set<string>();
+	document.querySelectorAll<HTMLElement>('.glightbox[data-gallery]').forEach(el => {
+		const id = el.dataset.gallery;
+		if (id) galleryIds.add(id);
+	});
+
+	galleryIds.forEach(id => {
+		GLightbox({
+			selector: `.glightbox[data-gallery="${id}"]`,
+			touchNavigation: true,
+			loop: true,
+			closeOnOutsideClick: true,
+			openEffect: 'fade',
+			closeEffect: 'fade',
+		});
+	});
+
+	// Initialize standalone glightbox links (e.g. video links not in a gallery)
+	const standalone = document.querySelectorAll('.glightbox:not([data-gallery])');
+	if (standalone.length > 0) {
+		GLightbox({
+			selector: '.glightbox:not([data-gallery])',
+			touchNavigation: true,
+			closeOnOutsideClick: true,
+			openEffect: 'fade',
+			closeEffect: 'fade',
+		});
+	}
+}
+
+if (document.readyState === 'loading') {
+	document.addEventListener('DOMContentLoaded', initGalleries);
+} else {
+	initGalleries();
+}
 </script>
 
 <style>

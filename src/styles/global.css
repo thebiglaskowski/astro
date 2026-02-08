@@ -236,6 +236,56 @@ img {
 .accent-yellow { color: var(--accent-yellow); }
 .accent-orange { color: var(--accent-orange); }
 
+/* Video link with play button overlay */
+.video-link {
+  position: relative;
+  display: inline-block;
+  max-width: 560px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.video-link:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--glow-blue);
+}
+
+.video-link img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.video-link .play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 68px;
+  height: 48px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.video-link .play-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 54%;
+  transform: translate(-50%, -50%);
+  border-style: solid;
+  border-width: 10px 0 10px 18px;
+  border-color: transparent transparent transparent #fff;
+}
+
+.video-link:hover .play-button {
+  background: rgba(255, 0, 0, 0.85);
+}
+
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -248,5 +298,13 @@ img {
 
   html {
     scroll-behavior: auto;
+  }
+
+  /* Preserve GLightbox transitions so open/close/nav still work */
+  .glightbox-container,
+  .glightbox-container *,
+  .goverlay {
+    animation-duration: 0.4s !important;
+    transition-duration: 0.4s !important;
   }
 }
