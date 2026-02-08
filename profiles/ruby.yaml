@@ -1,0 +1,139 @@
+# Ruby Project Profile
+# Loaded when Gemfile detected
+
+name: ruby
+version: "1.0"
+description: "Ruby projects using RuboCop for linting and RSpec for testing"
+
+# Model routing configuration
+models:
+  default: sonnet
+  planning: opus      # Use opus for architecture decisions
+  exploration: haiku  # Use haiku for fast codebase exploration
+  security: opus      # Use opus for security audits
+  by_phase:
+    init: haiku
+    understand: sonnet
+    plan: sonnet      # Upgrade to opus for "architecture" keywords
+    execute: sonnet
+    verify: sonnet
+    commit: haiku
+    evaluate: haiku
+
+# Extended thinking configuration
+thinking:
+  max_tokens: 16000
+  extended_for:
+    - architecture
+    - security
+    - metaprogramming
+    - database-design
+    - api-design
+
+# How to detect this profile
+detection:
+  files:
+    - Gemfile
+    - Gemfile.lock
+    - Rakefile
+    - "*.gemspec"
+  patterns:
+    - "**/*.rb"
+
+# Quality gate commands
+gates:
+  lint:
+    command: bundle exec rubocop
+    fix_command: bundle exec rubocop -a
+    description: Check code style with RuboCop
+
+  test:
+    command: bundle exec rspec
+    alternative: bundle exec rake test
+    description: Run test suite
+
+  build:
+    command: bundle exec rake build
+    description: Build gem (if applicable)
+
+  format:
+    command: bundle exec rubocop -a
+    description: Auto-format Ruby code
+
+# Thresholds
+thresholds:
+  coverage: 80
+  complexity: 10
+
+# Common patterns in Ruby projects
+patterns:
+  - name: rails
+    indicator: config/application.rb
+    tools:
+      test: bundle exec rails test
+      server: bundle exec rails server
+
+  - name: sinatra
+    indicator: "require 'sinatra'"
+
+  - name: gem
+    indicator: "*.gemspec"
+
+  - name: rake
+    indicator: Rakefile
+
+# Web project detection (auto-loads UI/UX rules)
+web_indicators:
+  files:
+    - config/application.rb
+    - app/views/
+    - app/assets/
+    - public/
+  patterns:
+    - "Rails.application"
+    - "require 'sinatra'"
+    - "class ApplicationController"
+  auto_rules: [ui-ux-design]
+
+# Conventions
+conventions:
+  - Use snake_case for methods and variables
+  - Use CamelCase for classes and modules
+  - Prefer symbols over strings for hash keys
+  - Use blocks and iterators idiomatically
+  - Follow RuboCop style guide
+
+# File templates
+templates:
+  test: |
+    require 'spec_helper'
+
+    RSpec.describe {ClassName} do
+      describe '#{method}' do
+        it 'does something' do
+          # Arrange
+
+          # Act
+
+          # Assert
+          expect(true).to be true
+        end
+      end
+    end
+
+  class: |
+    # frozen_string_literal: true
+
+    class {ClassName}
+      def initialize
+      end
+    end
+
+# Ignore patterns for search
+ignore:
+  - vendor
+  - .bundle
+  - coverage
+  - tmp
+  - log
+  - "*.gem"

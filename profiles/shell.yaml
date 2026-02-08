@@ -1,0 +1,121 @@
+# Shell Project Profile
+# Loaded when .sh or .ps1 scripts detected
+
+name: shell
+version: "1.0"
+description: "Shell and PowerShell projects using shellcheck and PSScriptAnalyzer for linting"
+
+# Model routing configuration
+models:
+  default: sonnet
+  planning: opus
+  exploration: haiku
+  security: opus
+  by_phase:
+    init: haiku
+    understand: sonnet
+    plan: sonnet
+    execute: sonnet
+    verify: sonnet
+    commit: haiku
+    evaluate: haiku
+
+# Extended thinking configuration
+thinking:
+  max_tokens: 16000
+  extended_for:
+    - security
+    - pipeline-design
+    - error-handling
+
+# How to detect this profile
+detection:
+  patterns:
+    - "**/*.sh"
+    - "**/*.bash"
+    - "**/*.ps1"
+    - "**/*.psm1"
+  files:
+    - Makefile
+    - justfile
+
+# Quality gate commands
+gates:
+  lint:
+    command: shellcheck **/*.sh
+    alternative: Invoke-ScriptAnalyzer -Path . -Recurse
+    description: Check shell script quality
+
+  test:
+    command: bats tests/
+    alternative: ./test.sh
+    description: Run shell tests (bats or custom)
+
+  format:
+    command: shfmt -w .
+    check_command: shfmt -d .
+    description: Format shell scripts
+
+# Thresholds
+thresholds:
+  complexity: 20  # Shell scripts can be longer
+
+# Common patterns in shell projects
+patterns:
+  - name: automation
+    indicator: scripts/, bin/
+
+  - name: dotfiles
+    indicator: .bashrc, .zshrc
+
+  - name: ci-scripts
+    indicator: .github/workflows/, .gitlab-ci.yml
+
+  - name: installer
+    indicator: install.sh, setup.sh
+
+# Conventions
+conventions:
+  - Use set -euo pipefail at script start
+  - Quote all variable expansions "${var}"
+  - Use [[ ]] instead of [ ] for conditionals
+  - Add usage/help function for CLI scripts
+  - Use lowercase for local variables, UPPERCASE for exports
+  - Prefer $() over backticks for command substitution
+
+# File templates
+templates:
+  script: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # Description: {description}
+    # Usage: {name} [options]
+
+    main() {
+        echo "Hello, World!"
+    }
+
+    main "$@"
+
+  powershell: |
+    #Requires -Version 5.1
+    <#
+    .SYNOPSIS
+        {description}
+    .DESCRIPTION
+        {detailed_description}
+    .EXAMPLE
+        ./{name}.ps1
+    #>
+    [CmdletBinding()]
+    param()
+
+    # Main logic here
+
+# Ignore patterns for search
+ignore:
+  - .git
+  - node_modules
+  - __pycache__
+  - "*.log"

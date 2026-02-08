@@ -1,6 +1,10 @@
 ---
+import { Image, getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import 'glightbox/dist/css/glightbox.min.css';
+
 interface Props {
-	images: string[];
+	images: ImageMetadata[];
 	columns?: number;
 	title?: string;
 	alts?: string[];
@@ -8,20 +12,26 @@ interface Props {
 
 const { images, columns = 3, title, alts } = Astro.props;
 const galleryId = `gallery-${Math.random().toString(36).substr(2, 9)}`;
+
+const fullSizeUrls = await Promise.all(
+	images.map(img => getImage({ src: img, format: 'webp' }).then(r => r.src))
+);
 ---
 
 {title && <h3>{title}</h3>}
 <div class="gallery" style={`--columns: ${columns}`} id={galleryId} role="region" aria-label={title || 'Image gallery'}>
 	{images.map((src, index) => (
 		<a
-			href={src}
+			href={fullSizeUrls[index]}
 			class="glightbox gallery-item"
 			data-gallery={galleryId}
-			rel="noopener"
+			data-type="image"
 		>
-			<img
+			<Image
 				src={src}
 				alt={alts?.[index] || `Gallery image ${index + 1}`}
+				width={400}
+				height={300}
 				loading="lazy"
 			/>
 		</a>
@@ -30,20 +40,14 @@ const galleryId = `gallery-${Math.random().toString(36).substr(2, 9)}`;
 
 <script>
 import GLightbox from 'glightbox';
-import 'glightbox/dist/css/glightbox.min.css';
 
-document.addEventListener('DOMContentLoaded', () => {
-  const galleries = document.querySelectorAll('.gallery');
-
-  for (const gallery of galleries) {
-    const id = gallery.id;
-    GLightbox({
-      selector: `#${id} .glightbox`,
-      touchNavigation: true,
-      loop: true,
-      closeOnOutsideClick: true,
-    });
-  }
+const lightbox = GLightbox({
+  selector: '.glightbox',
+  touchNavigation: true,
+  loop: true,
+  closeOnOutsideClick: true,
+  openEffect: 'fade',
+  closeEffect: 'fade',
 });
 </script>
 

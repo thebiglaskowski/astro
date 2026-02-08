@@ -1,0 +1,176 @@
+# TypeScript Project Profile
+# Loaded when tsconfig.json detected
+
+name: typescript
+version: "1.1"
+description: "TypeScript projects using eslint for linting, vitest for testing, and tsc for type checking"
+
+# Model routing configuration
+models:
+  default: sonnet
+  planning: opus      # Use opus for architecture decisions
+  exploration: haiku  # Use haiku for fast codebase exploration
+  security: opus      # Use opus for security audits
+  by_phase:
+    init: haiku
+    understand: sonnet
+    plan: sonnet      # Upgrade to opus for "architecture" keywords
+    execute: sonnet
+    verify: sonnet
+    commit: haiku
+    evaluate: haiku
+
+# Extended thinking configuration
+thinking:
+  max_tokens: 16000
+  extended_for:
+    - architecture
+    - security
+    - complex-refactoring
+    - state-management
+    - api-design
+
+# How to detect this profile
+detection:
+  files:
+    - tsconfig.json
+    - package.json  # with typescript in dependencies
+  patterns:
+    - "**/*.ts"
+    - "**/*.tsx"
+
+# Quality gate commands
+gates:
+  lint:
+    command: npx eslint .
+    fix_command: npx eslint . --fix
+    alternative: npx biome lint .
+    description: Check code style and errors
+
+  test:
+    command: npx vitest run
+    watch_command: npx vitest
+    alternative: npx jest
+    coverage_command: npx vitest run --coverage
+    description: Run test suite
+
+  type:
+    command: npx tsc --noEmit
+    description: Type checking
+
+  build:
+    command: npm run build
+    alternative: npx tsc
+    description: Build project
+
+  format:
+    command: npx prettier --write .
+    check_command: npx prettier --check .
+    description: Format code
+
+# Thresholds
+thresholds:
+  coverage: 80
+  complexity: 10
+
+# Common patterns in TypeScript projects
+patterns:
+  - name: nextjs
+    indicator: next.config.js
+    tools:
+      build: npm run build
+      test: npx vitest run
+    auto_rules: [ui-ux-design]
+
+  - name: react
+    indicator: "from 'react'"
+    auto_rules: [ui-ux-design]
+
+  - name: vue
+    indicator: "vue.config|from 'vue'|.vue"
+    auto_rules: [ui-ux-design]
+
+  - name: svelte
+    indicator: "svelte.config|from 'svelte'"
+    auto_rules: [ui-ux-design]
+
+  - name: angular
+    indicator: "angular.json|@angular"
+    auto_rules: [ui-ux-design]
+
+  - name: vite
+    indicator: vite.config
+    auto_rules: [ui-ux-design]
+
+  - name: node-backend
+    indicator: "express|fastify|hono"
+
+  - name: monorepo
+    indicator: packages/
+    tools:
+      test: npx turbo run test
+
+# Web project detection (auto-loads UI/UX rules)
+web_indicators:
+  files:
+    - next.config.js
+    - next.config.mjs
+    - vite.config.js
+    - vite.config.ts
+    - vue.config.js
+    - svelte.config.js
+    - angular.json
+  patterns:
+    - "from 'react'"
+    - "from 'vue'"
+    - "from 'svelte'"
+    - "@angular"
+  auto_rules: [ui-ux-design]
+
+# Conventions
+conventions:
+  - Use strict TypeScript (strict: true)
+  - Prefer interfaces over type aliases for objects
+  - Use const assertions for literal types
+  - Export types alongside implementations
+
+# File templates
+templates:
+  test: |
+    import { describe, it, expect } from 'vitest'
+    import { {function} } from './{module}'
+
+    describe('{function}', () => {
+      it('should work', () => {
+        // Arrange
+
+        // Act
+        const result = {function}()
+
+        // Assert
+        expect(result).toBeDefined()
+      })
+    })
+
+  component: |
+    interface {Name}Props {
+      // props
+    }
+
+    export function {Name}({ }: {Name}Props) {
+      return (
+        <div>
+          {/* content */}
+        </div>
+      )
+    }
+
+# Ignore patterns for search
+ignore:
+  - node_modules
+  - dist
+  - build
+  - .next
+  - coverage
+  - "*.d.ts"
+  - .turbo

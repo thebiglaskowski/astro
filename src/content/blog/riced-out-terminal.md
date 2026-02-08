@@ -2,8 +2,8 @@
 title: 'Customize Your Terminal: A Comprehensive Guide to Enhancing Your Linux CLI Experience'
 pubDate: 2021-08-08
 date: 2021-08-08
-heroImage: '/images/posts/2021-08-08/featured.webp'
-featuredImage: '/images/posts/2021-08-08/featured.webp'
+heroImage: '../../assets/images/posts/2021-08-08/featured.webp'
+featuredImage: '../../assets/images/posts/2021-08-08/featured.webp'
 images: ['/images/posts/2021-08-08/featured-social.webp']
 slug: riced-out-terminal
 tags:
@@ -105,7 +105,7 @@ Configure the Powerlevel10K theme with the following command:
 p10k configure
 ```
 
-![Riced out Terminal](/images/posts/2021-08-08/riced-out-term.webp "Riced out Terminal")
+![Riced out Terminal](../../assets/images/posts/2021-08-08/riced-out-term.webp "Riced out Terminal")
 
 You can run the configuration setup multiple times to fine-tune your Terminal's appearance. Experiment with various options provided by Powerlevel10K to create a unique and personalized terminal interface that meets your specific needs and preferences.
 

@@ -1,7 +1,6 @@
 ---
 import Gallery from './Gallery.astro';
-import fs from 'fs';
-import path from 'path';
+import type { ImageMetadata } from 'astro';
 
 interface Props {
 	postSlug: string;
@@ -12,25 +11,22 @@ interface Props {
 
 const { postSlug, galleryName = 'gallery', columns = 3, title } = Astro.props;
 
-// Function to get gallery images from public directory
-function getGalleryImages(postSlug: string, galleryName: string): string[] {
-	const galleryPath = path.join(process.cwd(), 'public', 'images', 'posts', postSlug, galleryName);
-	
-	try {
-		if (fs.existsSync(galleryPath)) {
-			const files = fs.readdirSync(galleryPath);
-			return files
-				.filter(file => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
-				.map(file => `/images/posts/${postSlug}/${galleryName}/${file}`);
-		}
-	} catch (error) {
-		console.warn(`Could not read gallery directory: ${galleryPath}`);
-	}
-	
-	return [];
-}
+const allGalleryImages = import.meta.glob<{ default: ImageMetadata }>(
+	'/src/assets/images/posts/**/gallery*/*.{jpg,jpeg,png,gif,webp}',
+	{ eager: true }
+);
 
-const images = getGalleryImages(postSlug, galleryName);
+const images: ImageMetadata[] = Object.entries(allGalleryImages)
+	.filter(([path]) => {
+		const segments = path.split('/');
+		const postsIdx = segments.indexOf('posts');
+		if (postsIdx === -1) return false;
+		const slug = segments[postsIdx + 1];
+		const gallery = segments[postsIdx + 2];
+		return slug === postSlug && gallery === galleryName;
+	})
+	.sort(([a], [b]) => a.localeCompare(b))
+	.map(([, mod]) => mod.default);
 ---
 
 {images.length > 0 && (
@@ -38,5 +34,5 @@ const images = getGalleryImages(postSlug, galleryName);
 )}
 
 {images.length === 0 && (
-	<p><em>Gallery images not found in: /images/posts/{postSlug}/{galleryName}/</em></p>
+	<p><em>Gallery images not found for: {postSlug}/{galleryName}/</em></p>
 )}

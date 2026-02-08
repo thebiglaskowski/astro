@@ -1,0 +1,14 @@
+{
+  "id": "session-1770511369044-gdiaj8pgo",
+  "timestamp": "2026-02-08T00:42:49.044Z",
+  "cwd": "/home/joe/.astro",
+  "gitBranch": "main",
+  "gitStatus": "dirty",
+  "profile": "typescript",
+  "platform": "linux",
+  "nodeVersion": "v18.19.1",
+  "endTimestamp": "2026-02-08T00:43:33.939Z",
+  "durationMinutes": 1,
+  "filesChanged": 0,
+  "filesList": []
+}

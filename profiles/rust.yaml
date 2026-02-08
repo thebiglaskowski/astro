@@ -1,0 +1,127 @@
+# Rust Project Profile
+# Loaded when Cargo.toml detected
+
+name: rust
+version: "1.0"
+description: "Rust projects using clippy for linting, cargo test for testing, and cargo build"
+
+# Model routing configuration
+models:
+  default: sonnet
+  planning: opus      # Use opus for architecture decisions
+  exploration: haiku  # Use haiku for fast codebase exploration
+  security: opus      # Use opus for security audits
+  by_phase:
+    init: haiku
+    understand: sonnet
+    plan: sonnet      # Upgrade to opus for "architecture" keywords
+    execute: sonnet
+    verify: sonnet
+    commit: haiku
+    evaluate: haiku
+
+# Extended thinking configuration
+thinking:
+  max_tokens: 16000
+  extended_for:
+    - architecture
+    - security
+    - unsafe-code
+    - lifetime-design
+    - concurrency
+
+# How to detect this profile
+detection:
+  files:
+    - Cargo.toml
+    - Cargo.lock
+  patterns:
+    - "**/*.rs"
+
+# Quality gate commands
+gates:
+  lint:
+    command: cargo clippy -- -D warnings
+    description: Check code quality with clippy
+
+  test:
+    command: cargo test
+    verbose_command: cargo test -- --nocapture
+    description: Run test suite
+
+  build:
+    command: cargo build
+    release_command: cargo build --release
+    description: Build project
+
+  format:
+    command: cargo fmt
+    check_command: cargo fmt -- --check
+    description: Format Rust code
+
+# Thresholds
+thresholds:
+  coverage: 80
+  complexity: 15
+
+# Common patterns in Rust projects
+patterns:
+  - name: workspace
+    indicator: "[workspace]"
+
+  - name: binary
+    indicator: src/main.rs
+
+  - name: library
+    indicator: src/lib.rs
+
+  - name: actix-web
+    indicator: actix-web
+
+  - name: tokio
+    indicator: tokio
+
+  - name: axum
+    indicator: axum
+
+# Web project detection (auto-loads UI/UX rules)
+web_indicators:
+  patterns:
+    - "actix-web"
+    - "axum"
+    - "rocket"
+    - "warp"
+    - "tower-http"
+  auto_rules: [ui-ux-design]
+
+# Conventions
+conventions:
+  - Use rustfmt for consistent formatting
+  - Prefer Result<T, E> over panic for error handling
+  - Use clippy lints to catch common mistakes
+  - Derive traits when possible (Debug, Clone, etc.)
+  - Use modules to organize code
+
+# File templates
+templates:
+  test: |
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn test_{function}() {
+            // Arrange
+
+            // Act
+
+            // Assert
+            assert!(true);
+        }
+    }
+
+# Ignore patterns for search
+ignore:
+  - target
+  - .git
+  - Cargo.lock

@@ -1,7 +1,10 @@
 ---
+import { Image } from 'astro:assets';
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import profileImage from '../assets/images/joe-circle-2.webp';
+import locationImage from '../assets/images/south-bend.webp';
 ---
 
 <!doctype html>
@@ -18,10 +21,12 @@ import Footer from '../components/Footer.astro';
 			<div class="container">
 				<article class="about-content">
 					<div class="hero-section">
-						<img
-							src="/images/joe-circle-2.webp"
+						<Image
+							src={profileImage}
 							alt="Joe Laskowski"
 							class="profile-image"
+							width={180}
+							height={180}
 						/>
 						<div class="hero-text">
 							<h1 class="gradient-text">About Joe Laskowski</h1>
@@ -51,7 +56,7 @@ import Footer from '../components/Footer.astro';
 						</p>
 
 						<div class="image-section">
-							<img src="/images/south-bend.webp" alt="South Bend, Indiana" class="location-image" />
+							<Image src={locationImage} alt="South Bend, Indiana" class="location-image" width={600} height={400} loading="lazy" />
 							<p class="image-caption">South Bend, Indiana</p>
 						</div>
 

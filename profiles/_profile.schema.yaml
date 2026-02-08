@@ -1,0 +1,80 @@
+# Profile Schema Definition
+# All profile files should follow this structure
+
+schema:
+  required:
+    - name
+    - version
+    - description
+    - detect
+
+  properties:
+    name:
+      type: string
+      pattern: "^[a-z][a-z0-9-]*$"
+      description: Unique identifier for the profile
+
+    version:
+      type: string
+      pattern: "^\\d+\\.\\d+\\.\\d+$"
+      description: Semantic version
+
+    description:
+      type: string
+      description: Human-readable description
+
+    detect:
+      type: object
+      description: How to detect this project type
+      properties:
+        files:
+          type: array
+          items: string
+          description: Files that indicate this project type
+        patterns:
+          type: array
+          items: string
+          description: Glob patterns to match
+        exclude:
+          type: array
+          items: string
+          description: Patterns to exclude from detection
+        fallback:
+          type: boolean
+          description: If true, use when no other profile matches
+
+    subtypes:
+      type: object
+      description: More specific variants of this profile
+
+    tools:
+      type: object
+      description: Tool preferences by category
+
+    thresholds:
+      type: object
+      description: Quality thresholds
+
+    patterns:
+      type: array
+      items: string
+      description: Pattern files to load
+
+    rules:
+      type: array
+      items: string
+      description: Rule files to load
+
+    commands:
+      type: object
+      description: Common commands for this project type
+
+    conventions:
+      type: object
+      description: File and naming conventions
+
+# Profile loading order:
+# 1. Detect project type based on files/patterns
+# 2. Load matching profile
+# 3. Load subtypes if applicable
+# 4. Merge with any project-specific overrides in .claude/profile.yaml

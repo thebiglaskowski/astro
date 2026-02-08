@@ -1,0 +1,108 @@
+# General Project Profile
+# Fallback when no specific profile matches
+
+name: general
+version: "1.1"
+description: "General fallback profile with auto-detection of common linters, test runners, and build tools"
+
+# Model routing configuration
+models:
+  default: sonnet
+  planning: opus      # Use opus for architecture decisions
+  exploration: haiku  # Use haiku for fast codebase exploration
+  security: opus      # Use opus for security audits
+  by_phase:
+    init: haiku
+    understand: sonnet
+    plan: sonnet      # Upgrade to opus for "architecture" keywords
+    execute: sonnet
+    verify: sonnet
+    commit: haiku
+    evaluate: haiku
+
+# Extended thinking configuration
+thinking:
+  max_tokens: 16000
+  extended_for:
+    - architecture
+    - security
+    - complex-refactoring
+
+# This profile is used when no specific detection matches
+detection:
+  fallback: true
+
+# Quality gate commands - attempt to auto-detect
+gates:
+  lint:
+    # Try common linters in order
+    detect:
+      - command: ruff check .
+        indicator: pyproject.toml
+      - command: npx eslint .
+        indicator: package.json
+      - command: golangci-lint run
+        indicator: go.mod
+      - command: shellcheck **/*.sh
+        indicator: "*.sh"
+    description: Check code style (auto-detected)
+
+  test:
+    detect:
+      - command: pytest
+        indicator: pytest.ini, pyproject.toml
+      - command: npx vitest run
+        indicator: vitest.config
+      - command: npm test
+        indicator: package.json
+      - command: go test ./...
+        indicator: go.mod
+    description: Run tests (auto-detected)
+
+  build:
+    detect:
+      - command: npm run build
+        indicator: package.json
+      - command: go build ./...
+        indicator: go.mod
+      - command: python -m build
+        indicator: pyproject.toml
+    description: Build project (auto-detected)
+
+# No specific thresholds - use sensible defaults
+thresholds:
+  coverage: 70
+  complexity: 15
+
+# Generic patterns
+patterns:
+  - name: monorepo
+    indicator: packages/, apps/
+
+  - name: docker
+    indicator: Dockerfile, docker-compose.yml
+
+  - name: ci
+    indicator: .github/workflows/, .gitlab-ci.yml
+
+# Universal conventions
+conventions:
+  - Follow existing code style in the project
+  - Match indentation (tabs vs spaces) of existing files
+  - Use existing naming conventions
+  - Keep changes minimal and focused
+
+# Common ignore patterns
+ignore:
+  - .git
+  - node_modules
+  - __pycache__
+  - .venv
+  - venv
+  - dist
+  - build
+  - coverage
+  - .cache
+  - "*.log"
+  - .DS_Store
+  - Thumbs.db

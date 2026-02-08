@@ -1,0 +1,14 @@
+{
+  "id": "session-1770511190650-ftgsxn2s6",
+  "timestamp": "2026-02-08T00:39:50.650Z",
+  "cwd": "/home/joe/.astro",
+  "gitBranch": "main",
+  "gitStatus": "dirty",
+  "profile": "typescript",
+  "platform": "linux",
+  "nodeVersion": "v18.19.1",
+  "endTimestamp": "2026-02-08T00:40:58.210Z",
+  "durationMinutes": 1,
+  "filesChanged": 0,
+  "filesList": []
+}

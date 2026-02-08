@@ -1,0 +1,138 @@
+# Java Project Profile
+# Loaded when pom.xml or build.gradle detected
+
+name: java
+version: "1.0"
+description: "Java projects using checkstyle for linting and JUnit for testing, with Maven or Gradle build support"
+
+# Model routing configuration
+models:
+  default: sonnet
+  planning: opus      # Use opus for architecture decisions
+  exploration: haiku  # Use haiku for fast codebase exploration
+  security: opus      # Use opus for security audits
+  by_phase:
+    init: haiku
+    understand: sonnet
+    plan: sonnet      # Upgrade to opus for "architecture" keywords
+    execute: sonnet
+    verify: sonnet
+    commit: haiku
+    evaluate: haiku
+
+# Extended thinking configuration
+thinking:
+  max_tokens: 16000
+  extended_for:
+    - architecture
+    - security
+    - dependency-injection
+    - orm-design
+    - api-design
+
+# How to detect this profile
+detection:
+  files:
+    - pom.xml
+    - build.gradle
+    - build.gradle.kts
+    - settings.gradle
+  patterns:
+    - "**/*.java"
+
+# Quality gate commands
+gates:
+  lint:
+    command: mvn checkstyle:check
+    alternative: ./gradlew checkstyleMain
+    description: Check code style
+
+  test:
+    command: mvn test
+    alternative: ./gradlew test
+    description: Run test suite
+
+  build:
+    command: mvn compile
+    alternative: ./gradlew build
+    description: Build project
+
+  format:
+    command: google-java-format -i **/*.java
+    description: Format Java code
+
+# Thresholds
+thresholds:
+  coverage: 80
+  complexity: 10
+
+# Common patterns in Java projects
+patterns:
+  - name: maven
+    indicator: pom.xml
+    tools:
+      build: mvn
+      test: mvn test
+
+  - name: gradle
+    indicator: build.gradle
+    tools:
+      build: ./gradlew
+      test: ./gradlew test
+
+  - name: spring-boot
+    indicator: "@SpringBootApplication"
+
+  - name: quarkus
+    indicator: quarkus
+
+  - name: micronaut
+    indicator: micronaut
+
+# Web project detection (auto-loads UI/UX rules)
+web_indicators:
+  files:
+    - src/main/resources/templates/
+    - src/main/resources/static/
+  patterns:
+    - "@SpringBootApplication"
+    - "@Controller"
+    - "@RestController"
+    - "javax.servlet"
+    - "jakarta.servlet"
+  auto_rules: [ui-ux-design]
+
+# Conventions
+conventions:
+  - Follow Java naming conventions (camelCase, PascalCase)
+  - Use dependency injection
+  - Prefer composition over inheritance
+  - Use Optional instead of null
+  - Write unit tests with JUnit
+
+# File templates
+templates:
+  test: |
+    import org.junit.jupiter.api.Test;
+    import static org.junit.jupiter.api.Assertions.*;
+
+    class {ClassName}Test {
+        @Test
+        void test{Method}() {
+            // Arrange
+
+            // Act
+
+            // Assert
+            assertTrue(true);
+        }
+    }
+
+# Ignore patterns for search
+ignore:
+  - target
+  - build
+  - .gradle
+  - .idea
+  - "*.class"
+  - "*.jar"

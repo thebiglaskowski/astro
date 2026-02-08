@@ -2,8 +2,8 @@
 title: 'ShellGPT: Revolutionizing Command-Line Interactions with the Power of AI'
 pubDate: 2023-05-21T12:22:34.284Z
 date: 2023-05-21T12:22:34.284Z
-heroImage: '/images/posts/2023-05-21/featured.webp'
-featuredImage: '/images/posts/2023-05-21/featured.webp'
+heroImage: '../../assets/images/posts/2023-05-21/featured.webp'
+featuredImage: '../../assets/images/posts/2023-05-21/featured.webp'
 images: ['/images/posts/2023-05-21/featured-social.webp']
 slug: shellgpt-revolutionizing-cli-with-the-power-of-ai
 tags:

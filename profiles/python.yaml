@@ -1,0 +1,204 @@
+# Python Project Profile
+# Loaded when pyproject.toml or requirements.txt detected
+
+name: python
+version: "1.2"
+description: "Python projects using ruff for linting, pytest for testing, and pyright for type checking"
+
+# Model routing configuration
+models:
+  default: sonnet
+  planning: opus      # Use opus for architecture decisions
+  exploration: haiku  # Use haiku for fast codebase exploration
+  security: opus      # Use opus for security audits
+  by_phase:
+    init: haiku
+    understand: sonnet
+    plan: sonnet      # Upgrade to opus for "architecture" keywords
+    execute: sonnet
+    verify: sonnet
+    commit: haiku
+    evaluate: haiku
+
+# Extended thinking configuration
+thinking:
+  max_tokens: 16000
+  extended_for:
+    - architecture
+    - security
+    - complex-refactoring
+    - database-design
+    - api-design
+
+# How to detect this profile
+detection:
+  files:
+    - pyproject.toml
+    - requirements.txt
+    - setup.py
+  patterns:
+    - "**/*.py"
+    - "**/*.ipynb"
+
+# Environment detection (checked in order)
+# Claude should detect these and prefix commands accordingly
+environment:
+  # Conda environment detection
+  conda:
+    indicators:
+      - environment.yml
+      - environment.yaml
+      - conda.yaml
+    # Check for env name in these files or use directory name
+    detect_command: conda info --envs
+    # If detected, prefix commands with: conda run -n <env_name> --no-capture-output
+    prefix: "conda run -n {env_name} --no-capture-output"
+
+  # Virtual environment detection
+  venv:
+    indicators:
+      - .venv/
+      - venv/
+      - .virtualenv/
+    # If detected on Windows: .venv\Scripts\activate &&
+    # If detected on Unix: source .venv/bin/activate &&
+    activate_windows: ".venv\\Scripts\\activate &&"
+    activate_unix: "source .venv/bin/activate &&"
+
+  # Poetry detection
+  poetry:
+    indicators:
+      - poetry.lock
+    prefix: "poetry run"
+
+  # PDM detection
+  pdm:
+    indicators:
+      - pdm.lock
+    prefix: "pdm run"
+
+# Quality gate commands (base commands - may be prefixed by environment)
+gates:
+  lint:
+    command: ruff check .
+    fix_command: ruff check . --fix
+    description: Check code style and errors
+
+  test:
+    command: pytest
+    verbose_command: pytest -v
+    coverage_command: pytest --cov
+    description: Run test suite
+
+  type:
+    command: pyright
+    alternative: mypy .
+    description: Type checking
+
+  build:
+    command: python -m build
+    check_command: python -m py_compile
+    description: Build package
+
+  format:
+    command: ruff format .
+    check_command: ruff format . --check
+    description: Format code
+
+  # Jupyter notebook support (when *.ipynb files present)
+  notebook:
+    lint_command: nbqa ruff .
+    lint_fix_command: nbqa ruff . --fix
+    format_command: nbqa ruff format .
+    test_command: pytest --nbval
+    test_strict_command: pytest --nbval-lax
+    description: Jupyter notebook quality checks
+    requires:
+      - nbqa
+      - nbval
+
+# Thresholds
+thresholds:
+  coverage: 80
+  complexity: 10
+
+# Common patterns in Python projects
+patterns:
+  - name: src-layout
+    indicator: src/
+
+  - name: flat-layout
+    indicator: "*.py in root"
+
+  - name: django
+    indicator: manage.py
+    tools:
+      test: python manage.py test
+    auto_rules: [ui-ux-design]
+
+  - name: fastapi
+    indicator: "from fastapi import"
+
+  - name: flask
+    indicator: "from flask import"
+
+  - name: jupyter
+    indicator: "**/*.ipynb"
+    tools:
+      lint: nbqa ruff .
+      test: pytest --nbval
+    # Use NotebookEdit tool for cell modifications
+    native_tool: NotebookEdit
+
+# Web project detection (auto-loads UI/UX rules)
+web_indicators:
+  directories:
+    - templates/
+    - static/
+    - frontend/
+  files:
+    - templates/*.html
+    - static/css/
+    - static/js/
+  patterns:
+    - "from django.shortcuts import render"
+    - "render_template"
+    - "jinja2"
+    - "@app.route"
+    - "from flask import"
+  auto_rules: [ui-ux-design]
+
+# Conventions
+conventions:
+  - Use type hints for function signatures
+  - Prefer pathlib over os.path
+  - Use dataclasses or pydantic for data structures
+  - Follow PEP 8 naming conventions
+
+# File templates
+templates:
+  test: |
+    import pytest
+    from {module} import {function}
+
+    def test_{function}_basic():
+        # Arrange
+
+        # Act
+        result = {function}()
+
+        # Assert
+        assert result is not None
+
+# Ignore patterns for search
+ignore:
+  - __pycache__
+  - "*.pyc"
+  - .venv
+  - venv
+  - .pytest_cache
+  - .mypy_cache
+  - .ruff_cache
+  - "*.egg-info"
+  - dist
+  - build
