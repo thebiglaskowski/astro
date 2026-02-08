@@ -1,10 +1,10 @@
 ---
-import { Image } from 'astro:assets';
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import profileImage from '../assets/images/joe_laskowski.webp';
-import locationImage from '../assets/images/south-bend.webp';
+import { Image } from "astro:assets";
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import profileImage from "../assets/images/joe_laskowski.webp";
+import locationImage from "../assets/images/south-bend.webp";
 ---
 
 <!doctype html>
@@ -31,7 +31,10 @@ import locationImage from '../assets/images/south-bend.webp';
 						<div class="hero-text">
 							<h1 class="gradient-text">About Joe Laskowski</h1>
 							<p class="lead">
-								An accomplished IT professional and passionate problem solver with a strong affinity for technology, exploring AI art, and building innovative solutions.
+								An accomplished IT professional and passionate
+								problem solver with a strong affinity for
+								technology, exploring AI, and building
+								innovative solutions.
 							</p>
 						</div>
 					</div>
@@ -39,45 +42,91 @@ import locationImage from '../assets/images/south-bend.webp';
 					<div class="prose">
 						<h2 class="accent-blue">My Journey into Technology</h2>
 						<p>
-							For over 20 years, I've been delivering exceptional service within the IT industry, driven by my insatiable curiosity and commitment to innovation. I've always been captivated by the transformative power of technology—its ability to solve complex problems and open new doors of opportunity.
+							For over 20 years, I've been delivering exceptional
+							service within the IT industry, driven by my
+							insatiable curiosity and commitment to innovation.
+							I've always been captivated by the transformative
+							power of technology—its ability to solve complex
+							problems and open new doors of opportunity.
 						</p>
 
 						<p>
-							Currently, I hold the position of Lead Engineer at <a href="https://aunalytics.com/">Aunalytics</a>, a prestigious IT firm celebrated for its cutting-edge, AI-driven solutions throughout the Midwest. In this role, I wear multiple hats: I serve as the go-to Linux subject matter expert, provide comprehensive internal support, and also contribute to our Security Operations Center (SOC) as an analyst.
+							Currently, I hold the position of Lead Engineer at <a
+								href="https://aunalytics.com/">Aunalytics</a
+							>, a prestigious IT firm celebrated for its
+							cutting-edge, AI-driven solutions throughout the
+							Midwest. In this role, I wear multiple hats: I serve
+							as the go-to Linux subject matter expert, provide
+							comprehensive internal support, and also contribute
+							to our Security Operations Center (SOC) as an
+							analyst.
 						</p>
 
-						<h2 class="accent-purple">Beyond the Professional Realm</h2>
+						<h2 class="accent-purple">
+							Beyond the Professional Realm
+						</h2>
 						<p>
-							When I'm not immersed in IT, I delve into various activities that fuel my curiosity and passion. I've been using the Linux operating system daily for over 16 years, reveling in the challenges of a terminal environment. I also explore the fascinating world of cryptocurrency, primarily focusing on $XRP and $XLM, and enjoy tinkering with AI tools for generating unique and intriguing art.
+							When I'm not immersed in IT, I delve into various
+							activities that fuel my curiosity and passion. I've
+							been using the Linux operating system daily for over
+							16 years, reveling in the challenges of a terminal
+							environment. I also explore the fascinating world of
+							cryptocurrency, primarily focusing on $XRP and $XLM,
+							and enjoy tinkering with AI tools for generating
+							unique and intriguing art.
 						</p>
 
 						<p>
-							Outside of technology, I delight in exploring the rich flavors of craft beers - mainly double IPAs and robust stouts. As a self-proclaimed hot-wing connoisseur, I constantly search for the perfect spicy bite. My fondness for the Star Wars universe often occupies my free time as I eagerly discuss and dissect every detail of the franchise.
+							Outside of technology, I delight in exploring the
+							rich flavors of craft beers - mainly double IPAs and
+							robust stouts. As a self-proclaimed hot-wing
+							connoisseur, I constantly search for the perfect
+							spicy bite. My fondness for the Star Wars universe
+							often occupies my free time as I eagerly discuss and
+							dissect every detail of the franchise.
 						</p>
 
 						<div class="image-section">
-							<Image src={locationImage} alt="South Bend, Indiana" class="location-image" width={600} height={400} loading="lazy" />
+							<Image
+								src={locationImage}
+								alt="South Bend, Indiana"
+								class="location-image"
+								width={600}
+								height={400}
+								loading="lazy"
+							/>
 							<p class="image-caption">South Bend, Indiana</p>
 						</div>
 
 						<h2 class="accent-purple">Family and Community</h2>
 						<p>
-							Family is essential to me, and I'm blessed to have three incredible children and four delightful
-							grandchildren who always amaze me with their boundless energy and zest for life. I hail from South
-							Bend, Indiana, a vibrant and dynamic city known for its rich history, strong sense of community,
-							and diverse cultural offerings. I take pride in my roots and cherish the memories and experiences
-							shaped by growing up in this beautiful and welcoming place.
+							Family is essential to me, and I'm blessed to have
+							three incredible children and four delightful
+							grandchildren who always amaze me with their
+							boundless energy and zest for life. I hail from
+							South Bend, Indiana, a vibrant and dynamic city
+							known for its rich history, strong sense of
+							community, and diverse cultural offerings. I take
+							pride in my roots and cherish the memories and
+							experiences shaped by growing up in this beautiful
+							and welcoming place.
 						</p>
 
 						<h2 class="accent-pink">Let's Connect</h2>
 						<p>
-							Whether you're interested in discussing the latest IT solutions, exploring the world of
-							cryptocurrency, or simply sharing your favorite Star Wars theory, I'd love to connect. Feel free
-							to contact me, and let's start a conversation.
+							Whether you're interested in discussing the latest
+							IT solutions, exploring the world of cryptocurrency,
+							or simply sharing your favorite Star Wars theory,
+							I'd love to connect. Feel free to contact me, and
+							let's start a conversation.
 						</p>
 
 						<p>
-							I'm always excited to connect with fellow technology enthusiasts, AI art creators, and anyone passionate about innovation. Feel free to reach out through any of my social channels in the header, or check out my latest projects and experiments in the blog section.
+							I'm always excited to connect with fellow technology
+							enthusiasts, AI art creators, and anyone passionate
+							about innovation. Feel free to reach out through any
+							of my social channels in the header, or check out my
+							latest projects and experiments in the blog section.
 						</p>
 					</div>
 				</article>
@@ -145,7 +194,9 @@ import locationImage from '../assets/images/south-bend.webp';
 			.prose a {
 				color: var(--accent-blue);
 				font-weight: 600;
-				transition: color 0.2s ease, text-shadow 0.2s ease;
+				transition:
+					color 0.2s ease,
+					text-shadow 0.2s ease;
 			}
 
 			.prose a:hover {
