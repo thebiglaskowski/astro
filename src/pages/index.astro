@@ -3,6 +3,11 @@ import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { Image } from 'astro:assets';
+import FormattedDate from '../components/FormattedDate.astro';
+import { getPublishedPosts } from '../lib/blog';
+
+const posts = await getPublishedPosts();
 ---
 
 <!doctype html>
@@ -14,137 +19,226 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 		<Header />
 		<main id="main-content">
 			<div class="container">
-				<section class="hero">
-					<h1 class="gradient-text">Welcome to TheBigLaskowski</h1>
-					<p class="hero-subtitle">
-						Exploring AI art, development techniques, and creative technology through hands-on experimentation and documentation.
+				<section class="blog-header">
+					<h1 class="gradient-text">Joe Laskowski</h1>
+					<p class="typewriter" aria-label="neural network navigator, crypto enthusiast, command-line cowboy">
+						<span class="typewriter-text"></span><span class="cursor">|</span>
 					</p>
 				</section>
 
-				<section class="features">
-					<div class="feature-grid">
-						<div class="feature-card card">
-							<h3 class="accent-pink">AI Art & Creativity</h3>
-							<p>Exploring the intersection of artificial intelligence and visual art through tools like Stable Diffusion, Midjourney, and custom image processing.</p>
-						</div>
-
-						<div class="feature-card card">
-							<h3 class="accent-blue">Development Tutorials</h3>
-							<p>Step-by-step guides covering terminal customization, development workflows, and practical programming techniques for real-world applications.</p>
-						</div>
-
-						<div class="feature-card card">
-							<h3 class="accent-yellow">Tech Exploration</h3>
-							<p>Hands-on experimentation with emerging technologies, from AI-powered command line tools to modern web development frameworks.</p>
-						</div>
-					</div>
-				</section>
-
-				<section class="cta">
-					<h2>Latest Posts</h2>
-					<p>Check out my recent explorations in AI, development, and creative technology.</p>
-					<a href="/blog" class="cta-button">View Blog Posts</a>
+				<section class="posts-grid">
+					{posts.map((post, index) => (
+						<article class={`post-card card ${index === 0 ? 'featured' : ''}`}>
+							<a href={`/blog/${post.id}/`} class="post-link">
+								{post.data.heroImage && (
+									<div class="post-image">
+										<Image
+											src={post.data.heroImage}
+											alt={post.data.title}
+											width={800}
+											height={400}
+											loading={index === 0 ? "eager" : "lazy"}
+										/>
+									</div>
+								)}
+								<div class="post-content">
+									<div class="post-meta">
+										<time class="post-date">
+											<FormattedDate date={post.data.pubDate} />
+										</time>
+									</div>
+									<h2 class="post-title">{post.data.title}</h2>
+									{post.data.description && (
+										<p class="post-description">{post.data.description}</p>
+									)}
+								</div>
+							</a>
+						</article>
+					))}
 				</section>
 			</div>
 		</main>
 		<Footer />
 
 		<style>
-			.hero {
+			.blog-header {
 				text-align: center;
-				padding: 4rem 0;
-				margin-bottom: 3rem;
+				margin: 3rem 0;
 			}
 
-			.hero h1 {
-				font-size: 3.5rem;
+			.blog-header h1 {
+				font-size: 3rem;
 				margin-bottom: 1rem;
 				font-weight: 700;
 			}
 
-			.hero-subtitle {
+			.typewriter {
 				font-size: 1.25rem;
 				color: var(--text-secondary);
 				max-width: 600px;
 				margin: 0 auto;
-				line-height: 1.6;
+				min-height: 1.8em;
 			}
 
-			.features {
-				margin: 4rem 0;
+			.cursor {
+				color: var(--accent-blue);
+				animation: blink 0.7s step-end infinite;
 			}
 
-			.feature-grid {
+			@keyframes blink {
+				50% { opacity: 0; }
+			}
+
+			.posts-grid {
 				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
 				gap: 2rem;
-				margin-top: 2rem;
+				margin-top: 3rem;
 			}
 
-			.feature-card {
-				text-align: center;
+			.post-card {
+				transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+				overflow: hidden;
+				padding: 0;
 			}
 
-			.feature-card h3 {
+			.post-card.featured {
+				grid-column: 1 / -1;
+				max-width: 800px;
+				margin: 0 auto;
+			}
+
+			.post-card:hover {
+				transform: translateY(-4px);
+				box-shadow: 0 8px 30px rgba(0, 212, 255, 0.15);
+				border-color: var(--border-glow);
+			}
+
+			.post-link {
+				text-decoration: none;
+				color: inherit;
+				display: block;
+				height: 100%;
+			}
+
+			.post-image {
+				width: 100%;
+				height: 200px;
+				overflow: hidden;
+				position: relative;
+			}
+
+			.featured .post-image {
+				height: 300px;
+			}
+
+			.post-image img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				transition: transform 0.3s ease;
+				border-radius: 0;
+			}
+
+			.post-card:hover .post-image img {
+				transform: scale(1.05);
+			}
+
+			.post-content {
+				padding: 1.5rem;
+			}
+
+			.post-meta {
+				margin-bottom: 0.5rem;
+			}
+
+			.post-date {
+				font-size: 0.9rem;
+				color: var(--text-muted);
+				font-weight: 600;
+			}
+
+			.post-title {
 				font-size: 1.5rem;
-				margin-bottom: 1rem;
 				font-weight: 600;
-			}
-
-			.cta {
-				text-align: center;
-				padding: 3rem 0;
-				margin-top: 4rem;
-			}
-
-			.cta h2 {
-				font-size: 2.5rem;
-				margin-bottom: 1rem;
 				color: var(--text-primary);
+				margin: 0.5rem 0;
+				line-height: 1.3;
+				transition: color 0.2s ease;
 			}
 
-			.cta p {
-				font-size: 1.125rem;
-				margin-bottom: 2rem;
+			.featured .post-title {
+				font-size: 2rem;
+			}
+
+			.post-description {
 				color: var(--text-secondary);
+				font-size: 1rem;
+				line-height: 1.5;
+				margin: 1rem 0 0 0;
+				display: -webkit-box;
+				-webkit-line-clamp: 3;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
 			}
 
-			.cta-button {
-				display: inline-block;
-				background: var(--gradient-primary);
-				color: white;
-				padding: 1rem 2rem;
-				border-radius: 8px;
+			.post-link:hover {
 				text-decoration: none;
-				font-weight: 600;
-				transition: transform 0.2s ease, box-shadow 0.2s ease;
 			}
 
-			.cta-button:hover {
-				transform: translateY(-2px);
-				box-shadow: 0 8px 25px var(--shadow-accent-blue);
-				text-decoration: none;
-				color: white;
+			.post-link:hover .post-title {
+				color: var(--accent-blue);
 			}
 
 			@media (max-width: 768px) {
-				.hero h1 {
+				.blog-header h1 {
 					font-size: 2.5rem;
 				}
 
-				.hero-subtitle {
+				.blog-header p {
 					font-size: 1.125rem;
 				}
 
-				.feature-grid {
+				.posts-grid {
 					grid-template-columns: 1fr;
 					gap: 1.5rem;
 				}
 
-				.cta h2 {
-					font-size: 2rem;
+				.post-card.featured {
+					grid-column: 1;
+				}
+
+				.post-image {
+					height: 180px;
+				}
+
+				.featured .post-image {
+					height: 220px;
+				}
+
+				.featured .post-title {
+					font-size: 1.75rem;
 				}
 			}
 		</style>
+
+		<script>
+			const text = 'neural network navigator, crypto enthusiast, command-line cowboy';
+			const el = document.querySelector('.typewriter-text');
+
+			if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+				el!.textContent = text;
+			} else {
+				let i = 0;
+				function type() {
+					if (i < text.length) {
+						el!.textContent += text[i];
+						i++;
+						setTimeout(type, 50);
+					}
+				}
+				setTimeout(type, 500);
+			}
+		</script>
 	</body>
 </html>

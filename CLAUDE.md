@@ -19,7 +19,8 @@
 | Astro 5 | Static site framework (SSG) |
 | MDX | Blog posts with embedded components |
 | TypeScript (strict) | Type-safe frontmatter, component props |
-| PhotoSwipe 5 | Lightbox gallery for image posts |
+| GLightbox 3 | Lightbox gallery for image posts |
+| @fontsource-variable/inter | Self-hosted Inter variable font |
 | @astrojs/sitemap | Auto-generated sitemap |
 | @astrojs/rss | RSS feed generation |
 
@@ -27,37 +28,39 @@
 
 ```
 src/
-├── components/       # Reusable Astro components (6 files)
-│   ├── BaseHead.astro      # <head> meta, fonts, OG tags, theme flash prevention
-│   ├── Header.astro        # Nav, social links, dark/light toggle
+├── components/       # Reusable Astro components
+│   ├── BaseHead.astro      # <head> meta, fonts, OG tags
+│   ├── Header.astro        # Sticky nav, social links (dark-only theme)
 │   ├── Footer.astro        # Footer with copyright + links
 │   ├── HeaderLink.astro    # Nav link with active state detection
 │   ├── FormattedDate.astro # Date formatting helper
-│   ├── Gallery.astro       # PhotoSwipe image gallery grid
-│   └── AutoGallery.astro   # Auto-discovers images from public/ directory
+│   ├── SocialIcon.astro    # SVG social media icons
+│   ├── Gallery.astro       # GLightbox image gallery grid
+│   └── AutoGallery.astro   # Auto-discovers images from src/assets/ directory
 ├── content/
 │   └── blog/         # Markdown/MDX blog posts
 ├── layouts/
 │   └── BlogPost.astro      # Blog post layout with hero image + prose
+├── lib/
+│   └── blog.ts             # Shared blog query utility (draft filter, sorting)
 ├── pages/
-│   ├── index.astro         # Homepage with hero, feature cards, CTA
+│   ├── index.astro         # Blog listing (homepage)
 │   ├── about.astro         # About page with profile + bio
-│   ├── rss.xml.js          # RSS feed endpoint
+│   ├── 404.astro           # Custom 404 error page
+│   ├── rss.xml.ts          # RSS feed endpoint
 │   └── blog/
-│       ├── index.astro     # Blog listing with card grid
 │       └── [...slug].astro # Dynamic blog post routes
 ├── styles/
-│   └── global.css          # Monokai theme, CSS custom properties, base styles
+│   └── global.css          # Electric Dark theme, CSS custom properties, base styles
 ├── consts.ts               # SITE_TITLE, SITE_DESCRIPTION
 └── content.config.ts       # Blog collection schema (Zod)
 public/
-├── fonts/            # Atkinson font files (woff)
-├── images/           # Post images organized by date slug
-│   └── posts/{YYYY-MM-DD}/
-│       ├── featured.webp
-│       └── gallery/  # Gallery images auto-discovered by AutoGallery
 └── *.svg             # Logo, favicon
 ```
+
+### Image Storage
+- Post images stored in `src/assets/images/posts/{YYYY-MM-DD}/` (Astro build-time optimization)
+- Gallery images auto-discovered from `src/assets/images/posts/{slug}/gallery/`
 
 ## Commands
 
@@ -73,34 +76,35 @@ public/
 - Strict mode with `strictNullChecks: true`
 - Extends `astro/tsconfigs/strict`
 - Component props use `interface Props` in frontmatter
+- All source files are TypeScript (no `.js` files)
 
 ### Styling
-- **Monokai color theme** via CSS custom properties (`--accent-pink`, `--accent-green`, `--accent-blue`, `--accent-purple`, `--accent-yellow`, `--accent-orange`)
-- Dark/light mode via `[data-theme="dark"]` attribute on `<html>`
-- Theme persisted in `localStorage.getItem('theme')`
-- Flash prevention script in `BaseHead.astro` runs before page render
+- **Electric Dark theme** (dark-only, no light mode) via CSS custom properties
+- Accent colors: `--accent-pink`, `--accent-green`, `--accent-blue`, `--accent-purple`, `--accent-yellow`, `--accent-orange`
+- Design tokens defined in `global.css` `:root`: spacing scale (`--space-*`), border radius (`--radius-*`), transitions (`--transition-*`)
 - All component styles are **scoped** (`<style>` blocks in `.astro` files)
 - Global styles only in `src/styles/global.css`
-- Responsive breakpoint: `768px` (mobile), `480px` (small mobile)
-- Utility classes: `.accent-pink`, `.accent-green`, `.accent-blue`, `.accent-purple`, `.accent-yellow`, `.accent-orange`, `.text-center`, `.text-muted`
+- Responsive breakpoints: `768px` (mobile), `480px` (small mobile)
 - `.container` max-width: `800px`
-- `.card` base class for bordered content blocks
+- `.card` base class for glassmorphic bordered content blocks
 
 ### Content
 - Blog posts live in `src/content/blog/` as `.md` or `.mdx`
 - Frontmatter schema (Zod-validated): `title` (required), `description`, `pubDate`, `updatedDate`, `heroImage`, `featuredImage`, `images`, `slug`, `tags`, `author`, `draft`
-- Drafts filtered out in production (`import.meta.env.PROD ? data.draft !== true : true`)
-- Post images go in `public/images/posts/{YYYY-MM-DD}/`
-- Gallery images auto-discovered from `public/images/posts/{slug}/gallery/`
+- Drafts filtered via shared `draftFilter()` from `src/lib/blog.ts`
+- Post images go in `src/assets/images/posts/{YYYY-MM-DD}/`
+- Gallery images auto-discovered from `src/assets/images/posts/{slug}/gallery/`
 
 ### Routing
+- Blog listing serves as homepage at `/`
 - Blog posts use `[...slug].astro` with `post.id` as the slug
 - Blog URLs: `/blog/{post-id}/`
 
 ## Key Patterns
 
 - **Page structure**: Every page uses `BaseHead` + `Header` + `<main>` + `Footer`
-- **Gallery system**: `Gallery.astro` (manual image list) and `AutoGallery.astro` (auto-discovers from `public/images/posts/{slug}/{galleryName}/`)
+- **Blog queries**: Use `getPublishedPosts()` or `draftFilter()` from `src/lib/blog.ts` — never duplicate query logic
+- **Gallery system**: `Gallery.astro` (manual image list) and `AutoGallery.astro` (auto-discovers from `src/assets/images/posts/{slug}/{galleryName}/`)
 - **Active nav links**: `HeaderLink.astro` compares `Astro.url.pathname` against `href` prop
 - **Blog listing**: Posts sorted by `pubDate` descending, first post gets `.featured` class
 - **RSS/Sitemap**: Auto-generated, site URL: `https://thebiglaskowski.com`
