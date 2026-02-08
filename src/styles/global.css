@@ -1,40 +1,41 @@
-/* 
-  Custom Monokai Theme for TheBigLaskowski.com
-  Clean, minimal design with dark/light mode support
+/*
+  Electric Dark Theme for TheBigLaskowski.com
+  Dark-first, electric blue, modern aesthetic
 */
 
 :root {
-  /* Monokai Light Theme */
-  --bg-primary: #f8f8f2;
-  --bg-secondary: #ffffff;
-  --bg-accent: #49483e;
-  --text-primary: #272822;
-  --text-secondary: #75715e;
-  --text-muted: #a59f85;
-  --accent-pink: #f92672;
-  --accent-green: #a6e22e;
-  --accent-yellow: #e6db74;
-  --accent-blue: #66d9ef;
-  --accent-purple: #ae81ff;
-  --accent-orange: #fd971f;
-  --border-color: #e8e8e3;
-  --shadow: rgba(39, 40, 34, 0.1);
-  --code-bg: #2d2d2d;
-  --code-text: #f8f8f2;
-}
+  /* Backgrounds — deep space navy */
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #111118;
+  --bg-surface: #161625;
+  --bg-elevated: #1a1a2e;
 
-[data-theme="dark"] {
-  /* Monokai Dark Theme */
-  --bg-primary: #272822;
-  --bg-secondary: #383830;
-  --bg-accent: #49483e;
-  --text-primary: #f8f8f2;
-  --text-secondary: #a59f85;
-  --text-muted: #75715e;
-  --border-color: #49483e;
-  --shadow: rgba(0, 0, 0, 0.3);
-  --code-bg: #1e1f1c;
-  --code-text: #f8f8f2;
+  /* Text — cool grays */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  /* Accents — electric spectrum */
+  --accent-blue: #00d4ff;
+  --accent-purple: #a855f7;
+  --accent-pink: #ec4899;
+  --accent-green: #22c55e;
+  --accent-cyan: #22d3ee;
+  --accent-orange: #f97316;
+  --accent-yellow: #eab308;
+
+  /* Effects */
+  --glow-blue: 0 0 20px rgba(0, 212, 255, 0.15);
+  --glow-purple: 0 0 20px rgba(168, 85, 247, 0.15);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(0, 212, 255, 0.3);
+  --gradient-primary: linear-gradient(135deg, #00d4ff, #a855f7);
+  --shadow: rgba(0, 0, 0, 0.4);
+  --shadow-accent-blue: rgba(0, 212, 255, 0.2);
+
+  /* Code */
+  --code-bg: #0d0d14;
+  --code-text: #e2e8f0;
 }
 
 /* Reset and Base Styles */
@@ -45,16 +46,17 @@
 }
 
 html {
-  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   scroll-behavior: smooth;
 }
 
 body {
   background-color: var(--bg-primary);
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(0, 212, 255, 0.03) 0%, transparent 60%);
   color: var(--text-primary);
   line-height: 1.6;
   font-size: 16px;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
 }
 
 /* Typography */
@@ -86,6 +88,16 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Focus styles for keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
 /* Layout */
 .container {
   max-width: 800px;
@@ -106,6 +118,7 @@ code {
   border-radius: 4px;
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
   font-size: 0.9em;
+  border: 1px solid var(--border-color);
 }
 
 pre {
@@ -115,12 +128,14 @@ pre {
   border-radius: 8px;
   overflow-x: auto;
   margin: 1.5rem 0;
+  border: 1px solid var(--border-color);
 }
 
 pre code {
   background: none;
   padding: 0;
   border-radius: 0;
+  border: none;
 }
 
 /* Lists */
@@ -136,12 +151,13 @@ li {
 
 /* Blockquotes */
 blockquote {
-  border-left: 4px solid var(--accent-green);
-  background-color: var(--bg-secondary);
+  border-left: 4px solid var(--accent-blue);
+  background-color: rgba(0, 212, 255, 0.05);
   padding: 1rem 1.5rem;
   margin: 1.5rem 0;
   font-style: italic;
   color: var(--text-secondary);
+  border-radius: 0 8px 8px 0;
 }
 
 /* Images */
@@ -151,18 +167,38 @@ img {
   border-radius: 8px;
 }
 
-/* Cards and Content Blocks */
+/* Cards and Content Blocks — Glassmorphic */
 .card {
-  background-color: var(--bg-secondary);
+  background: rgba(22, 22, 37, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 1.5rem;
   margin: 1rem 0;
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .card:hover {
-  box-shadow: 0 4px 20px var(--shadow);
+  box-shadow: var(--glow-blue);
+  border-color: var(--border-glow);
+}
+
+/* Gradient text utility */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow utility */
+.glow {
+  transition: box-shadow 0.3s ease;
+}
+
+.glow:hover {
+  box-shadow: var(--glow-blue);
 }
 
 /* Responsive Design */
@@ -170,13 +206,23 @@ img {
   .container {
     padding: 0 1rem;
   }
-  
+
   h1 { font-size: 2rem; }
   h2 { font-size: 1.75rem; }
   h3 { font-size: 1.25rem; }
-  
+
   body {
     font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.125rem; }
+
+  body {
+    font-size: 13px;
   }
 }
 
@@ -189,3 +235,17 @@ img {
 .accent-purple { color: var(--accent-purple); }
 .accent-yellow { color: var(--accent-yellow); }
 .accent-orange { color: var(--accent-orange); }
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}

@@ -7,14 +7,14 @@ import Footer from '../components/Footer.astro';
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead 
-			title="About Me | TheBigLaskowski" 
+		<BaseHead
+			title="About Me | TheBigLaskowski"
 			description="Hello! I'm Joe Laskowski, an accomplished IT professional and passionate problem solver with a strong affinity for technology."
 		/>
 	</head>
 	<body>
 		<Header />
-		<main>
+		<main id="main-content">
 			<div class="container">
 				<article class="about-content">
 					<div class="hero-section">
@@ -24,7 +24,7 @@ import Footer from '../components/Footer.astro';
 							class="profile-image"
 						/>
 						<div class="hero-text">
-							<h1 class="accent-green">About Joe Laskowski</h1>
+							<h1 class="gradient-text">About Joe Laskowski</h1>
 							<p class="lead">
 								An accomplished IT professional and passionate problem solver with a strong affinity for technology, exploring AI art, and building innovative solutions.
 							</p>
@@ -36,7 +36,7 @@ import Footer from '../components/Footer.astro';
 						<p>
 							For over 20 years, I've been delivering exceptional service within the IT industry, driven by my insatiable curiosity and commitment to innovation. I've always been captivated by the transformative power of technology—its ability to solve complex problems and open new doors of opportunity.
 						</p>
-						
+
 						<p>
 							Currently, I hold the position of Lead Engineer at <a href="https://aunalytics.com/">Aunalytics</a>, a prestigious IT firm celebrated for its cutting-edge, AI-driven solutions throughout the Midwest. In this role, I wear multiple hats: I serve as the go-to Linux subject matter expert, provide comprehensive internal support, and also contribute to our Security Operations Center (SOC) as an analyst.
 						</p>
@@ -57,20 +57,20 @@ import Footer from '../components/Footer.astro';
 
 						<h2 class="accent-purple">Family and Community</h2>
 						<p>
-							Family is essential to me, and I'm blessed to have three incredible children and four delightful 
-							grandchildren who always amaze me with their boundless energy and zest for life. I hail from South 
-							Bend, Indiana, a vibrant and dynamic city known for its rich history, strong sense of community, 
-							and diverse cultural offerings. I take pride in my roots and cherish the memories and experiences 
+							Family is essential to me, and I'm blessed to have three incredible children and four delightful
+							grandchildren who always amaze me with their boundless energy and zest for life. I hail from South
+							Bend, Indiana, a vibrant and dynamic city known for its rich history, strong sense of community,
+							and diverse cultural offerings. I take pride in my roots and cherish the memories and experiences
 							shaped by growing up in this beautiful and welcoming place.
 						</p>
 
 						<h2 class="accent-pink">Let's Connect</h2>
 						<p>
-							Whether you're interested in discussing the latest IT solutions, exploring the world of 
-							cryptocurrency, or simply sharing your favorite Star Wars theory, I'd love to connect. Feel free 
+							Whether you're interested in discussing the latest IT solutions, exploring the world of
+							cryptocurrency, or simply sharing your favorite Star Wars theory, I'd love to connect. Feel free
 							to contact me, and let's start a conversation.
 						</p>
-						
+
 						<p>
 							I'm always excited to connect with fellow technology enthusiasts, AI art creators, and anyone passionate about innovation. Feel free to reach out through any of my social channels in the header, or check out my latest projects and experiments in the blog section.
 						</p>
@@ -99,8 +99,8 @@ import Footer from '../components/Footer.astro';
 				width: 180px;
 				height: 180px;
 				border-radius: 50%;
-				border: 4px solid var(--accent-green);
-				box-shadow: 0 8px 25px var(--shadow);
+				border: 4px solid var(--accent-blue);
+				box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
 				flex-shrink: 0;
 			}
 
@@ -139,11 +139,13 @@ import Footer from '../components/Footer.astro';
 
 			.prose a {
 				color: var(--accent-blue);
-				font-weight: 500;
+				font-weight: 600;
+				transition: color 0.2s ease, text-shadow 0.2s ease;
 			}
 
 			.prose a:hover {
-				color: var(--accent-pink);
+				color: var(--accent-cyan);
+				text-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
 				text-decoration: underline;
 			}
 
@@ -157,14 +159,14 @@ import Footer from '../components/Footer.astro';
 				max-width: 600px;
 				height: auto;
 				border-radius: 8px;
-				box-shadow: 0 4px 15px var(--shadow);
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 				margin: 0 auto 1rem auto;
 				display: block;
 			}
 
 			.image-caption {
 				font-style: italic;
-				color: var(--text-secondary);
+				color: var(--text-muted);
 				margin: 0;
 				font-size: 0.95rem;
 			}
@@ -192,4 +194,3 @@ import Footer from '../components/Footer.astro';
 		</style>
 	</body>
 </html>
-

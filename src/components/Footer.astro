@@ -18,7 +18,8 @@ const today = new Date();
 <style>
   footer {
     background-color: var(--bg-secondary);
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid transparent;
+    border-image: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)) 1;
     margin-top: 4rem;
     padding: 2rem 0;
   }
@@ -45,11 +46,12 @@ const today = new Date();
     color: var(--text-muted);
     text-decoration: none;
     font-size: 0.9rem;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
   }
 
   .footer-links a:hover {
     color: var(--accent-blue);
+    text-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
   }
 
   @media (max-width: 768px) {

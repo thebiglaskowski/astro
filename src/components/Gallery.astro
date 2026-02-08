@@ -3,24 +3,25 @@ interface Props {
 	images: string[];
 	columns?: number;
 	title?: string;
+	alts?: string[];
 }
 
-const { images, columns = 3, title } = Astro.props;
+const { images, columns = 3, title, alts } = Astro.props;
+const galleryId = `gallery-${Math.random().toString(36).substr(2, 9)}`;
 ---
 
 {title && <h3>{title}</h3>}
-<div class="pswp-gallery gallery" style={`--columns: ${columns}`} id={`gallery-${Math.random().toString(36).substr(2, 9)}`}>
+<div class="gallery" style={`--columns: ${columns}`} id={galleryId} role="region" aria-label={title || 'Image gallery'}>
 	{images.map((src, index) => (
 		<a
 			href={src}
-			data-pswp-width="0"
-			data-pswp-height="0"
-			target="_blank"
-			class="gallery-item"
+			class="glightbox gallery-item"
+			data-gallery={galleryId}
+			rel="noopener"
 		>
-			<img 
-				src={src} 
-				alt={`Gallery image ${index + 1}`}
+			<img
+				src={src}
+				alt={alts?.[index] || `Gallery image ${index + 1}`}
 				loading="lazy"
 			/>
 		</a>
@@ -28,45 +29,20 @@ const { images, columns = 3, title } = Astro.props;
 </div>
 
 <script>
-import PhotoSwipeLightbox from 'photoswipe/lightbox';
-import 'photoswipe/style.css';
+import GLightbox from 'glightbox';
+import 'glightbox/dist/css/glightbox.min.css';
 
-// Function to get image dimensions
-function getImageDimensions(src) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = function() {
-      resolve({ width: this.naturalWidth, height: this.naturalHeight });
-    };
-    img.onerror = function() {
-      resolve({ width: 1200, height: 800 }); // fallback
-    };
-    img.src = src;
-  });
-}
+document.addEventListener('DOMContentLoaded', () => {
+  const galleries = document.querySelectorAll('.gallery');
 
-// Initialize all galleries on the page
-document.addEventListener('DOMContentLoaded', async () => {
-  const galleries = document.querySelectorAll('.pswp-gallery');
-  
   for (const gallery of galleries) {
-    // Get dimensions for all images in this gallery
-    const links = gallery.querySelectorAll('a');
-    for (const link of links) {
-      const src = link.href;
-      const dimensions = await getImageDimensions(src);
-      link.setAttribute('data-pswp-width', dimensions.width.toString());
-      link.setAttribute('data-pswp-height', dimensions.height.toString());
-    }
-    
-    // Initialize PhotoSwipe for this gallery
-    const lightbox = new PhotoSwipeLightbox({
-      gallery: `#${gallery.id}`,
-      children: 'a',
-      pswpModule: () => import('photoswipe')
+    const id = gallery.id;
+    GLightbox({
+      selector: `#${id} .glightbox`,
+      touchNavigation: true,
+      loop: true,
+      closeOnOutsideClick: true,
     });
-    
-    lightbox.init();
   }
 });
 </script>
@@ -84,13 +60,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 		overflow: hidden;
 		border-radius: 8px;
 		cursor: pointer;
-		transition: transform 0.2s ease;
+		transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 		text-decoration: none;
 		display: block;
+		border: 1px solid var(--border-color);
 	}
 
 	.gallery-item:hover {
-		transform: scale(1.05);
+		transform: scale(1.03);
+		box-shadow: var(--glow-blue);
+		border-color: var(--border-glow);
 	}
 
 	.gallery-item img {
@@ -98,6 +77,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 		height: 200px;
 		object-fit: cover;
 		display: block;
+	}
+
+	/* GLightbox dark theme overrides */
+	:global(.glightbox-clean .gslide-description) {
+		background: var(--bg-elevated);
+		color: var(--text-primary);
+	}
+
+	:global(.glightbox-clean .gclose),
+	:global(.glightbox-clean .gnext),
+	:global(.glightbox-clean .gprev) {
+		color: var(--text-primary);
+	}
+
+	:global(.goverlay) {
+		background: rgba(10, 10, 15, 0.95) !important;
 	}
 
 	/* Responsive */

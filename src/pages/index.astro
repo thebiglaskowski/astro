@@ -12,10 +12,10 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 	</head>
 	<body>
 		<Header />
-		<main>
+		<main id="main-content">
 			<div class="container">
 				<section class="hero">
-					<h1 class="accent-green">Welcome to TheBigLaskowski</h1>
+					<h1 class="gradient-text">Welcome to TheBigLaskowski</h1>
 					<p class="hero-subtitle">
 						Exploring AI art, development techniques, and creative technology through hands-on experimentation and documentation.
 					</p>
@@ -27,12 +27,12 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 							<h3 class="accent-pink">AI Art & Creativity</h3>
 							<p>Exploring the intersection of artificial intelligence and visual art through tools like Stable Diffusion, Midjourney, and custom image processing.</p>
 						</div>
-						
+
 						<div class="feature-card card">
 							<h3 class="accent-blue">Development Tutorials</h3>
 							<p>Step-by-step guides covering terminal customization, development workflows, and practical programming techniques for real-world applications.</p>
 						</div>
-						
+
 						<div class="feature-card card">
 							<h3 class="accent-yellow">Tech Exploration</h3>
 							<p>Hands-on experimentation with emerging technologies, from AI-powered command line tools to modern web development frameworks.</p>
@@ -111,7 +111,7 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
 			.cta-button {
 				display: inline-block;
-				background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+				background: var(--gradient-primary);
 				color: white;
 				padding: 1rem 2rem;
 				border-radius: 8px;
@@ -122,8 +122,9 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
 			.cta-button:hover {
 				transform: translateY(-2px);
-				box-shadow: 0 8px 25px rgba(102, 217, 239, 0.3);
+				box-shadow: 0 8px 25px var(--shadow-accent-blue);
 				text-decoration: none;
+				color: white;
 			}
 
 			@media (max-width: 768px) {

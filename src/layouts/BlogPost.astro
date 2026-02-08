@@ -17,7 +17,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 
 	<body>
 		<Header />
-		<main>
+		<main id="main-content">
 			<article class="container">
 				{heroImage && (
 					<div class="hero-image">
@@ -34,7 +34,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 								</div>
 							)}
 						</div>
-						<h1 class="accent-green">{title}</h1>
+						<h1 class="accent-blue">{title}</h1>
 						<hr />
 					</div>
 					<slot />
@@ -53,7 +53,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				max-width: 100%;
 				height: auto;
 				border-radius: 12px;
-				box-shadow: 0 4px 20px var(--shadow);
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 			}
 
 			.prose {
@@ -91,7 +91,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			hr {
 				border: none;
 				height: 1px;
-				background: var(--border-color);
+				background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), transparent);
 				margin: 1rem 0;
 			}
 
@@ -99,15 +99,23 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			.prose img {
 				border-radius: 8px;
 				margin: 1.5rem 0;
-				box-shadow: 0 2px 10px var(--shadow);
+				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 			}
 
 			.prose blockquote {
-				border-left: 4px solid var(--accent-yellow);
-				background: var(--bg-secondary);
+				border-left: 4px solid var(--accent-blue);
+				background: rgba(0, 212, 255, 0.05);
 				padding: 1rem 1.5rem;
 				margin: 1.5rem 0;
 				border-radius: 0 8px 8px 0;
+			}
+
+			.prose :global(a) {
+				color: var(--accent-blue);
+			}
+
+			.prose :global(a:hover) {
+				color: var(--accent-cyan);
 			}
 
 			@media (max-width: 768px) {

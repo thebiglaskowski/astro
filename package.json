@@ -12,7 +12,8 @@
     "@astrojs/mdx": "^4.3.10",
     "@astrojs/rss": "^4.0.13",
     "@astrojs/sitemap": "^3.6.0",
+    "@fontsource-variable/inter": "^5.2.8",
     "astro": "^5.15.5",
-    "photoswipe": "^5.4.4"
+    "glightbox": "^3.3.1"
   }
 }
