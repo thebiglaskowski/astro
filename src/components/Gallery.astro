@@ -1,7 +1,6 @@
 ---
 import { Image, getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
-import 'glightbox/dist/css/glightbox.min.css';
 
 interface Props {
 	images: ImageMetadata[];
@@ -38,46 +37,7 @@ const fullSizeUrls = await Promise.all(
 	))}
 </div>
 
-<script>
-import GLightbox from 'glightbox';
-
-function initGalleries() {
-	const galleryIds = new Set<string>();
-	document.querySelectorAll<HTMLElement>('.glightbox[data-gallery]').forEach(el => {
-		const id = el.dataset.gallery;
-		if (id) galleryIds.add(id);
-	});
-
-	galleryIds.forEach(id => {
-		GLightbox({
-			selector: `.glightbox[data-gallery="${id}"]`,
-			touchNavigation: true,
-			loop: true,
-			closeOnOutsideClick: true,
-			openEffect: 'fade',
-			closeEffect: 'fade',
-		});
-	});
-
-	// Initialize standalone glightbox links (e.g. video links not in a gallery)
-	const standalone = document.querySelectorAll('.glightbox:not([data-gallery])');
-	if (standalone.length > 0) {
-		GLightbox({
-			selector: '.glightbox:not([data-gallery])',
-			touchNavigation: true,
-			closeOnOutsideClick: true,
-			openEffect: 'fade',
-			closeEffect: 'fade',
-		});
-	}
-}
-
-if (document.readyState === 'loading') {
-	document.addEventListener('DOMContentLoaded', initGalleries);
-} else {
-	initGalleries();
-}
-</script>
+<!-- GLightbox initialization handled by BlogPost layout -->
 
 <style>
 	.gallery {
@@ -109,22 +69,6 @@ if (document.readyState === 'loading') {
 		height: 200px;
 		object-fit: cover;
 		display: block;
-	}
-
-	/* GLightbox dark theme overrides */
-	:global(.glightbox-clean .gslide-description) {
-		background: var(--bg-elevated);
-		color: var(--text-primary);
-	}
-
-	:global(.glightbox-clean .gclose),
-	:global(.glightbox-clean .gnext),
-	:global(.glightbox-clean .gprev) {
-		color: var(--text-primary);
-	}
-
-	:global(.goverlay) {
-		background: rgba(10, 10, 15, 0.95) !important;
 	}
 
 	/* Responsive */

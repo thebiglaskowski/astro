@@ -51,7 +51,12 @@ After the installation, you need an OpenAI API key to use ShellGPT. With the Ope
 
 **Demo**
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/_Ll-gsdTpO8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<div style="text-align: center">
+<a href="https://www.youtube.com/watch?v=_Ll-gsdTpO8" class="glightbox video-link" data-glightbox="title: ShellGPT Demo">
+  <img src="https://img.youtube.com/vi/_Ll-gsdTpO8/hqdefault.jpg" alt="ShellGPT Demo" width="560" height="315" loading="lazy" />
+  <span class="play-button" aria-hidden="true"></span>
+</a>
+</div>
 
 ### Usage
 

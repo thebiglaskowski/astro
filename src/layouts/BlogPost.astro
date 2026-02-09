@@ -1,14 +1,19 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
+import 'glightbox/dist/css/glightbox.min.css';
 
 type Props = CollectionEntry<'blog'>['data'];
 
 const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+
+const heroFullUrl = heroImage
+	? (await getImage({ src: heroImage, format: 'webp' })).src
+	: undefined;
 ---
 
 <html lang="en">
@@ -22,7 +27,9 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			<article class="container">
 				{heroImage && (
 					<div class="hero-image">
-						<Image src={heroImage} alt={title || ''} width={1020} height={510} />
+						<a href={heroFullUrl} class="glightbox" data-type="image" data-title={title}>
+							<Image src={heroImage} alt={title || ''} width={1020} height={510} />
+						</a>
 					</div>
 				)}
 				<div class="prose">
@@ -43,6 +50,68 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			</article>
 		</main>
 		<Footer />
+
+		<script>
+			import GLightbox from 'glightbox';
+
+			function initBlogLightbox() {
+				// Auto-wrap inline prose images not already inside links or galleries
+				const prose = document.querySelector('.prose');
+				if (prose) {
+					prose.querySelectorAll('img').forEach((img) => {
+						if (!(img instanceof HTMLImageElement)) return;
+						if (img.closest('a') || img.closest('.gallery')) return;
+
+						const wrapper = document.createElement('a');
+						wrapper.href = img.src;
+						wrapper.classList.add('glightbox');
+						wrapper.setAttribute('data-gallery', 'post-images');
+						wrapper.setAttribute('data-type', 'image');
+						const caption = img.title || img.alt;
+						if (caption) wrapper.setAttribute('data-title', caption);
+
+						img.parentNode?.insertBefore(wrapper, img);
+						wrapper.appendChild(img);
+					});
+				}
+
+				// Initialize all gallery groups (Gallery components + auto-wrapped post-images)
+				const galleryIds = new Set<string>();
+				document.querySelectorAll<HTMLElement>('.glightbox[data-gallery]').forEach(el => {
+					const id = el.dataset.gallery;
+					if (id) galleryIds.add(id);
+				});
+
+				galleryIds.forEach(id => {
+					GLightbox({
+						selector: `.glightbox[data-gallery="${id}"]`,
+						touchNavigation: true,
+						loop: true,
+						closeOnOutsideClick: true,
+						openEffect: 'fade',
+						closeEffect: 'fade',
+					});
+				});
+
+				// Initialize standalone glightbox elements (hero image, video links)
+				const standalone = document.querySelectorAll('.glightbox:not([data-gallery])');
+				if (standalone.length > 0) {
+					GLightbox({
+						selector: '.glightbox:not([data-gallery])',
+						touchNavigation: true,
+						closeOnOutsideClick: true,
+						openEffect: 'fade',
+						closeEffect: 'fade',
+					});
+				}
+			}
+
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', initBlogLightbox);
+			} else {
+				initBlogLightbox();
+			}
+		</script>
 
 		<style>
 			.hero-image {
@@ -123,6 +192,40 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 				.title h1 {
 					font-size: 2rem;
 				}
+			}
+
+			/* GLightbox dark theme overrides */
+			:global(.glightbox-clean .gslide-description) {
+				background: var(--bg-elevated);
+				color: var(--text-primary);
+			}
+
+			:global(.glightbox-clean .gclose),
+			:global(.glightbox-clean .gnext),
+			:global(.glightbox-clean .gprev) {
+				color: var(--text-primary);
+			}
+
+			:global(.goverlay) {
+				background: rgba(10, 10, 15, 0.95) !important;
+			}
+
+			/* Lightbox-enabled image styles */
+			.hero-image a {
+				display: inline-block;
+				text-decoration: none;
+			}
+
+			.prose :global(a.glightbox) {
+				display: inline-block;
+				text-decoration: none;
+				cursor: pointer;
+			}
+
+			.prose :global(a.glightbox:hover img),
+			.hero-image a:hover img {
+				filter: brightness(1.1);
+				transition: filter var(--transition-fast);
 			}
 		</style>
 	</body>
