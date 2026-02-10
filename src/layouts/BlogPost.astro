@@ -17,7 +17,7 @@ const heroFullUrl = heroImage
 		{heroImage && (
 			<div class="hero-image">
 				<a href={heroFullUrl} class="glightbox" data-type="image" data-title={title}>
-					<Image src={heroImage} alt={title || ''} width={1020} height={510} />
+					<Image src={heroImage} alt={title || ''} width={1020} height={510} loading="eager" />
 				</a>
 			</div>
 		)}
