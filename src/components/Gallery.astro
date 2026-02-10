@@ -7,9 +7,10 @@ interface Props {
 	columns?: number;
 	title?: string;
 	alts?: string[];
+	captions?: string[];
 }
 
-const { images, columns = 3, title, alts } = Astro.props;
+const { images, columns = 3, title, alts, captions } = Astro.props;
 const galleryId = `gallery-${Math.random().toString(36).substr(2, 9)}`;
 
 const fullSizeUrls = await Promise.all(
@@ -20,20 +21,25 @@ const fullSizeUrls = await Promise.all(
 {title && <h3>{title}</h3>}
 <div class="gallery" style={`--columns: ${columns}`} id={galleryId} role="region" aria-label={title || 'Image gallery'}>
 	{images.map((src, index) => (
-		<a
-			href={fullSizeUrls[index]}
-			class="glightbox gallery-item"
-			data-gallery={galleryId}
-			data-type="image"
-		>
-			<Image
-				src={src}
-				alt={alts?.[index] || `Gallery image ${index + 1}`}
-				width={400}
-				height={300}
-				loading="lazy"
-			/>
-		</a>
+		<div class={`gallery-cell${captions ? ' has-caption' : ''}`}>
+			<a
+				href={fullSizeUrls[index]}
+				class="glightbox gallery-item"
+				data-gallery={galleryId}
+				data-type="image"
+			>
+				<Image
+					src={src}
+					alt={alts?.[index] || `Gallery image ${index + 1}`}
+					width={400}
+					height={300}
+					loading="lazy"
+				/>
+			</a>
+			{captions?.[index] && (
+				<p class="gallery-caption">{captions[index]}</p>
+			)}
+		</div>
 	))}
 </div>
 
@@ -69,6 +75,24 @@ const fullSizeUrls = await Promise.all(
 		height: 200px;
 		object-fit: cover;
 		display: block;
+	}
+
+	.gallery-cell {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.gallery-cell .gallery-item {
+		flex-shrink: 0;
+	}
+
+	.gallery-caption {
+		margin: 0.5rem 0 0 0;
+		font-size: 0.85rem;
+		font-style: italic;
+		color: var(--text-muted);
+		text-align: center;
+		line-height: 1.4;
 	}
 
 	/* Responsive */

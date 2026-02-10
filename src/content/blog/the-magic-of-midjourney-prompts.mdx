@@ -10,7 +10,34 @@ tags:
 description: 'Unleash the power of AI in art with Midjourney. Master the creation of photorealistic images using natural language prompts, grasp the advantages of Midjourney, and uncover advanced techniques. This guide, ideal for artists and tech enthusiasts, beckons you to venture into novel realms of digital art.'
 ---
 
+import { Image } from 'astro:assets';
 import AutoGallery from '../../components/AutoGallery.astro';
+
+import abstractColors from '../../assets/images/posts/2023-04-30/gallery/abstract_colors.webp';
+import flowingHairWoman from '../../assets/images/posts/2023-04-30/gallery/flowing_hair_woman.webp';
+import futuristicCity from '../../assets/images/posts/2023-04-30/gallery/futuristic_city_skyline.webp';
+import mountainLandscape from '../../assets/images/posts/2023-04-30/gallery/mountain_landscape.webp';
+
+import happyDog from '../../assets/images/posts/2023-04-30/gallery2/happy_dog.webp';
+import moonWalker from '../../assets/images/posts/2023-04-30/gallery2/moon_walker.webp';
+import seaTurtle from '../../assets/images/posts/2023-04-30/gallery2/sea_turtle.webp';
+import sunsetBeach from '../../assets/images/posts/2023-04-30/gallery2/sunset_beach.webp';
+
+import flowerVase from '../../assets/images/posts/2023-04-30/gallery3/flower_vase.webp';
+import minimalTree from '../../assets/images/posts/2023-04-30/gallery3/minimal_tree_foreground.webp';
+import mushroomForest from '../../assets/images/posts/2023-04-30/gallery3/mushroom_forrest.webp';
+import starryNight from '../../assets/images/posts/2023-04-30/gallery3/starry_night_cityscape.webp';
+
+import cartoon from '../../assets/images/posts/2023-04-30/gallery4/cartoon.webp';
+import chaosTree from '../../assets/images/posts/2023-04-30/gallery4/chaos_tree.webp';
+import glassPetals from '../../assets/images/posts/2023-04-30/gallery4/glass_pedals.webp';
+import lambo from '../../assets/images/posts/2023-04-30/gallery4/lambo.webp';
+
+import beach from '../../assets/images/posts/2023-04-30/gallery5/beach.webp';
+import mountainCabin from '../../assets/images/posts/2023-04-30/gallery5/mountain_cabin.webp';
+
+import cloudCity from '../../assets/images/posts/2023-04-30/gallery6/cloud_city.webp';
+import rainbowMushrooms from '../../assets/images/posts/2023-04-30/gallery6/rainbow_mushrooms.webp';
 
 ## I. Introduction to Midjourney prompting
 
@@ -23,19 +50,25 @@ There are several advantages to using Midjourney for image generation. First, it
 ### Examples of Stunning Midjourney-Generated Images
 Midjourney has been used to create various stunning images, from landscapes to people to abstract designs. Here are some examples of Midjourney-generated photos that showcase the platform's capabilities:
 
-> **Example Prompt 1**  
+> **Example Prompt 1**
 > An abstract, colorful design with fluid shapes and patterns that could be used as a background or texture.
 
-> **Example Prompt 2**  
+<Image src={abstractColors} alt="An abstract, colorful design with fluid shapes and patterns" width={600} height={600} />
+
+> **Example Prompt 2**
 > A realistic portrait of a woman with flowing hair and intricate clothing, complete with subtle shadows and highlights that give it depth and realism.
 
-> **Example Prompt 3**  
+<Image src={flowingHairWoman} alt="A realistic portrait of a woman with flowing hair and intricate clothing" width={600} height={600} />
+
+> **Example Prompt 3**
 > A detailed, 3D rendering of a futuristic city skyline at night, complete with glowing skyscrapers, flying cars, and a moon in the background.
 
-> **Example Prompt 4**  
+<Image src={futuristicCity} alt="A futuristic city skyline at night with glowing skyscrapers" width={600} height={600} />
+
+> **Example Prompt 4**
 > A beautiful, photorealistic mountain landscape complete with clouds, trees, and a river.
 
-<AutoGallery postSlug="2023-04-30" galleryName="gallery" title="Midjourney Examples" />
+<Image src={mountainLandscape} alt="A photorealistic mountain landscape with clouds, trees, and a river" width={600} height={600} />
 
 These examples show how Midjourney can quickly and efficiently create a wide range of high-quality images, from realistic to abstract.
 
@@ -55,19 +88,25 @@ The AI then uses these criteria to create a unique image. The more detailed and 
 
 Here are some examples of Midjourney prompts:
 
-> **Example Prompt 1**  
+> **Example Prompt 1**
 > Generate an image of a happy dog playing in a park with a ball.
 
-> **Example Prompt 2**  
+<Image src={happyDog} alt="A happy dog playing in a park" width={600} height={600} />
+
+> **Example Prompt 2**
 > Produce an image of a surreal landscape with a giant moon in the background and a small person walking on a tightrope.
 
-> **Example Prompt 3**  
+<Image src={moonWalker} alt="A surreal landscape with a giant moon and a person on a tightrope" width={600} height={600} />
+
+> **Example Prompt 3**
 > A detailed, high-resolution image of a sea turtle swimming in the ocean, complete with realistic lighting and textures.
 
-> **Example Prompt 4**  
+<Image src={seaTurtle} alt="A sea turtle swimming in the ocean with realistic lighting" width={600} height={600} />
+
+> **Example Prompt 4**
 > Create an image of a sunset over a beach with palm trees in the foreground.
 
-<AutoGallery postSlug="2023-04-30" galleryName="gallery2" title="Prompt Examples" />
+<Image src={sunsetBeach} alt="A sunset over a beach with palm trees" width={600} height={600} />
 
 These prompts provide specific instructions and criteria for the AI to follow when generating an image. The resulting photos will be unique and tailored to the specific criteria provided in the prompt.
 
@@ -95,17 +134,25 @@ These prompts provide specific instructions and criteria for the AI to follow wh
 
 ### Examples of Effective Midjourney Prompts
 
-> **Example Prompt 1**  
+> **Example Prompt 1**
 > A still life of a vase of flowers on a table, with a light source coming from the left.
 
-> **Example Prompt 2**  
+<Image src={flowerVase} alt="A still life of a vase of flowers on a table" width={600} height={600} />
+
+> **Example Prompt 2**
 > A minimalist landscape with a single tree in the foreground, and a mountain range in the background.
 
-> **Example Prompt 3**  
+<Image src={minimalTree} alt="A minimalist landscape with a single tree and mountain range" width={600} height={600} />
+
+> **Example Prompt 3**
 > A surrealist landscape with a giant mushroom forest and a small cabin in the center, with a rainbow in the sky.
 
-> **Example Prompt 4**  
+<Image src={mushroomForest} alt="A surrealist landscape with a giant mushroom forest" width={600} height={600} />
+
+> **Example Prompt 4**
 > A starry night sky over a cityscape, with the moon rising in the background.
+
+<Image src={starryNight} alt="A starry night sky over a cityscape with the moon rising" width={600} height={600} />
 
 ## IV. Midjourney prompt commands and parameters
 
@@ -135,97 +182,105 @@ Midjourney provides a variety of commands and parameters to help users create un
 
 ## Parameters Available
 
-**Aspect Ratio (--aspect, --ar)**  
-Change the aspect ratio of a generation.  
+**Aspect Ratio (--aspect, --ar)**
+Change the aspect ratio of a generation.
 *Example: "model:GPT-3, seed:dog, aspect:4:3"*
 
-**Chaos (--chaos \<number\>)**  
-Change how varied the results will be. Higher values produce more unusual and unexpected generations.  
+**Chaos (--chaos \<number\>)**
+Change how varied the results will be. Higher values produce more unusual and unexpected generations.
 *Example: "model:DALL-E 2, seed:tree, chaos:80"*
 
-**Negative Prompting (--no)**  
-Remove specific elements from the generated image.  
+**Negative Prompting (--no)**
+Remove specific elements from the generated image.
 *Example: "model:ClipDraw, seed:car, no:sky"*
 
-**Quality (--quality, --q)**  
-Control the rendering quality of the output. Higher values cost more and lower values cost less.  
+**Quality (--quality, --q)**
+Control the rendering quality of the output. Higher values cost more and lower values cost less.
 *Example: "model:VQGAN+CLIP, seed:flower, quality:.5"*
 
-**Repeat (--repeat, --r)**  
-Create multiple jobs from a single prompt.  
+**Repeat (--repeat, --r)**
+Create multiple jobs from a single prompt.
 *Example: "model:BigGAN, seed:cat, repeat:5"*
 
-**Seed (--seed)**  
-Set a seed number to generate the initial image grids.  
+**Seed (--seed)**
+Set a seed number to generate the initial image grids.
 *Example: "model:CLIPDraw, seed:city, seed:12345"*
 
-**Stop (--stop)**  
-Finish a job partway through the process.  
+**Stop (--stop)**
+Finish a job partway through the process.
 *Example: "model:VQGAN+CLIP, seed:mountain, stop:50"*
 
-**Style (--style)**  
-Switch between versions of the Midjourney model.  
+**Style (--style)**
+Switch between versions of the Midjourney model.
 *Example: "model:BigGAN, seed:dog, style:4a"*
 
-**Stylize (--stylize, --s)**  
-Control how strongly Midjourney's default aesthetic style is applied to jobs.  
+**Stylize (--stylize, --s)**
+Control how strongly Midjourney's default aesthetic style is applied to jobs.
 *Example: "model:DALL-E 2, seed:cup, stylize:500"*
 
-**Upscaler Parameters (--uplight, --upbeta, --upanime)**  
-Upscale images to increase size and add additional details using different upscalers.  
+**Upscaler Parameters (--uplight, --upbeta, --upanime)**
+Upscale images to increase size and add additional details using different upscalers.
 *Example: "model:VQGAN+CLIP, seed:landscape, uplight"*
 
-**Niji Model (--niji)**  
-Use an alternative model focused on anime-style images.  
+**Niji Model (--niji)**
+Use an alternative model focused on anime-style images.
 *Example: "model:VQGAN+CLIP, seed:anime, niji"*
 
-**High Definition (--hd)**  
-Use an early alternative model that produces larger, less consistent images.  
+**High Definition (--hd)**
+Use an early alternative model that produces larger, less consistent images.
 *Example: "model:BigGAN, seed:city, hd"*
 
-**Test (--test)**  
-Use the Midjourney special test model.  
+**Test (--test)**
+Use the Midjourney special test model.
 *Example: "model:DALL-E, seed:dog, test"*
 
-**Testp (--testp)**  
-Use the Midjourney special photography-focused test model.  
+**Testp (--testp)**
+Use the Midjourney special photography-focused test model.
 *Example: "model:VQGAN+CLIP, seed:food, testp"*
 
-**Version (--version, --v)**  
-Use a different version of the Midjourney algorithm.  
+**Version (--version, --v)**
+Use a different version of the Midjourney algorithm.
 *Example: "model:BigGAN, seed:animal, version:3"*
 
-**Creative (--creative)**  
-Modify the test and testp models to be more varied and creative.  
+**Creative (--creative)**
+Modify the test and testp models to be more varied and creative.
 *Example: "model:VQGAN+CLIP, seed:portrait, creative"*
 
-**Image Weight (--iw)**  
-Set the image prompt weight relative to text weight.  
+**Image Weight (--iw)**
+Set the image prompt weight relative to text weight.
 *Example: "model:DALL-E 2, seed:apple, iw:.75"*
 
-**Sameseed (--sameseed)**  
-The same seed value will be used to create a single random noise field applied across all images in the initial grid. When --sameseed is specified, all images in the initial grid use the same starting noise and will produce similar generated images.  
+**Sameseed (--sameseed)**
+The same seed value will be used to create a single random noise field applied across all images in the initial grid. When --sameseed is specified, all images in the initial grid use the same starting noise and will produce similar generated images.
 *Example: "model:DALL-E 2, seed:cat, scale:2, upbeta, --sameseed"*
 
-**Video (--video)**  
-Saves a progress video of the initial image grid being generated. Emoji reacts to the completed image grid with ✉️ to trigger the video being sent to your direct messages. --video does not work when upscaling an image.  
+**Video (--video)**
+Saves a progress video of the initial image grid being generated. Emoji reacts to the completed image grid with ✉️ to trigger the video being sent to your direct messages. --video does not work when upscaling an image.
 *Example: "model:CLIPDraw, seed:mountains, iterations:10, --video"*
 
 Each Midjourney prompt command serves a specific purpose and can be used to create images, change default settings, monitor user info, and perform other helpful tasks. To use a command, simply type it in a Discord channel or direct message with the Midjourney Bot. You can also use parameters to further customize your command.
 
 ### Examples of prompts using different commands and parameters
 
-> **Remix command with aspect ratio parameter:**  
+> **Remix command with aspect ratio parameter:**
 > Toggle Remix mode and generate a generation with an aspect ratio of 4:3 using DALL-E 2 model by typing "/remix model:DALL-E 2, seed:tree, aspect:4:3" *"/imagine https://s.mj.run/abcxyz cartoon style"*
 
-> **Imagine command with chaos parameter:**  
+<Image src={cartoon} alt="Cartoon style remix example" width={600} height={600} />
+
+> **Imagine command with chaos parameter:**
 > Get a chaotic image of a tree with a more varied and unexpected response by typing *"/imagine model:DALL-E 2, seed:tree, chaos:80"*
 
-> **Imagine command with quality parameter:**  
+<Image src={chaosTree} alt="Chaotic tree generated with high chaos parameter" width={600} height={600} />
+
+> **Imagine command with quality parameter:**
 > Generate a high-quality image of a flower using VQGAN+CLIP model by typing *"/imagine model:VQGAN+CLIP, seed:flower, quality:1"*
 
-> **Describe command with negative prompting parameter:**  
+<Image src={glassPetals} alt="High-quality glass flower petals" width={600} height={600} />
+
+> **Describe command with negative prompting parameter:**
 > Generate an image of a car, but remove the sky from the generated results by typing *"/describe model:ClipDraw, image:car.jpg, no:sky"*
+
+<Image src={lambo} alt="Car generated with negative prompting to remove sky" width={600} height={600} />
 
 ## V. Midjourney prompt resources
 
@@ -269,11 +324,15 @@ For example, you can layer a prompt for a landscape with a prompt for a specific
 
 **Here are some examples of layered prompts:**
 
-> **Layered Prompt 1**  
+> **Layered Prompt 1**
 > **Prompt:** "/imagine seed:ocean,seed:sunset beach" - **Result:** *A stunning image of an island with water, trees and some mountains.*
 
-> **Layered Prompt 2**  
+<Image src={beach} alt="Layered prompt result: ocean and sunset beach combined" width={600} height={600} />
+
+> **Layered Prompt 2**
 > **Prompt:** "/imagine model:midjourney-1 seed:mountain,seed:cabin" - **Result:** *A beautiful landscape image with a cozy cabin nestled in the mountains.*
+
+<Image src={mountainCabin} alt="Layered prompt result: mountain and cabin combined" width={600} height={600} />
 
 ### Using AI-generated text as prompts
 
@@ -283,13 +342,17 @@ For example, you can use an AI text generator to create a short story or a poem 
 
 **Here are some examples of AI-generated text prompts:**
 
-> **AI Prompt Example 1**  
-> **Text prompt:** "A city made of clouds, floating in the sky."  
+> **AI Prompt Example 1**
+> **Text prompt:** "A city made of clouds, floating in the sky."
 > **Result:** *An ethereal image of a cityscape made entirely of clouds, floating in a dreamlike sky.*
 
-> **AI Prompt Example 2**  
-> **Text prompt:** "A forest of rainbow-colored trees, with glowing mushrooms growing at their base."  
+<Image src={cloudCity} alt="A city made of clouds floating in the sky" width={600} height={600} />
+
+> **AI Prompt Example 2**
+> **Text prompt:** "A forest of rainbow-colored trees, with glowing mushrooms growing at their base."
 > **Result:** *An imaginative image of a fantastical forest, with trees and glowing mushrooms in every color of the rainbow at their roots.*
+
+<Image src={rainbowMushrooms} alt="A forest of rainbow-colored trees with glowing mushrooms" width={600} height={600} />
 
 ### Creating custom datasets for Midjourney
 
@@ -339,6 +402,12 @@ In this article, we covered the basics of Midjourney prompting, including the di
 To use Midjourney effectively, it's essential to understand the different models and parameters available and how to use them to achieve the desired output. It's also important to experiment with different prompts and use various sources for inspiration.
 
 When using Midjourney, it's essential to remember that the AI could be better and may only sometimes produce the desired results. However, users can achieve impressive and creative results with practice and experimentation.
+
+### More Midjourney creations
+
+Here are a few more examples of what's possible with creative Midjourney prompting:
+
+<AutoGallery postSlug="2023-04-30" galleryName="gallery7" title="" columns={2} showCaptions={true} />
 
 ### Try Midjourney for yourself and share your creations
 

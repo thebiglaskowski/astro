@@ -7,9 +7,10 @@ interface Props {
 	galleryName?: string;
 	columns?: number;
 	title?: string;
+	showCaptions?: boolean;
 }
 
-const { postSlug, galleryName = 'gallery', columns = 3, title } = Astro.props;
+const { postSlug, galleryName = 'gallery', columns = 3, title, showCaptions = false } = Astro.props;
 
 const allGalleryImages = import.meta.glob<{ default: ImageMetadata }>(
 	'/src/assets/images/posts/**/gallery*/*.{jpg,jpeg,png,gif,webp}',
@@ -32,10 +33,16 @@ const alts = matched.map(([path]) => {
 	const filename = path.split('/').pop()?.replace(/\.[^.]+$/, '') || '';
 	return filename.replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 });
+const captions = showCaptions
+	? matched.map(([path]) => {
+		const filename = path.split('/').pop()?.replace(/\.[^.]+$/, '') || '';
+		return filename.replace(/[_-]/g, ' ');
+	})
+	: undefined;
 ---
 
 {images.length > 0 && (
-	<Gallery images={images} columns={columns} title={title} alts={alts} />
+	<Gallery images={images} columns={columns} title={title} alts={alts} captions={captions} />
 )}
 
 {images.length === 0 && (
