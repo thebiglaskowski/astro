@@ -16,7 +16,7 @@ const allGalleryImages = import.meta.glob<{ default: ImageMetadata }>(
 	{ eager: true }
 );
 
-const images: ImageMetadata[] = Object.entries(allGalleryImages)
+const matched = Object.entries(allGalleryImages)
 	.filter(([path]) => {
 		const segments = path.split('/');
 		const postsIdx = segments.indexOf('posts');
@@ -25,12 +25,17 @@ const images: ImageMetadata[] = Object.entries(allGalleryImages)
 		const gallery = segments[postsIdx + 2];
 		return slug === postSlug && gallery === galleryName;
 	})
-	.sort(([a], [b]) => a.localeCompare(b))
-	.map(([, mod]) => mod.default);
+	.sort(([a], [b]) => a.localeCompare(b));
+
+const images: ImageMetadata[] = matched.map(([, mod]) => mod.default);
+const alts = matched.map(([path]) => {
+	const filename = path.split('/').pop()?.replace(/\.[^.]+$/, '') || '';
+	return filename.replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+});
 ---
 
 {images.length > 0 && (
-	<Gallery images={images} columns={columns} title={title} />
+	<Gallery images={images} columns={columns} title={title} alts={alts} />
 )}
 
 {images.length === 0 && (

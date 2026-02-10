@@ -1,11 +1,7 @@
 ---
 title: 'Customize Your Terminal: A Comprehensive Guide to Enhancing Your Linux CLI Experience'
 pubDate: 2021-08-08
-date: 2021-08-08
 heroImage: '../../assets/images/posts/2021-08-08/featured.webp'
-featuredImage: '../../assets/images/posts/2021-08-08/featured.webp'
-images: ['/images/posts/2021-08-08/featured-social.webp']
-slug: riced-out-terminal
 tags:
   - "Linux"
   - "CLI"
@@ -14,7 +10,6 @@ tags:
   - "Powerlevel10K"
   - "ColorLS"
 description: 'A guide to make your terminal look and feel professional. Transform your boring default stock terminal into a riced-out beast.'
-author: "Joe Laskowski"
 ---
 
 Enhancing the appearance and functionality of your Terminal can be a fun and rewarding way to personalize your workspace. This tutorial will demonstrate how to transform your Ubuntu terminal into a visually appealing and professional environment using color schemes, the Color LS Ruby gem, and other valuable tools. By the end of this guide, your Terminal will look fantastic and improve your daily workflow.

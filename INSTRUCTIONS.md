@@ -45,32 +45,24 @@ title: 'Your Post Title'
 pubDate: 2026-02-09
 description: 'A short summary that appears in post listings and SEO meta tags.'
 heroImage: '../../assets/images/posts/2026-02-09/featured.webp'
-featuredImage: '../../assets/images/posts/2026-02-09/featured.webp'
-images: ['/images/posts/2026-02-09/featured-social.webp']
-slug: your-post-slug
 tags:
   - "Tag1"
   - "Tag2"
-author: "Joe Laskowski"
 draft: false
 ---
 ```
 
 #### Field Reference
 
-| Field           | Required | Type       | Description                                                                 |
-|-----------------|----------|------------|-----------------------------------------------------------------------------|
-| `title`         | Yes      | string     | The post title displayed on the page and in listings.                       |
-| `pubDate`       | Yes      | date       | Publication date in `YYYY-MM-DD` format. Controls sort order.               |
-| `description`   | No       | string     | Short summary for post listings, RSS feed, and SEO meta tags.               |
-| `heroImage`     | No       | image path | Large banner image at the top of the post.                                  |
-| `featuredImage` | No       | image path | Thumbnail used in post listings/cards.                                      |
-| `images`        | No       | string[]   | Array of image paths for social sharing/OpenGraph.                          |
-| `slug`          | No       | string     | Custom URL slug. If omitted, the filename (minus extension) is used.        |
-| `tags`          | No       | string[]   | Array of tags for categorization.                                           |
-| `author`        | No       | string     | Author name.                                                                |
-| `updatedDate`   | No       | date       | Date the post was last updated. Use `YYYY-MM-DD` format.                    |
-| `draft`         | No       | boolean    | Set to `true` to hide the post from the production build. Drafts are still visible during local dev (`npm run dev`). |
+| Field         | Required | Type       | Description                                                                 |
+|---------------|----------|------------|-----------------------------------------------------------------------------|
+| `title`       | Yes      | string     | The post title displayed on the page and in listings.                       |
+| `pubDate`     | Yes      | date       | Publication date in `YYYY-MM-DD` format. Controls sort order.               |
+| `description` | Yes      | string     | Short summary for post listings, RSS feed, and SEO meta tags.               |
+| `heroImage`   | No       | image path | Large banner image at the top of the post and in post listings.             |
+| `tags`        | No       | string[]   | Array of tags for categorization.                                           |
+| `updatedDate` | No       | date       | Date the post was last updated. Use `YYYY-MM-DD` format.                    |
+| `draft`       | No       | boolean    | Set to `true` to hide the post from the production build. Defaults to `false`. Drafts are still visible during local dev (`npm run dev`). |
 
 ### Minimal Post Example
 
@@ -80,6 +72,7 @@ The absolute minimum you need:
 ---
 title: 'My New Post'
 pubDate: 2026-02-09
+description: 'A brief summary of what this post is about.'
 ---
 
 Your content goes here. Standard Markdown syntax applies.
@@ -98,14 +91,9 @@ pubDate: 2026-02-09
 updatedDate: 2026-02-10
 description: 'This post demonstrates all available frontmatter fields.'
 heroImage: '../../assets/images/posts/2026-02-09/featured.webp'
-featuredImage: '../../assets/images/posts/2026-02-09/featured.webp'
-images: ['/images/posts/2026-02-09/featured-social.webp']
-slug: complete-example
 tags:
   - "Tutorial"
   - "Astro"
-author: "Joe Laskowski"
-draft: false
 ---
 
 Your Markdown content starts here.
@@ -115,7 +103,7 @@ Your Markdown content starts here.
 
 ## Working with Images
 
-### Post Images (Hero / Featured)
+### Post Images (Hero)
 
 Store images for each post in a date-based directory under:
 
@@ -133,7 +121,6 @@ Reference them in frontmatter using relative paths from the blog post file:
 
 ```yaml
 heroImage: '../../assets/images/posts/2026-02-09/featured.webp'
-featuredImage: '../../assets/images/posts/2026-02-09/featured.webp'
 ```
 
 Astro processes these images at build time -- it optimizes, resizes, and converts formats automatically. Use `.webp` for best results but `.jpg`, `.png`, and `.gif` all work.
@@ -145,6 +132,8 @@ You can embed images in your Markdown body using standard syntax:
 ```markdown
 ![Alt text](../../assets/images/posts/2026-02-09/screenshot.webp)
 ```
+
+Single images in posts are automatically centered and open in a lightbox when clicked. Always use relative paths (`../../assets/...`) so Astro can optimize the images at build time.
 
 ### Image Galleries (Requires `.mdx`)
 
@@ -158,6 +147,7 @@ Manually specify which images to display. Import the images and pass them as an 
 ---
 title: 'Post with Gallery'
 pubDate: 2026-02-09
+description: 'A post demonstrating galleries.'
 ---
 
 import Gallery from '../../components/Gallery.astro';
@@ -225,6 +215,7 @@ Set `draft: true` in a post's frontmatter to hide it from the production site:
 ---
 title: 'Work in Progress'
 pubDate: 2026-02-09
+description: 'This post is still being written.'
 draft: true
 ---
 ```
@@ -252,14 +243,15 @@ astro/
 │   ├── content/
 │   │   └── blog/            # YOUR BLOG POSTS GO HERE
 │   ├── layouts/
-│   │   └── BlogPost.astro   # Layout wrapper for all blog posts
+│   │   ├── BaseLayout.astro # Shared layout for all pages (HTML shell, head, header, footer)
+│   │   └── BlogPost.astro   # Layout wrapper for blog posts (extends BaseLayout)
 │   ├── lib/
 │   │   └── blog.ts          # Helper functions (draft filtering, sorting)
 │   ├── pages/               # File-based routing
 │   │   ├── index.astro      # Home page
 │   │   ├── about.astro      # About page
 │   │   ├── contact.astro    # Contact page
-│   │   ├── blog/            # Blog listing and individual post routes
+│   │   ├── blog/            # Individual post routes
 │   │   ├── rss.xml.ts       # RSS feed (auto-generated)
 │   │   └── 404.astro        # Custom 404 page
 │   ├── styles/              # Global stylesheets
@@ -276,7 +268,7 @@ astro/
 ### Creating a New Post
 
 1. Create a new `.md` file in `src/content/blog/` (e.g. `my-new-post.md`)
-2. Add the frontmatter block with at least `title` and `pubDate`
+2. Add the frontmatter block with `title`, `pubDate`, and `description`
 3. Write your content in Markdown below the frontmatter
 4. If you have images, create `src/assets/images/posts/YYYY-MM-DD/` and add them there
 5. Run `npm run dev` to preview
@@ -303,11 +295,19 @@ npm run preview
 
 ---
 
+## Heading Conventions
+
+Use `##` (h2) for top-level headings within blog post content. The post title is already rendered as `h1` by the layout, so your content should start at `h2` and go deeper as needed (`###`, `####`, etc.). Do not use `#` (h1) in post body content.
+
+---
+
 ## Tips
 
-- **URL slugs**: The post URL is determined by the `slug` frontmatter field if provided, otherwise by the filename. A file named `my-cool-post.md` becomes `/blog/my-cool-post`.
+- **URL slugs**: The post URL is determined by the filename. A file named `my-cool-post.md` becomes `/blog/my-cool-post/`.
+- **Trailing slashes**: All URLs use trailing slashes (enforced by `trailingSlash: 'always'` in the Astro config).
 - **Post ordering**: Posts are sorted by `pubDate` (newest first).
 - **RSS feed**: The site auto-generates an RSS feed at `/rss.xml` from published posts.
 - **Sitemap**: A sitemap is auto-generated at `/sitemap-index.xml` for SEO.
 - **Image optimization**: Astro automatically optimizes images imported from `src/assets/`. Always place images there rather than in `public/` to take advantage of this.
+- **Image centering**: Single images in blog posts are automatically centered and wrapped in a lightbox link.
 - **Standard Markdown features**: Headings, bold, italic, links, code blocks (with syntax highlighting), blockquotes, lists, tables, and horizontal rules all work as expected.

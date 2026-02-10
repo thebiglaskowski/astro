@@ -1,138 +1,127 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<BaseHead title="Contact | TheBigLaskowski" description="Get in touch with Joe Laskowski." />
-	</head>
-	<body>
-		<Header />
-		<main id="main-content">
-			<div class="container">
-				<section class="contact-header">
-					<h1 class="gradient-text">Get in Touch</h1>
-					<p>Have a question, want to collaborate, or just want to chat about tech? Drop me a message.</p>
-				</section>
+<BaseLayout title="Contact | TheBigLaskowski" description="Get in touch with Joe Laskowski.">
+	<div class="container">
+		<section class="contact-header">
+			<h1 class="gradient-text">Get in Touch</h1>
+			<p>Have a question, want to collaborate, or just want to chat about tech? Drop me a message.</p>
+		</section>
 
-				<form action="https://formspree.io/f/xwvnpkra" method="POST" class="contact-form card">
-					<div class="form-group">
-						<label for="name">Name</label>
-						<input type="text" id="name" name="name" required />
-					</div>
-
-					<div class="form-group">
-						<label for="email">Email</label>
-						<input type="email" id="email" name="email" required />
-					</div>
-
-					<div class="form-group">
-						<label for="message">Message</label>
-						<textarea id="message" name="message" rows="6" required></textarea>
-					</div>
-
-					<button type="submit" class="submit-btn">Send Message</button>
-				</form>
+		<form action="https://formspree.io/f/xwvnpkra" method="POST" class="contact-form card">
+			<div class="form-group">
+				<label for="name">Name</label>
+				<input type="text" id="name" name="name" required />
 			</div>
-		</main>
-		<Footer />
 
-		<style>
-			.contact-header {
-				text-align: center;
-				margin: 3rem 0;
-			}
+			<div class="form-group">
+				<label for="email">Email</label>
+				<input type="email" id="email" name="email" required />
+			</div>
 
+			<div class="form-group">
+				<label for="message">Message</label>
+				<textarea id="message" name="message" rows="6" required></textarea>
+			</div>
+
+			<button type="submit" class="submit-btn">Send Message</button>
+		</form>
+	</div>
+
+	<style>
+		.contact-header {
+			text-align: center;
+			margin: 3rem 0;
+		}
+
+		.contact-header h1 {
+			font-size: 3rem;
+			margin-bottom: 1rem;
+			font-weight: 700;
+		}
+
+		.contact-header p {
+			font-size: 1.25rem;
+			color: var(--text-secondary);
+			max-width: 600px;
+			margin: 0 auto;
+		}
+
+		.contact-form {
+			max-width: 600px;
+			margin: 2rem auto;
+			padding: 2rem;
+		}
+
+		.form-group {
+			margin-bottom: 1.5rem;
+		}
+
+		label {
+			display: block;
+			color: var(--text-primary);
+			font-weight: 600;
+			margin-bottom: 0.5rem;
+			font-size: 0.95rem;
+		}
+
+		input,
+		textarea {
+			width: 100%;
+			padding: 0.75rem 1rem;
+			background: var(--bg-primary);
+			border: 1px solid var(--border-color);
+			border-radius: var(--radius-md);
+			color: var(--text-primary);
+			font-family: inherit;
+			font-size: 1rem;
+			transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+		}
+
+		input:focus,
+		textarea:focus {
+			outline: none;
+			border-color: var(--accent-blue);
+			box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
+		}
+
+		textarea {
+			resize: vertical;
+			min-height: 120px;
+		}
+
+		.submit-btn {
+			display: inline-block;
+			background: var(--gradient-primary);
+			color: white;
+			padding: 0.75rem 2rem;
+			border: none;
+			border-radius: var(--radius-md);
+			font-family: inherit;
+			font-size: 1rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+		}
+
+		.submit-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 25px var(--shadow-accent-blue);
+		}
+
+		@media (max-width: 768px) {
 			.contact-header h1 {
-				font-size: 3rem;
-				margin-bottom: 1rem;
-				font-weight: 700;
+				font-size: 2.5rem;
 			}
 
 			.contact-header p {
-				font-size: 1.25rem;
-				color: var(--text-secondary);
-				max-width: 600px;
-				margin: 0 auto;
+				font-size: 1.125rem;
 			}
 
 			.contact-form {
-				max-width: 600px;
-				margin: 2rem auto;
-				padding: 2rem;
+				padding: 1.5rem;
 			}
-
-			.form-group {
-				margin-bottom: 1.5rem;
-			}
-
-			label {
-				display: block;
-				color: var(--text-primary);
-				font-weight: 600;
-				margin-bottom: 0.5rem;
-				font-size: 0.95rem;
-			}
-
-			input,
-			textarea {
-				width: 100%;
-				padding: 0.75rem 1rem;
-				background: var(--bg-primary);
-				border: 1px solid var(--border-color);
-				border-radius: var(--radius-md);
-				color: var(--text-primary);
-				font-family: inherit;
-				font-size: 1rem;
-				transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-			}
-
-			input:focus,
-			textarea:focus {
-				outline: none;
-				border-color: var(--accent-blue);
-				box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
-			}
-
-			textarea {
-				resize: vertical;
-				min-height: 120px;
-			}
-
-			.submit-btn {
-				display: inline-block;
-				background: var(--gradient-primary);
-				color: white;
-				padding: 0.75rem 2rem;
-				border: none;
-				border-radius: var(--radius-md);
-				font-family: inherit;
-				font-size: 1rem;
-				font-weight: 600;
-				cursor: pointer;
-				transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-			}
-
-			.submit-btn:hover {
-				transform: translateY(-2px);
-				box-shadow: 0 8px 25px var(--shadow-accent-blue);
-			}
-
-			@media (max-width: 768px) {
-				.contact-header h1 {
-					font-size: 2.5rem;
-				}
-
-				.contact-header p {
-					font-size: 1.125rem;
-				}
-
-				.contact-form {
-					padding: 1.5rem;
-				}
-			}
-		</style>
-	</body>
-</html>
+		}
+	</style>
+</BaseLayout>
