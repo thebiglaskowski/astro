@@ -3,8 +3,6 @@ import { Image, getImage } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
-import 'glightbox/dist/css/glightbox.min.css';
-
 type Props = CollectionEntry<'blog'>['data'];
 
 const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
@@ -41,30 +39,42 @@ const heroFullUrl = heroImage
 	</article>
 
 	<script>
-		import GLightbox from 'glightbox';
+		let glightboxLoaded = false;
 
-		function initBlogLightbox() {
-			// Auto-wrap inline prose images not already inside links or galleries
+		function wrapProseImages() {
 			const prose = document.querySelector('.prose');
-			if (prose) {
-				prose.querySelectorAll('img').forEach((img) => {
-					if (!(img instanceof HTMLImageElement)) return;
-					if (img.closest('a') || img.closest('.gallery')) return;
+			if (!prose) return;
+			prose.querySelectorAll('img').forEach((img) => {
+				if (!(img instanceof HTMLImageElement)) return;
+				if (img.closest('a') || img.closest('.gallery')) return;
 
-					const wrapper = document.createElement('a');
-					wrapper.href = img.src;
-					wrapper.classList.add('glightbox');
-					wrapper.setAttribute('data-gallery', 'post-images');
-					wrapper.setAttribute('data-type', 'image');
-					const caption = img.title || img.alt;
-					if (caption) wrapper.setAttribute('data-title', caption);
+				const wrapper = document.createElement('a');
+				wrapper.href = img.src;
+				wrapper.classList.add('glightbox');
+				wrapper.setAttribute('data-gallery', 'post-images');
+				wrapper.setAttribute('data-type', 'image');
+				const caption = img.title || img.alt;
+				if (caption) wrapper.setAttribute('data-title', caption);
 
-					img.parentNode?.insertBefore(wrapper, img);
-					wrapper.appendChild(img);
-				});
-			}
+				img.parentNode?.insertBefore(wrapper, img);
+				wrapper.appendChild(img);
+			});
+		}
 
-			// Initialize all gallery groups (Gallery components + auto-wrapped post-images)
+		async function loadAndInitGlightbox(clickedEl?: HTMLElement) {
+			if (glightboxLoaded) return;
+			glightboxLoaded = true;
+
+			// Load CSS
+			const link = document.createElement('link');
+			link.rel = 'stylesheet';
+			link.href = (await import('glightbox/dist/css/glightbox.min.css?url')).default;
+			document.head.appendChild(link);
+
+			// Load JS
+			const { default: GLightbox } = await import('glightbox');
+
+			// Initialize all gallery groups
 			const galleryIds = new Set<string>();
 			document.querySelectorAll<HTMLElement>('.glightbox[data-gallery]').forEach(el => {
 				const id = el.dataset.gallery;
@@ -93,12 +103,32 @@ const heroFullUrl = heroImage
 					closeEffect: 'fade',
 				});
 			}
+
+			// Re-trigger click on the element that initiated the load
+			if (clickedEl) {
+				requestAnimationFrame(() => clickedEl.click());
+			}
+		}
+
+		function init() {
+			wrapProseImages();
+
+			// Defer GLightbox loading until first click on any lightbox trigger
+			document.addEventListener('click', (e) => {
+				const trigger = (e.target as HTMLElement).closest('.glightbox');
+				if (!trigger) return;
+				if (!glightboxLoaded) {
+					e.preventDefault();
+					e.stopPropagation();
+					loadAndInitGlightbox(trigger as HTMLElement);
+				}
+			}, { capture: true });
 		}
 
 		if (document.readyState === 'loading') {
-			document.addEventListener('DOMContentLoaded', initBlogLightbox);
+			document.addEventListener('DOMContentLoaded', init);
 		} else {
-			initBlogLightbox();
+			init();
 		}
 	</script>
 
@@ -167,6 +197,15 @@ const heroFullUrl = heroImage
 		.prose :global(p:has(> img:only-child)),
 		.prose :global(p:has(> a.glightbox:only-child)) {
 			text-align: center;
+		}
+
+		.prose :global(video) {
+			border-radius: 8px;
+			max-width: 100%;
+			height: auto;
+			margin: 1.5rem auto;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+			display: block;
 		}
 
 		.prose :global(.video-link) {
