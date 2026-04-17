@@ -60,6 +60,10 @@ const websiteJsonLd = isFirstPage
 									<Image
 										src={post.data.heroImage}
 										alt={post.data.title}
+										widths={[400, 600, 800]}
+										sizes={isHero
+											? "(max-width: 832px) 100vw, 800px"
+											: "(max-width: 768px) 100vw, 400px"}
 										width={800}
 										height={400}
 										loading={isHero ? "eager" : "lazy"}

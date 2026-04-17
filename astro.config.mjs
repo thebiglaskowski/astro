@@ -9,7 +9,7 @@ export default defineConfig({
     site: 'https://thebiglaskowski.com',
     trailingSlash: 'always',
     build: {
-        inlineStylesheets: 'auto',
+        inlineStylesheets: 'always',
     },
     integrations: [
         mdx(),
