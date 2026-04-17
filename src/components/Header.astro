@@ -121,6 +121,22 @@ import { SITE_TITLE } from '../consts';
   }
 
   initHeader();
+
+  function updateActiveLinks() {
+    const pathname = window.location.pathname;
+    const firstSegment = pathname.replace(/^\//, '').split('/')[0] || '';
+    document.querySelectorAll<HTMLAnchorElement>('header nav .internal-links a').forEach(link => {
+      const href = link.getAttribute('href') ?? '';
+      const isHome = href === '/';
+      const isActive =
+        href === pathname ||
+        href === '/' + firstSegment ||
+        (isHome && (pathname === '/' || firstSegment === 'blog'));
+      link.classList.toggle('active', isActive);
+    });
+  }
+
+  document.addEventListener('astro:page-load', updateActiveLinks);
 </script>
 
 <style is:global>
