@@ -327,7 +327,7 @@ const websiteJsonLd = isFirstPage
 	</style>
 
 	<script>
-		document.addEventListener('astro:page-load', () => {
+		function runTypewriter() {
 			const el = document.querySelector<HTMLElement>('.typewriter-text');
 			if (!el) return;
 			const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -344,6 +344,13 @@ const websiteJsonLd = isFirstPage
 				}
 			};
 			setTimeout(type, 500);
-		});
+		}
+
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', runTypewriter);
+		} else {
+			runTypewriter();
+		}
+		document.addEventListener('astro:page-load', runTypewriter);
 	</script>
 </BaseLayout>
