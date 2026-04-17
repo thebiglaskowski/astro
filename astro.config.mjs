@@ -8,6 +8,9 @@ import partytown from '@astrojs/partytown';
 export default defineConfig({
     site: 'https://thebiglaskowski.com',
     trailingSlash: 'always',
+    build: {
+        inlineStylesheets: 'auto',
+    },
     integrations: [
         mdx(),
         sitemap(),

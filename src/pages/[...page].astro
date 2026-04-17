@@ -15,10 +15,30 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
 type Props = { page: Page<CollectionEntry<'blog'>> };
 const { page } = Astro.props;
 const isFirstPage = page.currentPage === 1;
-const pageTitle = isFirstPage ? SITE_TITLE : `Page ${page.currentPage} | ${SITE_TITLE}`;
+const pageTitle = isFirstPage
+	? `${SITE_TITLE} — AI art, dev tutorials, and creative technology`
+	: `Page ${page.currentPage} | ${SITE_TITLE}`;
+
+const websiteJsonLd = isFirstPage
+	? {
+			'@context': 'https://schema.org',
+			'@type': 'WebSite',
+			name: SITE_TITLE,
+			description: SITE_DESCRIPTION,
+			url: new URL('/', Astro.site).toString(),
+			author: {
+				'@type': 'Person',
+				name: 'Joe Laskowski',
+				url: new URL('/about/', Astro.site).toString(),
+			},
+	  }
+	: null;
 ---
 
 <BaseLayout title={pageTitle} description={SITE_DESCRIPTION}>
+	{websiteJsonLd && (
+		<script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
+	)}
 	<div class="container">
 		{isFirstPage && (
 			<section class="blog-header">
@@ -49,9 +69,9 @@ const pageTitle = isFirstPage ? SITE_TITLE : `Page ${page.currentPage} | ${SITE_
 							)}
 							<div class="post-content">
 								<div class="post-meta">
-									<time class="post-date">
+									<span class="post-date">
 										<FormattedDate date={post.data.pubDate} />
-									</time>
+									</span>
 									<span class="post-sep" aria-hidden="true">·</span>
 									<span class="post-reading-time">{minutes} min read</span>
 								</div>

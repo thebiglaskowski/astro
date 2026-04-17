@@ -10,9 +10,10 @@ interface Props {
 	title: string;
 	description: string;
 	image?: string;
+	preloadImage?: string;
 }
 
-const { title, description, image } = Astro.props;
+const { title, description, image, preloadImage } = Astro.props;
 const defaultOg = await getImage({ src: defaultOgImage, format: 'webp', width: 1200, height: 1200 });
 const ogImage = image ?? defaultOg.src;
 ---
@@ -20,7 +21,7 @@ const ogImage = image ?? defaultOg.src;
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} image={ogImage} />
+		<BaseHead title={title} description={description} image={ogImage} preloadImage={preloadImage} />
 		<ClientRouter />
 	</head>
 	<body>

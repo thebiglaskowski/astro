@@ -50,9 +50,9 @@ const posts = await getPostsByTag(tagSlug!);
 							</div>
 						)}
 						<div class="post-content">
-							<time class="post-date">
+							<span class="post-date">
 								<FormattedDate date={post.data.pubDate} />
-							</time>
+							</span>
 							<h2 class="post-title">{post.data.title}</h2>
 							{post.data.description && (
 								<p class="post-description">{post.data.description}</p>
