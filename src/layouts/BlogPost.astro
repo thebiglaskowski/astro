@@ -9,6 +9,7 @@ import {
 	getRelatedPosts,
 	getPublishedPosts,
 } from '../lib/blog';
+import 'glightbox/dist/css/glightbox.min.css';
 
 interface Props {
 	post: CollectionEntry<'blog'>;
@@ -172,13 +173,6 @@ const breadcrumbJsonLd = {
 			if (glightboxLoaded) return;
 			glightboxLoaded = true;
 
-			// Load CSS
-			const link = document.createElement('link');
-			link.rel = 'stylesheet';
-			link.href = (await import('glightbox/dist/css/glightbox.min.css?url')).default;
-			document.head.appendChild(link);
-
-			// Load JS
 			const { default: GLightbox } = await import('glightbox');
 
 			// Initialize all gallery groups
