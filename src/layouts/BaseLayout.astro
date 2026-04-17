@@ -2,6 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { ClientRouter } from 'astro:transitions';
 import { getImage } from 'astro:assets';
 import defaultOgImage from '../assets/images/joe_laskowski.webp';
 
@@ -20,6 +21,7 @@ const ogImage = image ?? defaultOg.src;
 <html lang="en">
 	<head>
 		<BaseHead title={title} description={description} image={ogImage} />
+		<ClientRouter />
 	</head>
 	<body>
 		<Header />

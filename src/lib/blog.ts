@@ -48,3 +48,45 @@ export async function getPostsByTag(tagSlug: string): Promise<CollectionEntry<'b
 		(post.data.tags ?? []).some((t) => slugifyTag(t) === tagSlug),
 	);
 }
+
+const WORDS_PER_MINUTE = 200;
+
+export function readingTimeMinutes(body: string | undefined): number {
+	if (!body) return 1;
+	const text = body
+		.replace(/```[\s\S]*?```/g, ' ')
+		.replace(/`[^`]*`/g, ' ')
+		.replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+		.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+		.replace(/<[^>]+>/g, ' ')
+		.replace(/^import[^\n]*$/gm, ' ')
+		.replace(/[#>*_~`|]/g, ' ');
+	const words = text.split(/\s+/).filter(Boolean).length;
+	return Math.max(1, Math.round(words / WORDS_PER_MINUTE));
+}
+
+export function getRelatedPosts(
+	post: CollectionEntry<'blog'>,
+	all: CollectionEntry<'blog'>[],
+	limit = 3,
+): CollectionEntry<'blog'>[] {
+	const postTags = new Set((post.data.tags ?? []).map(slugifyTag));
+	if (postTags.size === 0) return [];
+
+	return all
+		.filter((p) => p.id !== post.id)
+		.map((p) => {
+			const overlap = (p.data.tags ?? []).reduce(
+				(n, t) => (postTags.has(slugifyTag(t)) ? n + 1 : n),
+				0,
+			);
+			return { post: p, overlap };
+		})
+		.filter((x) => x.overlap > 0)
+		.sort((a, b) =>
+			b.overlap - a.overlap ||
+			b.post.data.pubDate.valueOf() - a.post.data.pubDate.valueOf(),
+		)
+		.slice(0, limit)
+		.map((x) => x.post);
+}

@@ -3,22 +3,64 @@ import { Image, getImage } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
-import { slugifyTag } from '../lib/blog';
-type Props = CollectionEntry<'blog'>['data'];
+import {
+	slugifyTag,
+	readingTimeMinutes,
+	getRelatedPosts,
+	getPublishedPosts,
+} from '../lib/blog';
 
-const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.props;
+interface Props {
+	post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags } = post.data;
 
 const heroFullUrl = heroImage
 	? (await getImage({ src: heroImage, format: 'webp' })).src
 	: undefined;
+
+const minutes = readingTimeMinutes(post.body);
+
+const allPosts = await getPublishedPosts();
+const related = getRelatedPosts(post, allPosts, 3);
+
+const canonicalUrl = new URL(`/blog/${post.id}/`, Astro.site);
+const heroAbsoluteUrl = heroFullUrl ? new URL(heroFullUrl, Astro.site).toString() : undefined;
+
+const jsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'BlogPosting',
+	headline: title,
+	description,
+	datePublished: pubDate.toISOString(),
+	...(updatedDate && { dateModified: updatedDate.toISOString() }),
+	...(heroAbsoluteUrl && { image: heroAbsoluteUrl }),
+	...(tags && tags.length > 0 && { keywords: tags.join(', ') }),
+	author: {
+		'@type': 'Person',
+		name: 'Joe Laskowski',
+		url: new URL('/about/', Astro.site).toString(),
+	},
+	publisher: {
+		'@type': 'Person',
+		name: 'Joe Laskowski',
+	},
+	mainEntityOfPage: {
+		'@type': 'WebPage',
+		'@id': canonicalUrl.toString(),
+	},
+};
 ---
 
 <BaseLayout title={title} description={description} image={heroFullUrl}>
+	<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 	<article class="container">
 		{heroImage && (
 			<div class="hero-image">
 				<a href={heroFullUrl} class="glightbox" data-type="image" data-title={title}>
-					<Image src={heroImage} alt={title || ''} width={1020} height={510} loading="eager" />
+					<Image src={heroImage} alt={title || ''} width={1020} height={510} loading="eager" fetchpriority="high" />
 				</a>
 			</div>
 		)}
@@ -26,6 +68,8 @@ const heroFullUrl = heroImage
 			<div class="title">
 				<div class="date">
 					<FormattedDate date={pubDate} />
+					<span class="meta-sep" aria-hidden="true">·</span>
+					<span class="reading-time">{minutes} min read</span>
 					{updatedDate && (
 						<div class="last-updated-on">
 							Last updated on <FormattedDate date={updatedDate} />
@@ -46,6 +90,27 @@ const heroFullUrl = heroImage
 			</div>
 			<slot />
 		</div>
+
+		{related.length > 0 && (
+			<aside class="related" aria-labelledby="related-heading">
+				<h2 id="related-heading">Related posts</h2>
+				<ul class="related-list" role="list">
+					{related.map((p) => (
+						<li>
+							<a href={`/blog/${p.id}/`} class="related-link card">
+								<span class="related-title">{p.data.title}</span>
+								{p.data.description && (
+									<span class="related-desc">{p.data.description}</span>
+								)}
+								<time class="related-date">
+									<FormattedDate date={p.data.pubDate} />
+								</time>
+							</a>
+						</li>
+					))}
+				</ul>
+			</aside>
+		)}
 	</article>
 
 	<script>
@@ -120,9 +185,48 @@ const heroFullUrl = heroImage
 			}
 		}
 
+		function addCodeCopyButtons() {
+			const prose = document.querySelector('.prose');
+			if (!prose) return;
+			prose.querySelectorAll<HTMLPreElement>('pre').forEach((pre) => {
+				if (pre.querySelector('.copy-btn')) return;
+				const code = pre.querySelector('code');
+				if (!code) return;
+
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'copy-btn';
+				btn.setAttribute('aria-label', 'Copy code');
+				btn.setAttribute('aria-live', 'polite');
+				btn.textContent = 'Copy';
+
+				btn.addEventListener('click', async () => {
+					const text = code.textContent ?? '';
+					try {
+						await navigator.clipboard.writeText(text);
+						btn.textContent = 'Copied';
+						btn.classList.add('copied');
+					} catch {
+						btn.textContent = 'Failed';
+					}
+					setTimeout(() => {
+						btn.textContent = 'Copy';
+						btn.classList.remove('copied');
+					}, 1500);
+				});
+
+				pre.appendChild(btn);
+			});
+		}
+
+		let clickDelegated = false;
+
 		function init() {
 			wrapProseImages();
+			addCodeCopyButtons();
 
+			if (clickDelegated) return;
+			clickDelegated = true;
 			// Defer GLightbox loading until first click on any lightbox trigger
 			document.addEventListener('click', (e) => {
 				const trigger = (e.target as HTMLElement).closest('.glightbox');
@@ -140,6 +244,7 @@ const heroFullUrl = heroImage
 		} else {
 			init();
 		}
+		document.addEventListener('astro:page-load', init);
 	</script>
 
 	<style>
@@ -177,23 +282,24 @@ const heroFullUrl = heroImage
 		}
 
 		.date {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 0.5rem;
 			color: var(--text-muted);
 			font-size: 0.9rem;
 			margin-bottom: 1rem;
 		}
 
-		.post-tags {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 0.5rem;
-			padding: 0;
-			margin: 1rem 0 0 0;
-			list-style: none;
+		.meta-sep,
+		.reading-time {
+			color: var(--text-muted);
 		}
 
 		.last-updated-on {
 			font-style: italic;
 			margin-top: 0.5rem;
+			flex-basis: 100%;
 		}
 
 		hr {
@@ -245,6 +351,115 @@ const heroFullUrl = heroImage
 
 		.prose :global(a:hover) {
 			color: var(--accent-cyan);
+		}
+
+		.prose :global(pre) {
+			position: relative;
+		}
+
+		.prose :global(.copy-btn) {
+			position: absolute;
+			top: 0.5rem;
+			right: 0.5rem;
+			background: rgba(22, 22, 37, 0.85);
+			color: var(--text-muted);
+			border: 1px solid var(--border-color);
+			border-radius: var(--radius-sm);
+			padding: 0.3rem 0.6rem;
+			font-family: inherit;
+			font-size: 0.75rem;
+			font-weight: 600;
+			letter-spacing: 0.03em;
+			cursor: pointer;
+			opacity: 0;
+			transition: opacity var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+		}
+
+		.prose :global(pre:hover .copy-btn),
+		.prose :global(.copy-btn:focus-visible) {
+			opacity: 1;
+		}
+
+		.prose :global(.copy-btn:hover) {
+			color: var(--accent-blue);
+			border-color: var(--border-glow);
+			background: rgba(22, 22, 37, 0.95);
+		}
+
+		.prose :global(.copy-btn.copied) {
+			color: var(--accent-green);
+			border-color: rgba(34, 197, 94, 0.4);
+		}
+
+		.post-tags {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+			padding: 0;
+			margin: 1rem 0 0 0;
+			list-style: none;
+		}
+
+		.related {
+			margin: 4rem 0 2rem 0;
+			padding-top: 2rem;
+			border-top: 1px solid var(--border-color);
+		}
+
+		.related h2 {
+			font-size: 1.5rem;
+			margin: 0 0 1.5rem 0;
+			color: var(--text-primary);
+		}
+
+		.related-list {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+			gap: 1rem;
+		}
+
+		.related-link {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+			text-decoration: none;
+			color: inherit;
+			padding: 1.25rem;
+			height: 100%;
+		}
+
+		.related-link:hover {
+			text-decoration: none;
+		}
+
+		.related-title {
+			font-weight: 600;
+			font-size: 1rem;
+			color: var(--text-primary);
+			line-height: 1.35;
+		}
+
+		.related-link:hover .related-title {
+			color: var(--accent-blue);
+		}
+
+		.related-desc {
+			color: var(--text-secondary);
+			font-size: 0.85rem;
+			line-height: 1.5;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+
+		.related-date {
+			color: var(--text-muted);
+			font-size: 0.8rem;
+			margin-top: auto;
 		}
 
 		@media (max-width: 768px) {

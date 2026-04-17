@@ -4,7 +4,7 @@ import SocialIcon from './SocialIcon.astro';
 import { SITE_TITLE } from '../consts';
 ---
 
-<header>
+<header transition:persist>
   <a href="#main-content" class="skip-link">Skip to content</a>
   <div class="container">
     <nav>
@@ -14,6 +14,13 @@ import { SITE_TITLE } from '../consts';
         <HeaderLink href="/about/">About</HeaderLink>
         <HeaderLink href="/contact/">Contact</HeaderLink>
       </div>
+
+      <button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="search-panel">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
 
       <div class="social-links">
         <a href="https://github.com/thebiglaskowski" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
@@ -31,7 +38,104 @@ import { SITE_TITLE } from '../consts';
       </div>
     </nav>
   </div>
+
+  <div id="search-panel" class="search-panel" hidden>
+    <div class="container">
+      <div id="search"></div>
+    </div>
+  </div>
 </header>
+
+<script>
+  type SearchUIOptions = Record<string, unknown>;
+  interface PagefindUIWindow extends Window {
+    PagefindUI?: new (options: SearchUIOptions) => unknown;
+  }
+  const w = window as PagefindUIWindow;
+
+  let pagefindLoaded = false;
+
+  function loadPagefind(): Promise<void> {
+    if (pagefindLoaded) return Promise.resolve();
+    pagefindLoaded = true;
+
+    return new Promise((resolve, reject) => {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = '/pagefind/pagefind-ui.css';
+      document.head.appendChild(css);
+
+      const js = document.createElement('script');
+      js.src = '/pagefind/pagefind-ui.js';
+      js.onload = () => {
+        if (!w.PagefindUI) { reject(new Error('PagefindUI failed to load')); return; }
+        new w.PagefindUI({ element: '#search', showSubResults: true, resetStyles: false });
+        resolve();
+      };
+      js.onerror = () => reject(new Error('PagefindUI script error'));
+      document.body.appendChild(js);
+    });
+  }
+
+  function initHeader() {
+    const toggle = document.querySelector<HTMLButtonElement>('.search-toggle');
+    const panel = document.querySelector<HTMLElement>('#search-panel');
+    if (!toggle || !panel) return;
+    if (toggle.dataset.wired === '1') return;
+    toggle.dataset.wired = '1';
+
+    toggle.addEventListener('click', async () => {
+      const isOpen = !panel.hasAttribute('hidden');
+      if (isOpen) {
+        panel.setAttribute('hidden', '');
+        toggle.setAttribute('aria-expanded', 'false');
+      } else {
+        panel.removeAttribute('hidden');
+        toggle.setAttribute('aria-expanded', 'true');
+        try {
+          await loadPagefind();
+          const input = panel.querySelector<HTMLInputElement>('input');
+          input?.focus();
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !panel.hasAttribute('hidden')) {
+        panel.setAttribute('hidden', '');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.focus();
+      }
+    });
+  }
+
+  initHeader();
+</script>
+
+<style is:global>
+  /* Pagefind UI dark-theme overrides */
+  #search {
+    --pagefind-ui-primary: var(--accent-blue);
+    --pagefind-ui-text: var(--text-primary);
+    --pagefind-ui-background: var(--bg-elevated);
+    --pagefind-ui-border: var(--border-color);
+    --pagefind-ui-tag: var(--bg-surface);
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: var(--radius-md);
+    --pagefind-ui-font: 'Inter Variable', 'Inter', sans-serif;
+  }
+
+  #search .pagefind-ui__search-input {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  #search .pagefind-ui__result-title a {
+    color: var(--accent-blue);
+  }
+</style>
 
 <style>
   header {
@@ -69,6 +173,37 @@ import { SITE_TITLE } from '../consts';
   .internal-links {
     display: flex;
     gap: 2rem;
+  }
+
+  .search-toggle {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-muted);
+    padding: 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .search-toggle:hover {
+    color: var(--accent-blue);
+    border-color: var(--border-glow);
+    box-shadow: var(--glow-blue);
+  }
+
+  .search-panel {
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+  }
+
+  .search-panel[hidden] {
+    display: none;
   }
 
   .social-links {
