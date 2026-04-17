@@ -46,8 +46,12 @@ src/
 ├── pages/
 │   ├── index.astro         # Blog listing (homepage)
 │   ├── about.astro         # About page with profile + bio
+│   ├── contact.astro       # Contact form (Formspree-backed)
 │   ├── 404.astro           # Custom 404 error page
 │   ├── rss.xml.ts          # RSS feed endpoint
+│   ├── tags/
+│   │   ├── index.astro     # Tag cloud / all tags
+│   │   └── [tag].astro     # Posts filtered by tag slug
 │   └── blog/
 │       └── [...slug].astro # Dynamic blog post routes
 ├── styles/
@@ -59,8 +63,9 @@ public/
 ```
 
 ### Image Storage
-- Post images stored in `src/assets/images/posts/{YYYY-MM-DD}/` (Astro build-time optimization)
-- Gallery images auto-discovered from `src/assets/images/posts/{slug}/gallery/`
+- Post hero/body images stored in `src/assets/images/posts/{YYYY-MM-DD}/` (Astro build-time optimization)
+- Gallery images auto-discovered from `src/assets/images/posts/{YYYY-MM-DD}/gallery*/` by `AutoGallery` via `import.meta.glob`
+- `AutoGallery` matches on the folder name passed as `postSlug` — by convention this is the `{YYYY-MM-DD}` directory, not the content collection slug
 
 ## Commands
 
@@ -90,10 +95,11 @@ public/
 
 ### Content
 - Blog posts live in `src/content/blog/` as `.md` or `.mdx`
-- Frontmatter schema (Zod-validated): `title` (required), `description`, `pubDate`, `updatedDate`, `heroImage`, `featuredImage`, `images`, `slug`, `tags`, `author`, `draft`
+- Frontmatter schema (Zod-validated, see `src/content.config.ts`): `title` (required), `description` (required), `pubDate` (required), `updatedDate?`, `heroImage?`, `tags?: string[]`, `draft?: boolean`
 - Drafts filtered via shared `draftFilter()` from `src/lib/blog.ts`
 - Post images go in `src/assets/images/posts/{YYYY-MM-DD}/`
-- Gallery images auto-discovered from `src/assets/images/posts/{slug}/gallery/`
+- Gallery images auto-discovered from `src/assets/images/posts/{YYYY-MM-DD}/gallery*/` (pass the date folder as `postSlug` to `<AutoGallery>`)
+- Tags are free-form strings; URLs are generated via `slugifyTag()` in `src/lib/blog.ts` (e.g. `"Face Swap"` → `/tags/face-swap/`)
 
 ### Routing
 - Blog listing serves as homepage at `/`
@@ -102,9 +108,11 @@ public/
 
 ## Key Patterns
 
-- **Page structure**: Every page uses `BaseHead` + `Header` + `<main>` + `Footer`
-- **Blog queries**: Use `getPublishedPosts()` or `draftFilter()` from `src/lib/blog.ts` — never duplicate query logic
-- **Gallery system**: `Gallery.astro` (manual image list) and `AutoGallery.astro` (auto-discovers from `src/assets/images/posts/{slug}/{galleryName}/`)
-- **Active nav links**: `HeaderLink.astro` compares `Astro.url.pathname` against `href` prop
-- **Blog listing**: Posts sorted by `pubDate` descending, first post gets `.featured` class
-- **RSS/Sitemap**: Auto-generated, site URL: `https://thebiglaskowski.com`
+- **Page structure**: Every page uses `BaseHead` + `Header` + `<main>` + `Footer` (via `BaseLayout.astro`)
+- **Blog queries**: Use `getPublishedPosts()`, `getAllTags()`, `getPostsByTag()`, or `draftFilter()` from `src/lib/blog.ts` — never duplicate query logic
+- **Gallery system**: `Gallery.astro` (manual image list) and `AutoGallery.astro` (auto-discovers from `src/assets/images/posts/{YYYY-MM-DD}/{galleryName}/`)
+- **Active nav links**: `HeaderLink.astro` compares `Astro.url.pathname` against `href` prop; the `/` link also matches `/blog/*` routes
+- **Blog listing**: Posts sorted by `pubDate` descending, first post gets `.featured` class, tag pills shown outside the card anchor so clicks route to the tag
+- **Tag pills**: `.tag-pill` utility in `global.css` — reused on homepage cards, post pages, and tag index
+- **Analytics**: GA loads only in production and only when `PUBLIC_GA_ID` is set; honors `navigator.doNotTrack`
+- **RSS/Sitemap/robots**: Auto-generated (`rss.xml`, `sitemap-index.xml`); `public/robots.txt` points crawlers at the sitemap. Site URL: `https://thebiglaskowski.com`

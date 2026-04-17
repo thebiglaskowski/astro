@@ -3,16 +3,17 @@ import { Image, getImage } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
+import { slugifyTag } from '../lib/blog';
 type Props = CollectionEntry<'blog'>['data'];
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.props;
 
 const heroFullUrl = heroImage
 	? (await getImage({ src: heroImage, format: 'webp' })).src
 	: undefined;
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={title} description={description} image={heroFullUrl}>
 	<article class="container">
 		{heroImage && (
 			<div class="hero-image">
@@ -32,6 +33,15 @@ const heroFullUrl = heroImage
 					)}
 				</div>
 				<h1 class="accent-blue">{title}</h1>
+				{tags && tags.length > 0 && (
+					<ul class="post-tags" role="list">
+						{tags.map((tag) => (
+							<li>
+								<a href={`/tags/${slugifyTag(tag)}/`} class="tag-pill">{tag}</a>
+							</li>
+						))}
+					</ul>
+				)}
 				<hr />
 			</div>
 			<slot />
@@ -170,6 +180,15 @@ const heroFullUrl = heroImage
 			color: var(--text-muted);
 			font-size: 0.9rem;
 			margin-bottom: 1rem;
+		}
+
+		.post-tags {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+			padding: 0;
+			margin: 1rem 0 0 0;
+			list-style: none;
 		}
 
 		.last-updated-on {

@@ -1,11 +1,12 @@
 ---
+import { SITE_TITLE } from '../consts';
 const today = new Date();
 ---
 
 <footer>
   <div class="container">
     <div class="footer-content">
-      <p>&copy; 2021-{today.getFullYear()} TheBigLaskowski. All rights reserved.</p>
+      <p>&copy; 2021-{today.getFullYear()} {SITE_TITLE}. All rights reserved.</p>
       <div class="footer-links">
         <a href="/about/">About</a>
         <a href="/">Blog</a>

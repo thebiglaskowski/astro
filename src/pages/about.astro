@@ -1,12 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { Image } from "astro:assets";
+import { SITE_TITLE } from '../consts';
 import profileImage from "../assets/images/joe_laskowski.webp";
 import locationImage from "../assets/images/south-bend.webp";
 ---
 
 <BaseLayout
-  title="About Me | TheBigLaskowski"
+  title={`About Me | ${SITE_TITLE}`}
   description="Hello! I'm Joe Laskowski, an accomplished IT professional and passionate problem solver with a strong affinity for technology."
 >
   <div class="container">

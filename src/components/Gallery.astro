@@ -11,7 +11,17 @@ interface Props {
 }
 
 const { images, columns = 3, title, alts, captions } = Astro.props;
-const galleryId = `gallery-${Math.random().toString(36).substr(2, 9)}`;
+
+function stableHash(input: string): string {
+	let hash = 0;
+	for (let i = 0; i < input.length; i++) {
+		hash = ((hash << 5) - hash) + input.charCodeAt(i);
+		hash |= 0;
+	}
+	return Math.abs(hash).toString(36);
+}
+
+const galleryId = `gallery-${stableHash(images.map((i) => i.src).join('|'))}`;
 
 const fullSizeUrls = await Promise.all(
 	images.map(img => getImage({ src: img, format: 'webp' }).then(r => r.src))

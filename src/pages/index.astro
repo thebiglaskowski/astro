@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 import { Image } from 'astro:assets';
 import FormattedDate from '../components/FormattedDate.astro';
-import { getPublishedPosts } from '../lib/blog';
+import { getPublishedPosts, slugifyTag } from '../lib/blog';
 
 const posts = await getPublishedPosts();
 ---
@@ -11,8 +11,8 @@ const posts = await getPublishedPosts();
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
 	<div class="container">
 		<section class="blog-header">
-			<p class="typewriter" aria-label="neural network navigator, crypto enthusiast, command-line cowboy">
-				<span class="typewriter-text"></span><span class="cursor">|</span>
+			<p class="typewriter">
+				<span class="typewriter-text">{SITE_DESCRIPTION}</span><span class="cursor" aria-hidden="true">|</span>
 			</p>
 		</section>
 
@@ -43,6 +43,15 @@ const posts = await getPublishedPosts();
 							)}
 						</div>
 					</a>
+					{post.data.tags && post.data.tags.length > 0 && (
+						<ul class="post-tags" role="list">
+							{post.data.tags.map((tag) => (
+								<li>
+									<a href={`/tags/${slugifyTag(tag)}/`} class="tag-pill">{tag}</a>
+								</li>
+							))}
+						</ul>
+					)}
 				</article>
 			))}
 		</section>
@@ -164,6 +173,15 @@ const posts = await getPublishedPosts();
 			overflow: hidden;
 		}
 
+		.post-tags {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.4rem;
+			padding: 0 1.5rem 1.25rem 1.5rem;
+			margin: 0;
+			list-style: none;
+		}
+
 		.post-link:hover {
 			text-decoration: none;
 		}
@@ -201,18 +219,21 @@ const posts = await getPublishedPosts();
 	</style>
 
 	<script>
-		const text = 'neural network navigator, crypto enthusiast, command-line cowboy';
-		const el = document.querySelector('.typewriter-text');
-		let i = 0;
+		const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const el = document.querySelector<HTMLElement>('.typewriter-text');
 
-		function type() {
-			if (i < text.length) {
-				el!.textContent += text[i];
-				i++;
-				setTimeout(type, 50);
-			}
+		if (el && !prefersReducedMotion) {
+			const text = el.textContent ?? '';
+			el.textContent = '';
+			let i = 0;
+			const type = () => {
+				if (i < text.length) {
+					el.textContent += text[i];
+					i++;
+					setTimeout(type, 50);
+				}
+			};
+			setTimeout(type, 500);
 		}
-
-		setTimeout(type, 500);
 	</script>
 </BaseLayout>

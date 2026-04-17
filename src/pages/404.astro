@@ -1,8 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE_TITLE } from '../consts';
 ---
 
-<BaseLayout title="Page Not Found | TheBigLaskowski" description="The page you're looking for doesn't exist.">
+<BaseLayout title={`Page Not Found | ${SITE_TITLE}`} description="The page you're looking for doesn't exist.">
 	<div class="container">
 		<section class="not-found">
 			<h1 class="gradient-text">404</h1>

@@ -1,8 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE_TITLE } from '../consts';
 ---
 
-<BaseLayout title="Contact | TheBigLaskowski" description="Get in touch with Joe Laskowski.">
+<BaseLayout title={`Contact | ${SITE_TITLE}`} description="Get in touch with Joe Laskowski.">
 	<div class="container">
 		<section class="contact-header">
 			<h1 class="gradient-text">Get in Touch</h1>

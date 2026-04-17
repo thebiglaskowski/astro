@@ -51,21 +51,28 @@ src/
 ├── layouts/
 │   └── BlogPost.astro        # Blog post layout with gradient accents
 ├── pages/
-│   ├── index.astro           # Homepage — gradient hero, glass cards
+│   ├── index.astro           # Homepage — blog listing with glow-hover cards
 │   ├── about.astro           # About page with profile + bio
-│   ├── rss.xml.js            # RSS feed endpoint
+│   ├── contact.astro         # Contact form (Formspree)
+│   ├── 404.astro             # Custom 404 page
+│   ├── rss.xml.ts            # RSS feed endpoint
+│   ├── tags/
+│   │   ├── index.astro       # Tag cloud
+│   │   └── [tag].astro       # Posts by tag
 │   └── blog/
-│       ├── index.astro       # Blog listing with glow-hover cards
 │       └── [...slug].astro   # Dynamic blog post routes
 ├── styles/
 │   └── global.css            # Electric Dark theme + CSS custom properties
+├── assets/
+│   └── images/
+│       └── posts/{YYYY-MM-DD}/     # Post hero + body images (build-time optimized)
+│           └── gallery*/           # Auto-discovered gallery images
+├── lib/
+│   └── blog.ts               # Shared blog/tag query helpers
 └── consts.ts                 # Site title and description
 public/
-├── fonts/                    # (cleared — fonts now via @fontsource)
-├── images/
-│   └── posts/{YYYY-MM-DD}/   # Post images organized by date
-│       └── gallery/          # Auto-discovered gallery images
-└── favicon.svg               # Terminal prompt icon (gradient border)
+├── favicon.svg               # Terminal prompt icon (gradient border)
+└── robots.txt                # Points crawlers at the sitemap
 ```
 
 ## Commands
@@ -98,7 +105,7 @@ Key visual elements:
 
 Blog posts live in `src/content/blog/` as `.md` or `.mdx` files. Frontmatter is Zod-validated with fields for `title`, `description`, `pubDate`, `heroImage`, `tags`, `draft`, and more.
 
-For posts with image galleries, use the `<AutoGallery>` component in MDX — it auto-discovers images from `public/images/posts/{slug}/gallery/` at build time.
+For posts with image galleries, use the `<AutoGallery>` component in MDX — it auto-discovers images from `src/assets/images/posts/{YYYY-MM-DD}/gallery*/` at build time via `import.meta.glob` (pass the date folder name as `postSlug`).
 
 ## About
 

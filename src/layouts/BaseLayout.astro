@@ -2,6 +2,8 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { getImage } from 'astro:assets';
+import defaultOgImage from '../assets/images/joe_laskowski.webp';
 
 interface Props {
 	title: string;
@@ -10,12 +12,14 @@ interface Props {
 }
 
 const { title, description, image } = Astro.props;
+const defaultOg = await getImage({ src: defaultOgImage, format: 'webp', width: 1200, height: 1200 });
+const ogImage = image ?? defaultOg.src;
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} image={image} />
+		<BaseHead title={title} description={description} image={ogImage} />
 	</head>
 	<body>
 		<Header />

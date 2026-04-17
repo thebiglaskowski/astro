@@ -244,6 +244,42 @@ img {
   }
 }
 
+/* Tag pills (shared across post cards, post page, tag index) */
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-secondary);
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 999px;
+  text-decoration: none;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.tag-pill:hover {
+  color: var(--accent-blue);
+  background: rgba(0, 212, 255, 0.1);
+  border-color: var(--border-glow);
+  text-decoration: none;
+}
+
+.tag-pill .tag-count {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+}
+
+.tag-pill:hover .tag-count {
+  color: var(--accent-blue);
+}
+
 /* Utility Classes */
 .text-center { text-align: center; }
 .text-muted { color: var(--text-muted); }
