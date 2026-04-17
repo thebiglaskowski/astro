@@ -109,6 +109,15 @@ import { SITE_TITLE } from '../consts';
         toggle.focus();
       }
     });
+
+    // Close the panel when a result is clicked (the header persists across
+    // view transitions, so without this the panel would stay open after navigation)
+    document.addEventListener('astro:before-preparation', () => {
+      if (!panel.hasAttribute('hidden')) {
+        panel.setAttribute('hidden', '');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
   }
 
   initHeader();

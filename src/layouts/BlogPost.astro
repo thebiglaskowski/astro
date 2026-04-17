@@ -91,6 +91,18 @@ const jsonLd = {
 			<slot />
 		</div>
 
+		<template id="copy-icon-tpl">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+				<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+				<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+			</svg>
+		</template>
+		<template id="check-icon-tpl">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+				<polyline points="20 6 9 17 4 12"></polyline>
+			</svg>
+		</template>
+
 		{related.length > 0 && (
 			<aside class="related" aria-labelledby="related-heading">
 				<h2 id="related-heading">Related posts</h2>
@@ -185,6 +197,18 @@ const jsonLd = {
 			}
 		}
 
+		function cloneIcon(id: string): Node | null {
+			const tpl = document.getElementById(id);
+			if (!(tpl instanceof HTMLTemplateElement)) return null;
+			return tpl.content.cloneNode(true);
+		}
+
+		function setIcon(btn: HTMLElement, id: string) {
+			while (btn.firstChild) btn.removeChild(btn.firstChild);
+			const icon = cloneIcon(id);
+			if (icon) btn.appendChild(icon);
+		}
+
 		function addCodeCopyButtons() {
 			const prose = document.querySelector('.prose');
 			if (!prose) return;
@@ -198,19 +222,21 @@ const jsonLd = {
 				btn.className = 'copy-btn';
 				btn.setAttribute('aria-label', 'Copy code');
 				btn.setAttribute('aria-live', 'polite');
-				btn.textContent = 'Copy';
+				setIcon(btn, 'copy-icon-tpl');
 
 				btn.addEventListener('click', async () => {
 					const text = code.textContent ?? '';
 					try {
 						await navigator.clipboard.writeText(text);
-						btn.textContent = 'Copied';
+						setIcon(btn, 'check-icon-tpl');
+						btn.setAttribute('aria-label', 'Copied');
 						btn.classList.add('copied');
 					} catch {
-						btn.textContent = 'Failed';
+						btn.setAttribute('aria-label', 'Copy failed');
 					}
 					setTimeout(() => {
-						btn.textContent = 'Copy';
+						setIcon(btn, 'copy-icon-tpl');
+						btn.setAttribute('aria-label', 'Copy code');
 						btn.classList.remove('copied');
 					}, 1500);
 				});
@@ -361,18 +387,23 @@ const jsonLd = {
 			position: absolute;
 			top: 0.5rem;
 			right: 0.5rem;
+			width: 30px;
+			height: 30px;
 			background: rgba(22, 22, 37, 0.85);
 			color: var(--text-muted);
 			border: 1px solid var(--border-color);
 			border-radius: var(--radius-sm);
-			padding: 0.3rem 0.6rem;
-			font-family: inherit;
-			font-size: 0.75rem;
-			font-weight: 600;
-			letter-spacing: 0.03em;
+			padding: 0;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
 			cursor: pointer;
 			opacity: 0;
 			transition: opacity var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+		}
+
+		.prose :global(.copy-btn svg) {
+			display: block;
 		}
 
 		.prose :global(pre:hover .copy-btn),
