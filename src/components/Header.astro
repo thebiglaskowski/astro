@@ -15,14 +15,15 @@ import { SITE_TITLE } from '../consts';
         <HeaderLink href="/contact/">Contact</HeaderLink>
       </div>
 
-      <button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="search-panel">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-      </button>
+      <div class="nav-actions">
+        <button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="search-panel">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
 
-      <div class="social-links">
+        <div class="social-links">
         <a href="https://github.com/thebiglaskowski" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
           <SocialIcon icon="github" />
         </a>
@@ -35,6 +36,7 @@ import { SITE_TITLE } from '../consts';
         <a href="https://www.youtube.com/@JoeLaskowski" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
           <SocialIcon icon="youtube" />
         </a>
+        </div>
       </div>
     </nav>
   </div>
@@ -231,6 +233,12 @@ import { SITE_TITLE } from '../consts';
     display: none;
   }
 
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
   .social-links {
     display: flex;
     gap: 0.5rem;
@@ -281,10 +289,6 @@ import { SITE_TITLE } from '../consts';
 
     .internal-links {
       gap: 1rem;
-    }
-
-    .social-links {
-      gap: 0.25rem;
     }
   }
 </style>
