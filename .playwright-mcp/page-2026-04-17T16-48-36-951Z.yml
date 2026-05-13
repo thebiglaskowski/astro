@@ -1,0 +1,89 @@
+- generic [ref=e89]:
+  - banner [ref=e2]:
+    - link "Skip to content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - navigation [ref=e5]:
+      - heading "thebiglaskowski" [level=2] [ref=e6]:
+        - link "thebiglaskowski" [ref=e7] [cursor=pointer]:
+          - /url: /
+      - generic [ref=e8]:
+        - link "Blog" [ref=e9] [cursor=pointer]:
+          - /url: /
+        - link "About" [active] [ref=e10] [cursor=pointer]:
+          - /url: /about/
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact/
+      - button "Search" [ref=e12] [cursor=pointer]:
+        - img [ref=e13]
+      - generic [ref=e16]:
+        - link "GitHub" [ref=e17] [cursor=pointer]:
+          - /url: https://github.com/thebiglaskowski
+          - img [ref=e18]
+        - link "X (Twitter)" [ref=e20] [cursor=pointer]:
+          - /url: https://x.com/thebiglaskowski
+          - img [ref=e21]
+        - link "LinkedIn" [ref=e23] [cursor=pointer]:
+          - /url: https://www.linkedin.com/in/thebiglaskowski
+          - img [ref=e24]
+        - link "YouTube" [ref=e26] [cursor=pointer]:
+          - /url: https://www.youtube.com/@JoeLaskowski
+          - img [ref=e27]
+  - main [ref=e90]:
+    - article [ref=e92]:
+      - generic [ref=e93]:
+        - img "Joe Laskowski" [ref=e94]
+        - generic [ref=e95]:
+          - heading "About Joe Laskowski" [level=1] [ref=e96]
+          - paragraph [ref=e97]: An accomplished IT professional and passionate problem solver with a strong affinity for technology, exploring AI, and building innovative solutions.
+      - generic [ref=e98]:
+        - heading "My Journey into Technology" [level=2] [ref=e99]
+        - paragraph [ref=e100]: For over 20 years, I've been delivering exceptional service within the IT industry, driven by my insatiable curiosity and commitment to innovation. I've always been captivated by the transformative power of technology—its ability to solve complex problems and open new doors of opportunity.
+        - paragraph [ref=e101]:
+          - text: Currently, I hold the position of AI Quality Analyst at
+          - link "Aunalytics" [ref=e102] [cursor=pointer]:
+            - /url: https://aunalytics.com/
+          - text: ", an AI-powered data platform company based in the Midwest. My role focuses on evaluating and ensuring the quality of AI systems, combining my deep technical background with a keen eye for how AI performs in real-world scenarios."
+        - heading "Beyond the Professional Realm" [level=2] [ref=e103]
+        - paragraph [ref=e104]: When I'm not immersed in IT, I delve into various activities that fuel my curiosity and passion. I've been using the Linux operating system daily for over 19 years, reveling in the challenges of a terminal environment. I also explore the fascinating world of cryptocurrency, primarily focusing on $XRP and $XLM, and enjoy tinkering with AI tools for generating unique and intriguing projects.
+        - paragraph [ref=e105]: Outside of technology, I delight in exploring the rich flavors of craft beers - mainly double IPAs and robust stouts. As a self-proclaimed hot-wing connoisseur, I constantly search for the perfect spicy bite. My fondness for the Star Wars universe often occupies my free time as I eagerly discuss and dissect every detail of the franchise.
+        - generic [ref=e106]:
+          - img "South Bend, Indiana" [ref=e107]
+          - paragraph [ref=e108]: South Bend, Indiana
+        - heading "Family and Community" [level=2] [ref=e109]
+        - paragraph [ref=e110]: Family is essential to me, and I'm blessed to have three incredible children and four delightful grandchildren who always amaze me with their boundless energy and zest for life. I'm also fortunate to share my life with my wonderful girlfriend and her three amazing kids, and being part of a blended family has added another deeply meaningful and joyful dimension to my life.
+        - paragraph [ref=e111]: I hail from South Bend, Indiana, a vibrant and dynamic city known for its rich history, strong sense of community, and diverse cultural offerings. I take pride in my roots and cherish the memories and experiences shaped by growing up in this beautiful and welcoming place.
+        - heading "Let's Connect" [level=2] [ref=e112]
+        - paragraph [ref=e113]:
+          - text: Whether you're interested in discussing the latest IT solutions, exploring the world of cryptocurrency, or simply sharing your favorite Star Wars theory, I'd love to hear from you. Reach out through any of my social channels in the header, check out my latest projects and experiments in the
+          - link "blog" [ref=e114] [cursor=pointer]:
+            - /url: /
+          - text: ", or"
+          - link "drop me a message" [ref=e115] [cursor=pointer]:
+            - /url: /contact/
+          - text: directly.
+  - contentinfo [ref=e116]:
+    - generic [ref=e118]:
+      - paragraph [ref=e119]: © 2021-2026 thebiglaskowski. All rights reserved.
+      - generic [ref=e120]:
+        - link "About" [ref=e121] [cursor=pointer]:
+          - /url: /about/
+        - link "Blog" [ref=e122] [cursor=pointer]:
+          - /url: /
+        - link "Contact" [ref=e123] [cursor=pointer]:
+          - /url: /contact/
+  - generic [ref=e65]:
+    - button "Menu" [ref=e66]:
+      - img [ref=e68]
+      - generic: Menu
+    - button "Inspect" [ref=e72]:
+      - img [ref=e74]
+      - generic: Inspect
+    - button "Audit" [ref=e76]:
+      - generic [ref=e77]:
+        - img [ref=e78]
+        - img [ref=e124]
+      - generic: Audit
+    - button "Settings" [ref=e84]:
+      - img [ref=e86]
+      - generic: Settings
+  - generic [ref=e126]: About Me | thebiglaskowski

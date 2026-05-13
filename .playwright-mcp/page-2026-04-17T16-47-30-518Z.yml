@@ -1,0 +1,192 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link "Skip to content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - navigation [ref=e5]:
+      - heading "thebiglaskowski" [level=2] [ref=e6]:
+        - link "thebiglaskowski" [ref=e7] [cursor=pointer]:
+          - /url: /
+      - generic [ref=e8]:
+        - link "Blog" [ref=e9] [cursor=pointer]:
+          - /url: /
+        - link "About" [ref=e10] [cursor=pointer]:
+          - /url: /about/
+        - link "Contact" [ref=e11] [cursor=pointer]:
+          - /url: /contact/
+      - button "Search" [ref=e12] [cursor=pointer]:
+        - img [ref=e13]
+      - generic [ref=e16]:
+        - link "GitHub" [ref=e17] [cursor=pointer]:
+          - /url: https://github.com/thebiglaskowski
+          - img [ref=e18]
+        - link "X (Twitter)" [ref=e20] [cursor=pointer]:
+          - /url: https://x.com/thebiglaskowski
+          - img [ref=e21]
+        - link "LinkedIn" [ref=e23] [cursor=pointer]:
+          - /url: https://www.linkedin.com/in/thebiglaskowski
+          - img [ref=e24]
+        - link "YouTube" [ref=e26] [cursor=pointer]:
+          - /url: https://www.youtube.com/@JoeLaskowski
+          - img [ref=e27]
+  - main [ref=e29]:
+    - generic [ref=e30]:
+      - paragraph [ref=e32]: "|"
+      - generic [ref=e33]:
+        - article [ref=e34]:
+          - 'link "Faceoff: A Journey into the World of AI-Driven Face Swapping Jun 2, 2023 9 min read Faceoff: A Journey into the World of AI-Driven Face Swapping Dive into the intriguing realm of AI-driven face swapping with this detailed exploration of the Faceoff app and InsightFace technologies. This article offers insights into the progression of face swapping, the impact of machine learning, and the use of Python scripts such as GFPGAN and Real-ESRGAN to improve image quality." [ref=e35] [cursor=pointer]':
+            - /url: /blog/face-swapping-with-ai/
+            - 'img "Faceoff: A Journey into the World of AI-Driven Face Swapping" [ref=e37]'
+            - generic [ref=e38]:
+              - generic [ref=e39]:
+                - time [ref=e41]: Jun 2, 2023
+                - generic [ref=e42]: ·
+                - generic [ref=e43]: 9 min read
+              - 'heading "Faceoff: A Journey into the World of AI-Driven Face Swapping" [level=2] [ref=e44]'
+              - paragraph [ref=e45]: Dive into the intriguing realm of AI-driven face swapping with this detailed exploration of the Faceoff app and InsightFace technologies. This article offers insights into the progression of face swapping, the impact of machine learning, and the use of Python scripts such as GFPGAN and Real-ESRGAN to improve image quality.
+          - list [ref=e46]:
+            - listitem [ref=e47]:
+              - link "InsightFace" [ref=e48] [cursor=pointer]:
+                - /url: /tags/insightface/
+            - listitem [ref=e49]:
+              - link "Face Swap" [ref=e50] [cursor=pointer]:
+                - /url: /tags/face-swap/
+            - listitem [ref=e51]:
+              - link "GFPGAN" [ref=e52] [cursor=pointer]:
+                - /url: /tags/gfpgan/
+            - listitem [ref=e53]:
+              - link "Real-ESRGAN" [ref=e54] [cursor=pointer]:
+                - /url: /tags/real-esrgan/
+            - listitem [ref=e55]:
+              - link "AI" [ref=e56] [cursor=pointer]:
+                - /url: /tags/ai/
+        - article [ref=e57]:
+          - 'link "ShellGPT: Revolutionizing Command-Line Interactions with the Power of AI May 21, 2023 6 min read ShellGPT: Revolutionizing Command-Line Interactions with the Power of AI ShellGPT: Harnessing AI Power in Your Terminal - A concise guide to installing and using ShellGPT, a revolutionary tool that transforms your command-line interactions and streamlines your workflow." [ref=e58] [cursor=pointer]':
+            - /url: /blog/shellgpt-revolutionizing-cli-with-the-power-of-ai/
+            - 'img "ShellGPT: Revolutionizing Command-Line Interactions with the Power of AI" [ref=e60]'
+            - generic [ref=e61]:
+              - generic [ref=e62]:
+                - time [ref=e64]: May 21, 2023
+                - generic [ref=e65]: ·
+                - generic [ref=e66]: 6 min read
+              - 'heading "ShellGPT: Revolutionizing Command-Line Interactions with the Power of AI" [level=2] [ref=e67]'
+              - paragraph [ref=e68]: "ShellGPT: Harnessing AI Power in Your Terminal - A concise guide to installing and using ShellGPT, a revolutionary tool that transforms your command-line interactions and streamlines your workflow."
+          - list [ref=e69]:
+            - listitem [ref=e70]:
+              - link "ShellGPT" [ref=e71] [cursor=pointer]:
+                - /url: /tags/shellgpt/
+            - listitem [ref=e72]:
+              - link "CLI" [ref=e73] [cursor=pointer]:
+                - /url: /tags/cli/
+            - listitem [ref=e74]:
+              - link "AI" [ref=e75] [cursor=pointer]:
+                - /url: /tags/ai/
+            - listitem [ref=e76]:
+              - link "Linux" [ref=e77] [cursor=pointer]:
+                - /url: /tags/linux/
+            - listitem [ref=e78]:
+              - link "Bash" [ref=e79] [cursor=pointer]:
+                - /url: /tags/bash/
+            - listitem [ref=e80]:
+              - link "Powershell" [ref=e81] [cursor=pointer]:
+                - /url: /tags/powershell/
+        - article [ref=e82]:
+          - 'link "The Magic of Midjourney Prompts: How to Create Beautiful AI-Generated Images Apr 29, 2023 15 min read The Magic of Midjourney Prompts: How to Create Beautiful AI-Generated Images Unleash the power of AI in art with Midjourney. Master the creation of photorealistic images using natural language prompts, grasp the advantages of Midjourney, and uncover advanced techniques. This guide, ideal for artists and tech enthusiasts, beckons you to venture into novel realms of digital art." [ref=e83] [cursor=pointer]':
+            - /url: /blog/the-magic-of-midjourney-prompts/
+            - 'img "The Magic of Midjourney Prompts: How to Create Beautiful AI-Generated Images" [ref=e85]'
+            - generic [ref=e86]:
+              - generic [ref=e87]:
+                - time [ref=e89]: Apr 29, 2023
+                - generic [ref=e90]: ·
+                - generic [ref=e91]: 15 min read
+              - 'heading "The Magic of Midjourney Prompts: How to Create Beautiful AI-Generated Images" [level=2] [ref=e92]'
+              - paragraph [ref=e93]: Unleash the power of AI in art with Midjourney. Master the creation of photorealistic images using natural language prompts, grasp the advantages of Midjourney, and uncover advanced techniques. This guide, ideal for artists and tech enthusiasts, beckons you to venture into novel realms of digital art.
+          - list [ref=e94]:
+            - listitem [ref=e95]:
+              - link "Midjourney" [ref=e96] [cursor=pointer]:
+                - /url: /tags/midjourney/
+            - listitem [ref=e97]:
+              - link "Prompt" [ref=e98] [cursor=pointer]:
+                - /url: /tags/prompt/
+            - listitem [ref=e99]:
+              - link "Art" [ref=e100] [cursor=pointer]:
+                - /url: /tags/art/
+            - listitem [ref=e101]:
+              - link "AI" [ref=e102] [cursor=pointer]:
+                - /url: /tags/ai/
+        - article [ref=e103]:
+          - 'link "Unleashing Creativity: Mastering AI-Generated Art with Midjourney Apr 23, 2023 2 min read Unleashing Creativity: Mastering AI-Generated Art with Midjourney Explore the world of AI-generated art with Midjourney v5. This post features vibrant landscapes and imaginative animal portraits, all crafted with AI. Learn how tools like the Interrogator plugin can turn ideas into extraordinary art. Perfect for tech enthusiasts and art lovers, this post will inspire you to unlock new creative possibilities." [ref=e104] [cursor=pointer]':
+            - /url: /blog/mastering-ai-generated-art-midjourney/
+            - 'img "Unleashing Creativity: Mastering AI-Generated Art with Midjourney" [ref=e106]'
+            - generic [ref=e107]:
+              - generic [ref=e108]:
+                - time [ref=e110]: Apr 23, 2023
+                - generic [ref=e111]: ·
+                - generic [ref=e112]: 2 min read
+              - 'heading "Unleashing Creativity: Mastering AI-Generated Art with Midjourney" [level=2] [ref=e113]'
+              - paragraph [ref=e114]: Explore the world of AI-generated art with Midjourney v5. This post features vibrant landscapes and imaginative animal portraits, all crafted with AI. Learn how tools like the Interrogator plugin can turn ideas into extraordinary art. Perfect for tech enthusiasts and art lovers, this post will inspire you to unlock new creative possibilities.
+          - list [ref=e115]:
+            - listitem [ref=e116]:
+              - link "Midjourney" [ref=e117] [cursor=pointer]:
+                - /url: /tags/midjourney/
+            - listitem [ref=e118]:
+              - link "Stable Diffusion" [ref=e119] [cursor=pointer]:
+                - /url: /tags/stable-diffusion/
+            - listitem [ref=e120]:
+              - link "Art" [ref=e121] [cursor=pointer]:
+                - /url: /tags/art/
+            - listitem [ref=e122]:
+              - link "AI" [ref=e123] [cursor=pointer]:
+                - /url: /tags/ai/
+        - article [ref=e124]:
+          - 'link "Customize Your Terminal: A Comprehensive Guide to Enhancing Your Linux CLI Experience Aug 7, 2021 4 min read Customize Your Terminal: A Comprehensive Guide to Enhancing Your Linux CLI Experience A guide to make your terminal look and feel professional. Transform your boring default stock terminal into a riced-out beast." [ref=e125] [cursor=pointer]':
+            - /url: /blog/riced-out-terminal/
+            - 'img "Customize Your Terminal: A Comprehensive Guide to Enhancing Your Linux CLI Experience" [ref=e127]'
+            - generic [ref=e128]:
+              - generic [ref=e129]:
+                - time [ref=e131]: Aug 7, 2021
+                - generic [ref=e132]: ·
+                - generic [ref=e133]: 4 min read
+              - 'heading "Customize Your Terminal: A Comprehensive Guide to Enhancing Your Linux CLI Experience" [level=2] [ref=e134]'
+              - paragraph [ref=e135]: A guide to make your terminal look and feel professional. Transform your boring default stock terminal into a riced-out beast.
+          - list [ref=e136]:
+            - listitem [ref=e137]:
+              - link "Linux" [ref=e138] [cursor=pointer]:
+                - /url: /tags/linux/
+            - listitem [ref=e139]:
+              - link "CLI" [ref=e140] [cursor=pointer]:
+                - /url: /tags/cli/
+            - listitem [ref=e141]:
+              - link "Tutorial" [ref=e142] [cursor=pointer]:
+                - /url: /tags/tutorial/
+            - listitem [ref=e143]:
+              - link "Oh-my-zsh" [ref=e144] [cursor=pointer]:
+                - /url: /tags/oh-my-zsh/
+            - listitem [ref=e145]:
+              - link "Powerlevel10K" [ref=e146] [cursor=pointer]:
+                - /url: /tags/powerlevel10k/
+            - listitem [ref=e147]:
+              - link "ColorLS" [ref=e148] [cursor=pointer]:
+                - /url: /tags/colorls/
+  - contentinfo [ref=e149]:
+    - generic [ref=e151]:
+      - paragraph [ref=e152]: © 2021-2026 thebiglaskowski. All rights reserved.
+      - generic [ref=e153]:
+        - link "About" [ref=e154] [cursor=pointer]:
+          - /url: /about/
+        - link "Blog" [ref=e155] [cursor=pointer]:
+          - /url: /
+        - link "Contact" [ref=e156] [cursor=pointer]:
+          - /url: /contact/
+  - generic [ref=e159]:
+    - button "Menu" [ref=e160]:
+      - img [ref=e162]
+      - generic: Menu
+    - button "Inspect" [ref=e166]:
+      - img [ref=e168]
+      - generic: Inspect
+    - button "Audit" [ref=e170]:
+      - img [ref=e172]
+      - generic: Audit
+    - button "Settings" [ref=e175]:
+      - img [ref=e177]
+      - generic: Settings
