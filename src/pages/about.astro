@@ -3,12 +3,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { Image } from "astro:assets";
 import { SITE_TITLE } from '../consts';
 import profileImage from "../assets/images/joe_laskowski.webp";
-import locationImage from "../assets/images/south-bend.webp";
 ---
 
 <BaseLayout
   title={`About Me | ${SITE_TITLE}`}
-  description="Hello! I'm Joe Laskowski, an accomplished IT professional and passionate problem solver with a strong affinity for technology."
+  description="Joe Laskowski — twenty-five years in IT, currently working in AI, writing here when I've got something worth saying."
 >
   <div class="container">
     <article class="about-content">
@@ -24,91 +23,78 @@ import locationImage from "../assets/images/south-bend.webp";
         <div class="hero-text">
           <h1 class="gradient-text">About Joe Laskowski</h1>
           <p class="lead">
-            An accomplished IT professional and passionate problem solver
-            with a strong affinity for technology, exploring AI, and
-            building innovative solutions.
+            Twenty-five years in IT, currently working in AI, writing here
+            when I've got something worth saying.
           </p>
         </div>
       </div>
 
       <div class="prose">
-        <h2 class="accent-blue">My Journey into Technology</h2>
+        <h2 class="accent-blue">The Work</h2>
         <p>
-          For over 20 years, I've been delivering exceptional service within
-          the IT industry, driven by my insatiable curiosity and commitment
-          to innovation. I've always been captivated by the transformative
-          power of technology—its ability to solve complex problems and open
-          new doors of opportunity.
+          Twenty-five years in IT — the first sixteen at small shops, where
+          you ARE the IT department and a printer driver counts as a
+          credible cause of death. The last nine in enterprise: Microsoft
+          365, Active Directory, Intune, Entra ID (which Microsoft has
+          renamed enough times that I've stopped keeping count out of
+          self-respect), and the infrastructure underneath all of it. Long
+          enough, either way, to have watched the same "new" framework get
+          rebranded twice and sold back to me. Long enough to have strong
+          opinions about why the PowerShell window went red at 2 AM.
         </p>
 
         <p>
-          Currently, I hold the position of AI Quality Analyst at <a
+          Since April 2026, I've been the AI Quality Analyst at <a
             href="https://aunalytics.com/">Aunalytics</a
-          >, an AI-powered data platform company based in the Midwest. My
-          role focuses on evaluating and ensuring the quality of AI systems,
-          combining my deep technical background with a keen eye for how AI
-          performs in real-world scenarios.
+          >, a Midwest data platform company. The job, stripped of its
+          title, is this: when the AI says something, is it actually right?
+          Turns out that's a more interesting question than the marketing
+          for any of these systems would have you believe.
         </p>
 
-        <h2 class="accent-purple">Beyond the Professional Realm</h2>
+        <h2 class="accent-purple">Off the Clock</h2>
         <p>
-          When I'm not immersed in IT, I delve into various activities that
-          fuel my curiosity and passion. I've been using the Linux operating
-          system daily for over 19 years, reveling in the challenges of a
-          terminal environment. I also explore the fascinating world of
-          cryptocurrency, primarily focusing on $XRP and $XLM, and enjoy
-          tinkering with AI tools for generating unique and intriguing
-          projects.
-        </p>
-
-        <p>
-          Outside of technology, I delight in exploring the rich flavors of
-          craft beers - mainly double IPAs and robust stouts. As a
-          self-proclaimed hot-wing connoisseur, I constantly search for the
-          perfect spicy bite. My fondness for the Star Wars universe often
-          occupies my free time as I eagerly discuss and dissect every
-          detail of the franchise.
-        </p>
-
-        <div class="image-section">
-          <Image
-            src={locationImage}
-            alt="South Bend, Indiana"
-            class="location-image"
-            width={600}
-            height={400}
-            loading="eager"
-          />
-          <p class="image-caption">South Bend, Indiana</p>
-        </div>
-
-        <h2 class="accent-purple">Family and Community</h2>
-        <p>
-          Family is essential to me, and I'm blessed to have three
-          incredible children and four delightful grandchildren who always
-          amaze me with their boundless energy and zest for life. I'm also
-          fortunate to share my life with my wonderful girlfriend and her
-          three amazing kids, and being part of a blended family has added
-          another deeply meaningful and joyful dimension to my life.
+          Linux every day for nineteen years — the terminal is where I
+          think clearest. I keep one eye on crypto, mostly $XRP and $XLM,
+          and one hand on whatever AI tooling is currently interesting to
+          poke at. Some of what falls out of that ends up on the blog. Most
+          of it ends up in a drawer.
         </p>
 
         <p>
-          I hail from South Bend, Indiana, a vibrant and dynamic city known
-          for its rich history, strong sense of community, and diverse
-          cultural offerings. I take pride in my roots and cherish the
-          memories and experiences shaped by growing up in this beautiful and
-          welcoming place.
+          Away from the screen: double IPAs and stouts thick enough to
+          chew, hot wings ordered at a heat level my friends consider a
+          personal failing, and Star Wars. I will talk about Star Wars
+          longer than is reasonable, and if you let me start ranking the
+          films I'm probably your problem for the rest of the evening.
+        </p>
+
+        <p class="location-tag">— South Bend, Indiana —</p>
+
+        <h2 class="accent-purple">Family</h2>
+        <p>
+          Three kids and four grandkids — the kids are out in the world
+          doing their own thing, the grandkids are sharper than I was at
+          their age and significantly louder. My partner Rianna and I
+          started dating on New Year's Day 2025, and between her three kids
+          and mine the house is rarely quiet — which, most days, is the
+          point.
+        </p>
+
+        <p>
+          South Bend, Indiana. Real place. Notre Dame, the river, winters
+          that make a warm terminal feel like a coping mechanism. I grew
+          up here, my kids did too, and I'm not going anywhere.
         </p>
 
         <h2 class="accent-pink">Let's Connect</h2>
         <p>
-          Whether you're interested in discussing the latest IT solutions,
-          exploring the world of cryptocurrency, or simply sharing your
-          favorite Star Wars theory, I'd love to hear from you. Reach out
-          through any of my social channels in the header, check out my
-          latest projects and experiments in the
-          <a href="/">blog</a>, or
-          <a href="/contact/">drop me a message</a> directly.
+          If you want to talk Entra ID, XRP, the right way to deploy
+          something at 2 AM, or which Star Wars film is genuinely the best
+          one — social links are in the header. The <a href="/">blog</a>
+          is whatever I've been chewing on lately. Or <a href="/contact/"
+            >send me a message</a
+          > and we'll go from there.
         </p>
       </div>
     </article>
@@ -185,26 +171,12 @@ import locationImage from "../assets/images/south-bend.webp";
       text-decoration: underline;
     }
 
-    .image-section {
-      margin: 3rem 0;
+    .location-tag {
       text-align: center;
-    }
-
-    .location-image {
-      width: 100%;
-      max-width: 600px;
-      height: auto;
-      border-radius: 8px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-      margin: 0 auto 1rem auto;
-      display: block;
-    }
-
-    .image-caption {
       font-style: italic;
       color: var(--text-muted);
-      margin: 0;
-      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      margin: 2.5rem 0;
     }
 
     @media (max-width: 768px) {
