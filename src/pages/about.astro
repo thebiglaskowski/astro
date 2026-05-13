@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { Image } from "astro:assets";
 import { SITE_TITLE } from '../consts';
 import profileImage from "../assets/images/joe_laskowski.webp";
+import locationImage from "../assets/images/south-bend.webp";
 ---
 
 <BaseLayout
@@ -69,16 +70,27 @@ import profileImage from "../assets/images/joe_laskowski.webp";
           films I'm probably your problem for the rest of the evening.
         </p>
 
-        <p class="location-tag">— South Bend, Indiana —</p>
+        <div class="image-section">
+          <Image
+            src={locationImage}
+            alt="South Bend, Indiana"
+            class="location-image"
+            width={600}
+            height={400}
+            loading="eager"
+          />
+          <p class="image-caption">South Bend, Indiana</p>
+        </div>
 
         <h2 class="accent-purple">Family</h2>
         <p>
-          Three kids and four grandkids — the kids are out in the world
-          doing their own thing, the grandkids are sharper than I was at
-          their age and significantly louder. My partner Rianna and I
-          started dating on New Year's Day 2025, and between her three kids
-          and mine the house is rarely quiet — which, most days, is the
-          point.
+          Three kids and four grandkids — my two oldest are grown and out
+          doing their own thing; AJ, my youngest, is still a kid and is
+          with me several days a week. The grandkids are sharper than I
+          was at their age and significantly louder. My partner Rianna and
+          I started dating on New Year's Day 2025, and between her three
+          kids and mine the house is rarely quiet — which, most days, is
+          the point.
         </p>
 
         <p>
@@ -171,12 +183,26 @@ import profileImage from "../assets/images/joe_laskowski.webp";
       text-decoration: underline;
     }
 
-    .location-tag {
+    .image-section {
+      margin: 3rem 0;
       text-align: center;
+    }
+
+    .location-image {
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      margin: 0 auto 1rem auto;
+      display: block;
+    }
+
+    .image-caption {
       font-style: italic;
       color: var(--text-muted);
-      letter-spacing: 0.08em;
-      margin: 2.5rem 0;
+      margin: 0;
+      font-size: 0.95rem;
     }
 
     @media (max-width: 768px) {
