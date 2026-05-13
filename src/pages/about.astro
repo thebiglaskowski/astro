@@ -4,11 +4,18 @@ import { Image } from "astro:assets";
 import { SITE_TITLE } from '../consts';
 import profileImage from "../assets/images/joe_laskowski.webp";
 import locationImage from "../assets/images/south-bend.webp";
+
+// Career start: 2000. Total years in IT is computed at build time
+// so the About page stays current without manual edits each year.
+const CAREER_START_YEAR = 2000;
+const LINUX_START_YEAR = 2007;
+const yearsInIT = new Date().getFullYear() - CAREER_START_YEAR;
+const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
 ---
 
 <BaseLayout
   title={`About Me | ${SITE_TITLE}`}
-  description="Joe Laskowski — twenty-five years in IT, currently working in AI, writing here when I've got something worth saying."
+  description={`Joe Laskowski — ${yearsInIT} years in IT, currently working in AI, writing here when I've got something worth saying.`}
 >
   <div class="container">
     <article class="about-content">
@@ -24,7 +31,7 @@ import locationImage from "../assets/images/south-bend.webp";
         <div class="hero-text">
           <h1 class="gradient-text">About Joe Laskowski</h1>
           <p class="lead">
-            Twenty-five years in IT, currently working in AI, writing here
+            {yearsInIT} years in IT, currently working in AI, writing here
             when I've got something worth saying.
           </p>
         </div>
@@ -33,17 +40,17 @@ import locationImage from "../assets/images/south-bend.webp";
       <div class="prose">
         <h2 class="accent-blue">The Work</h2>
         <p>
-          Twenty-five years in IT — the first sixteen at small shops, where
-          you ARE the IT department and a printer driver counts as a
-          credible cause of death. The last nine in enterprise, moving
-          through service desk, then service desk lead, then Internal IT —
-          where I spent my most recent years living in Microsoft 365,
-          Active Directory, Intune, and Entra/Azure (which Microsoft has
-          renamed enough times that I've stopped keeping count out of
-          self-respect). Long enough, either way, to have watched the same
-          "new" framework get rebranded twice and sold back to me. Long
-          enough to have strong opinions about why the PowerShell window
-          went red at 2 AM.
+          {yearsInIT} years in IT — the first seventeen at small shops,
+          where you ARE the IT department and a printer driver counts as
+          a credible cause of death. Nine years in enterprise after that,
+          moving through service desk, then service desk lead, then
+          Internal IT — where I lived in Microsoft 365, Active Directory,
+          Intune, and Entra/Azure (which Microsoft has renamed enough
+          times that I've stopped keeping count out of self-respect).
+          Long enough, either way, to have watched the same "new"
+          framework get rebranded twice and sold back to me. Long enough
+          to have strong opinions about why the PowerShell window went
+          red at 2 AM.
         </p>
 
         <p>
@@ -76,8 +83,8 @@ import locationImage from "../assets/images/south-bend.webp";
 
         <h2 class="accent-purple">Off the Clock</h2>
         <p>
-          Linux every day for nineteen years — the terminal is where I
-          think clearest. A while back I sold my $XLM to buy more $XRP,
+          Linux every day for {linuxYears} years — the terminal is where
+          I think clearest. A while back I sold my $XLM to buy more $XRP,
           and that's where my crypto attention sits now (it made sense at
           the time; ask me again in five years). The rest of my
           screen-time goes to AI tooling — anything new I can poke at, I
