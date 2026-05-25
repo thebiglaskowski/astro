@@ -256,8 +256,8 @@ em, i { color: var(--paper-bright); }
 }
 .prose > p { margin: 0 0 0.9em; }
 .prose strong, .prose b { color: var(--paper-bright); font-weight: 600; }
-.prose a { color: var(--steel); border-bottom: 1px solid var(--rule); }
-.prose a:hover { border-bottom-color: var(--steel); }
+.prose a { color: var(--steel); font-weight: inherit; border-bottom: 1px solid var(--mute); }
+.prose a:hover { color: var(--paper-bright); border-bottom-color: var(--steel); }
 .prose h2, .prose h3 {
   font-family: var(--font-serif);
   color: var(--paper-bright);
