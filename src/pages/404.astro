@@ -4,43 +4,58 @@ import { SITE_TITLE } from '../consts';
 ---
 
 <BaseLayout title={`Page Not Found | ${SITE_TITLE}`} description="The page you're looking for doesn't exist.">
-	<div class="container">
+	<div class="not-found-wrap">
 		<section class="not-found">
-			<h1 class="gradient-text">404</h1>
+			<h1>404</h1>
 			<p>The page you're looking for doesn't exist.</p>
 			<a href="/" class="back-link">Back to Blog</a>
 		</section>
 	</div>
 
 	<style>
+		.not-found-wrap {
+			padding: 28px var(--gutter) 0;
+		}
+
 		.not-found {
 			text-align: center;
 			padding: 6rem 0;
 		}
 
 		.not-found h1 {
-			font-size: 6rem;
+			font-family: var(--font-serif);
+			font-size: 8rem;
+			font-weight: 400;
+			color: var(--paper-bright);
+			letter-spacing: -0.04em;
 			margin-bottom: 1rem;
+			line-height: 1;
 		}
 
 		.not-found p {
-			font-size: 1.25rem;
-			color: var(--text-secondary);
-			margin-bottom: 2rem;
+			font-family: var(--font-serif);
+			font-style: italic;
+			font-size: 1.15rem;
+			color: var(--paper-dim);
+			margin-bottom: 2.5rem;
 		}
 
 		.back-link {
 			display: inline-block;
-			color: var(--accent-blue);
+			color: var(--paper-bright);
+			font-family: var(--font-sans);
+			font-size: 11px;
 			font-weight: 600;
-			padding: 0.75rem 1.5rem;
-			border: 1px solid var(--accent-blue);
-			border-radius: var(--radius-md);
-			transition: all var(--transition-fast);
+			letter-spacing: .22em;
+			text-transform: uppercase;
+			padding: 0.6rem 2rem;
+			border: 1px solid var(--oxblood);
+			transition: background .15s, color .15s;
 		}
 
 		.back-link:hover {
-			background: rgba(0, 212, 255, 0.1);
+			background: var(--oxblood);
+			color: var(--ink);
 			text-decoration: none;
 		}
 	</style>

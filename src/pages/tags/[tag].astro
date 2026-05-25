@@ -24,111 +24,125 @@ const posts = await getPostsByTag(tagSlug!);
 	title={`${tagName} | ${SITE_TITLE}`}
 	description={`Posts tagged ${tagName}.`}
 >
-	<div class="container">
+	<div class="tag-wrap">
 		<nav class="breadcrumb" aria-label="Breadcrumb">
 			<a href="/tags/">← All tags</a>
 		</nav>
 
 		<section class="tag-header">
-			<h1 class="gradient-text">#{tagName}</h1>
+			<h1>#{tagName}</h1>
 			<p>{count} {count === 1 ? 'post' : 'posts'}</p>
 		</section>
 
 		<section class="posts-list">
 			{posts.map((post) => (
-				<article class="post-card card">
-					<a href={`/blog/${post.id}/`} class="post-link">
-						{post.data.heroImage && (
-							<div class="post-image">
-								<Image
-									src={post.data.heroImage}
-									alt={post.data.title}
-									width={400}
-									height={200}
-									loading="lazy"
-								/>
-							</div>
-						)}
-						<div class="post-content">
-							<span class="post-date">
-								<FormattedDate date={post.data.pubDate} />
-							</span>
-							<h2 class="post-title">{post.data.title}</h2>
-							{post.data.description && (
-								<p class="post-description">{post.data.description}</p>
-							)}
+				<a class="post-card" href={`/blog/${post.id}/`}>
+					{post.data.heroImage && (
+						<div class="post-image">
+							<Image
+								src={post.data.heroImage}
+								alt={post.data.title}
+								width={400}
+								height={200}
+								loading="lazy"
+							/>
 						</div>
-					</a>
-				</article>
+					)}
+					<div class="post-content">
+						<span class="post-date">
+							<FormattedDate date={post.data.pubDate} />
+						</span>
+						<h2 class="post-title">{post.data.title}</h2>
+						{post.data.description && (
+							<p class="post-description">{post.data.description}</p>
+						)}
+					</div>
+				</a>
 			))}
 		</section>
 	</div>
 
 	<style>
+		.tag-wrap {
+			padding: 28px var(--gutter) 0;
+			max-width: 800px;
+			margin: 0 auto;
+		}
+
 		.breadcrumb {
-			margin: 2rem 0 0 0;
+			margin-bottom: 1.5rem;
 		}
 
 		.breadcrumb a {
-			color: var(--text-muted);
-			font-size: 0.9rem;
+			font-family: var(--font-sans);
+			font-size: 10.5px;
+			letter-spacing: .22em;
+			text-transform: uppercase;
+			color: var(--mute);
+			transition: color .15s;
 		}
 
 		.breadcrumb a:hover {
-			color: var(--accent-blue);
+			color: var(--paper-bright);
 		}
 
 		.tag-header {
-			text-align: center;
-			margin: 2rem 0 3rem 0;
+			margin-bottom: 2rem;
+			padding-bottom: 1.5rem;
+			border-bottom: 1px double var(--rule);
 		}
 
 		.tag-header h1 {
-			font-size: 3rem;
-			margin-bottom: 0.5rem;
-			font-weight: 700;
+			font-family: var(--font-serif);
+			font-size: clamp(32px, 5vw, 52px);
+			font-weight: 500;
+			color: var(--paper-bright);
+			letter-spacing: -0.02em;
+			margin-bottom: 0.25rem;
 		}
 
 		.tag-header p {
-			color: var(--text-muted);
-			font-size: 1rem;
+			font-family: var(--font-sans);
+			font-size: 10.5px;
+			letter-spacing: .28em;
+			text-transform: uppercase;
+			color: var(--mute);
 		}
 
 		.posts-list {
 			display: grid;
 			grid-template-columns: 1fr;
-			gap: 1.5rem;
+			gap: 1px;
 			margin-bottom: 4rem;
+			border: 1px solid var(--rule);
 		}
 
 		.post-card {
-			padding: 0;
-			overflow: hidden;
-			transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-		}
-
-		.post-card:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 8px 30px rgba(0, 212, 255, 0.15);
-			border-color: var(--border-glow);
-		}
-
-		.post-link {
 			display: grid;
 			grid-template-columns: 200px 1fr;
 			text-decoration: none;
 			color: inherit;
+			border-bottom: 1px solid var(--rule-dim);
+			transition: background .15s;
+		}
+
+		.post-card:last-child {
+			border-bottom: none;
+		}
+
+		.post-card:hover {
+			background: rgba(255,255,255,0.03);
 		}
 
 		.post-image {
 			overflow: hidden;
+			border-right: 1px solid var(--rule-dim);
 		}
 
 		.post-image img {
 			width: 100%;
 			height: 100%;
 			object-fit: cover;
-			border-radius: 0;
 		}
 
 		.post-content {
@@ -136,27 +150,33 @@ const posts = await getPostsByTag(tagSlug!);
 		}
 
 		.post-date {
-			color: var(--text-muted);
-			font-size: 0.85rem;
-			font-weight: 600;
+			font-family: var(--font-sans);
+			font-size: 10px;
+			letter-spacing: .22em;
+			text-transform: uppercase;
+			color: var(--mute);
 		}
 
 		.post-title {
-			font-size: 1.3rem;
-			margin: 0.5rem 0;
-			color: var(--text-primary);
-			transition: color 0.2s ease;
+			font-family: var(--font-serif);
+			font-size: 1.2rem;
+			font-weight: 500;
+			margin: 0.4rem 0 0.5rem;
+			color: var(--paper-bright);
+			transition: color .15s;
 		}
 
-		.post-link:hover .post-title {
-			color: var(--accent-blue);
+		.post-card:hover .post-title {
+			color: var(--steel);
 		}
 
 		.post-description {
-			color: var(--text-secondary);
-			font-size: 0.95rem;
+			font-family: var(--font-serif);
+			font-style: italic;
+			color: var(--paper-dim);
+			font-size: 0.9rem;
 			line-height: 1.5;
-			margin: 0.5rem 0 0 0;
+			margin: 0;
 			display: -webkit-box;
 			-webkit-line-clamp: 2;
 			-webkit-box-orient: vertical;
@@ -164,16 +184,14 @@ const posts = await getPostsByTag(tagSlug!);
 		}
 
 		@media (max-width: 768px) {
-			.tag-header h1 {
-				font-size: 2.25rem;
-			}
-
-			.post-link {
+			.post-card {
 				grid-template-columns: 1fr;
 			}
 
-			.post-image img {
-				height: 180px;
+			.post-image {
+				border-right: none;
+				border-bottom: 1px solid var(--rule-dim);
+				height: 160px;
 			}
 		}
 	</style>

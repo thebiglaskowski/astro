@@ -5,8 +5,6 @@ import { SITE_TITLE } from '../consts';
 import profileImage from "../assets/images/joe_laskowski.webp";
 import locationImage from "../assets/images/south-bend.webp";
 
-// Career start: 2000. Total years in IT is computed at build time
-// so the About page stays current without manual edits each year.
 const CAREER_START_YEAR = 2000;
 const LINUX_START_YEAR = 2007;
 const yearsInIT = new Date().getFullYear() - CAREER_START_YEAR;
@@ -17,7 +15,7 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
   title={`About Me | ${SITE_TITLE}`}
   description={`Joe Laskowski — ${yearsInIT} years in IT, currently working in AI, writing here when I've got something worth saying.`}
 >
-  <div class="container">
+  <div class="about-wrap">
     <article class="about-content">
       <div class="hero-section">
         <Image
@@ -29,7 +27,7 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
           loading="eager"
         />
         <div class="hero-text">
-          <h1 class="gradient-text">About Joe Laskowski</h1>
+          <h1>About Joe Laskowski</h1>
           <p class="lead">
             {yearsInIT} years in IT, currently AI Quality Analyst at
             Aunalytics — a title I would have laughed at five years ago
@@ -40,7 +38,7 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
       </div>
 
       <div class="prose">
-        <h2 class="accent-blue">The Work</h2>
+        <h2>The Work</h2>
         <p>
           The arc, roughly: years of on-site warranty work for HP, Dell,
           Sony, and the rest of the OEMs. Then close to a decade managing
@@ -66,7 +64,7 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
           believe.
         </p>
 
-        <h2 class="accent-green">Building</h2>
+        <h2>Building</h2>
         <p>
           Outside the day job there's <a href="https://autoscript.studio" target="_blank" rel="noopener noreferrer"
             >AutoScript Studio LLC</a
@@ -85,7 +83,7 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
           first version of any of it tends to surface.
         </p>
 
-        <h2 class="accent-purple">Off the Clock</h2>
+        <h2>Off the Clock</h2>
         <p>
           Linux every day for {linuxYears} years — the terminal is where
           I think clearest. Been an XRP obsessive since 2017 — full
@@ -119,7 +117,7 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
           <p class="image-caption">South Bend, Indiana</p>
         </div>
 
-        <h2 class="accent-orange">Family</h2>
+        <h2>Family</h2>
         <p>
           Three kids and four grandkids — my two oldest are grown and out
           doing their own thing; AJ, my youngest, is still a kid, with me
@@ -143,12 +141,12 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
           trying to raise.
         </p>
 
-        <h2 class="accent-pink">Let's Connect</h2>
+        <h2>Let's Connect</h2>
         <p>
           If you want to talk XRP, AI tooling, or whether the UAP stuff
           is finally about to break wide open — social links are in the
-          header. The <a href="/" target="_blank" rel="noopener noreferrer">blog</a>
-          is whatever I've been chewing on lately. Or <a href="/contact/" target="_blank" rel="noopener noreferrer"
+          header. The <a href="/">blog</a>
+          is whatever I've been chewing on lately. Or <a href="/contact/"
             >send me a message</a
           > and we'll go from there.
         </p>
@@ -157,7 +155,8 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
   </div>
 
   <style>
-    .about-content {
+    .about-wrap {
+      padding: 28px var(--gutter) 0;
       max-width: 800px;
       margin: 0 auto;
     }
@@ -168,63 +167,37 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
       align-items: center;
       margin: 3rem 0;
       padding: 2rem 0;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px double var(--rule);
     }
 
     .profile-image {
       width: 180px;
       height: 180px;
       border-radius: 50%;
-      border: 4px solid var(--accent-blue);
-      box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+      border: 3px solid var(--rule);
       flex-shrink: 0;
     }
 
-    .hero-text {
-      flex: 1;
-    }
-
     .hero-text h1 {
-      font-size: 2.5rem;
+      font-family: var(--font-serif);
+      font-size: clamp(26px, 5vw, 40px);
+      font-weight: 500;
+      color: var(--paper-bright);
+      letter-spacing: -0.02em;
       margin: 0 0 1rem 0;
-      font-weight: 700;
     }
 
     .lead {
-      font-size: 1.25rem;
-      color: var(--text-secondary);
-      line-height: 1.6;
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--paper-dim);
+      line-height: 1.65;
       margin: 0;
     }
 
     .prose {
       margin-top: 3rem;
-    }
-
-    .prose h2 {
-      font-size: 1.75rem;
-      margin: 2.5rem 0 1rem 0;
-      font-weight: 600;
-    }
-
-    .prose p {
-      margin: 1.5rem 0;
-      font-size: 1.1rem;
-      line-height: 1.7;
-    }
-
-    .prose a {
-      color: var(--accent-blue);
-      font-weight: 600;
-      transition:
-        color 0.2s ease,
-        text-shadow 0.2s ease;
-    }
-
-    .prose a:hover {
-      color: var(--accent-cyan);
-      text-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
-      text-decoration: underline;
     }
 
     .image-section {
@@ -236,17 +209,18 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
       width: 100%;
       max-width: 600px;
       height: auto;
-      border-radius: 8px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-      margin: 0 auto 1rem auto;
       display: block;
+      margin: 0 auto 1rem auto;
+      border: 1px solid var(--rule);
     }
 
     .image-caption {
-      font-style: italic;
-      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 10.5px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--mute);
       margin: 0;
-      font-size: 0.95rem;
     }
 
     @media (max-width: 768px) {
@@ -254,14 +228,6 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
         flex-direction: column;
         text-align: center;
         gap: 2rem;
-      }
-
-      .hero-text h1 {
-        font-size: 2rem;
-      }
-
-      .lead {
-        font-size: 1.125rem;
       }
 
       .profile-image {

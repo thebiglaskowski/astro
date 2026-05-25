@@ -10,9 +10,9 @@ const tags = await getAllTags();
 	title={`Tags | ${SITE_TITLE}`}
 	description="Browse blog posts by topic."
 >
-	<div class="container">
+	<div class="tags-wrap">
 		<section class="tags-header">
-			<h1 class="gradient-text">Tags</h1>
+			<h1>Tags</h1>
 			<p>Browse posts by topic.</p>
 		</section>
 
@@ -33,20 +33,33 @@ const tags = await getAllTags();
 	</div>
 
 	<style>
+		.tags-wrap {
+			padding: 28px var(--gutter) 0;
+			max-width: 800px;
+			margin: 0 auto;
+		}
+
 		.tags-header {
 			text-align: center;
-			margin: 3rem 0;
+			margin-bottom: 2rem;
+			padding-bottom: 1.5rem;
+			border-bottom: 1px double var(--rule);
 		}
 
 		.tags-header h1 {
-			font-size: 3rem;
+			font-family: var(--font-serif);
+			font-size: clamp(32px, 5vw, 52px);
+			font-weight: 500;
+			color: var(--paper-bright);
+			letter-spacing: -0.02em;
 			margin-bottom: 0.5rem;
-			font-weight: 700;
 		}
 
 		.tags-header p {
-			font-size: 1.125rem;
-			color: var(--text-secondary);
+			font-family: var(--font-serif);
+			font-style: italic;
+			font-size: 1rem;
+			color: var(--mute);
 		}
 
 		.tag-cloud {
@@ -61,14 +74,10 @@ const tags = await getAllTags();
 
 		.empty {
 			text-align: center;
-			color: var(--text-muted);
+			color: var(--mute);
 			margin: 2rem 0;
-		}
-
-		@media (max-width: 768px) {
-			.tags-header h1 {
-				font-size: 2.25rem;
-			}
+			font-family: var(--font-serif);
+			font-style: italic;
 		}
 	</style>
 </BaseLayout>
