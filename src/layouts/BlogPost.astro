@@ -77,38 +77,52 @@ const breadcrumbJsonLd = {
 <BaseLayout title={title} description={description} image={heroFullUrl} preloadImage={heroFullUrl}>
 	<script type="application/ld+json" set:html={JSON.stringify(postJsonLd)} />
 	<script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
-	<article class="container">
-		{heroImage && (
-			<div class="hero-image">
-				<a href={heroFullUrl} class="glightbox" data-type="image" data-title={title}>
-					<Image src={heroImage} alt={title || ''} width={1020} height={510} loading="eager" fetchpriority="high" />
-				</a>
-			</div>
+
+	<article class="post-page">
+		<div class="lead-kicker">
+			<span class="manicule">☞</span>
+			{tags && tags.length > 0 ? <span>{tags[0]}</span> : <span>Essay</span>}
+			<span class="sep">§</span>
+			<span class="italic"><FormattedDate date={pubDate} /></span>
+			<span class="sep">§</span>
+			<span>{minutes} min read</span>
+			{updatedDate && (
+				<>
+					<span class="sep">§</span>
+					<span class="italic">Updated <FormattedDate date={updatedDate} /></span>
+				</>
+			)}
+		</div>
+
+		<h1 class="lead-title">{title}</h1>
+
+		{tags && tags.length > 0 && (
+			<ul class="post-tags" role="list">
+				{tags.map((tag) => (
+					<li>
+						<a href={`/tags/${slugifyTag(tag)}/`} class="tag-pill">{tag}</a>
+					</li>
+				))}
+			</ul>
 		)}
-		<div class="prose">
-			<div class="title">
-				<div class="date">
-					<FormattedDate date={pubDate} />
-					<span class="meta-sep" aria-hidden="true">·</span>
-					<span class="reading-time">{minutes} min read</span>
-					{updatedDate && (
-						<div class="last-updated-on">
-							Last updated on <FormattedDate date={updatedDate} />
-						</div>
-					)}
+
+		{heroImage && (
+			<>
+				<figure class="plate">
+					<a href={heroFullUrl} class="glightbox" data-type="image" data-title={title}>
+						<Image src={heroImage} alt={title || ''} width={1020} height={510} loading="eager" fetchpriority="high" />
+					</a>
+					<span class="corner-bl"></span>
+					<span class="corner-br"></span>
+				</figure>
+				<div class="plate-cap">
+					<span>{title}</span>
+					<span>Fig. I</span>
 				</div>
-				<h1 class="accent-blue">{title}</h1>
-				{tags && tags.length > 0 && (
-					<ul class="post-tags" role="list">
-						{tags.map((tag) => (
-							<li>
-								<a href={`/tags/${slugifyTag(tag)}/`} class="tag-pill">{tag}</a>
-							</li>
-						))}
-					</ul>
-				)}
-				<hr />
-			</div>
+			</>
+		)}
+
+		<div class="prose">
 			<slot />
 		</div>
 
@@ -126,24 +140,27 @@ const breadcrumbJsonLd = {
 
 		{related.length > 0 && (
 			<aside class="related" aria-labelledby="related-heading">
-				<h2 id="related-heading">Related posts</h2>
-				<ul class="related-list" role="list">
-					{related.map((p) => (
-						<li>
-							<a href={`/blog/${p.id}/`} class="related-link card">
-								<span class="related-title">{p.data.title}</span>
-								{p.data.description && (
-									<span class="related-desc">{p.data.description}</span>
-								)}
-								<span class="related-date">
-									<FormattedDate date={p.data.pubDate} />
-								</span>
-							</a>
-						</li>
-					))}
-				</ul>
+				<h2 id="related-heading" class="rail-head"><span class="fleur">❦</span> Further Reading</h2>
+				<div class="rail-sub">{related.length} related dispatch{related.length !== 1 ? 'es' : ''}</div>
+				{related.map((p) => (
+					<a href={`/blog/${p.id}/`} class="toc-row">
+						<div class="toc-num">❧</div>
+						<div>
+							<h4 class="toc-title">{p.data.title}</h4>
+							{p.data.description && (
+								<div class="toc-meta">{p.data.description}</div>
+							)}
+						</div>
+						<div class="toc-page"><FormattedDate date={p.data.pubDate} /></div>
+					</a>
+				))}
 			</aside>
 		)}
+
+		<div class="byline">
+			<a href="/">← Back to the issue</a>
+			<span>Set in Newsreader &amp; IBM Plex Sans</span>
+		</div>
 	</article>
 
 	<script>
@@ -175,7 +192,6 @@ const breadcrumbJsonLd = {
 
 			const { default: GLightbox } = await import('glightbox');
 
-			// Initialize all gallery groups
 			const galleryIds = new Set<string>();
 			document.querySelectorAll<HTMLElement>('.glightbox[data-gallery]').forEach(el => {
 				const id = el.dataset.gallery;
@@ -193,7 +209,6 @@ const breadcrumbJsonLd = {
 				});
 			});
 
-			// Initialize standalone glightbox elements (hero image, video links)
 			const standalone = document.querySelectorAll('.glightbox:not([data-gallery])');
 			if (standalone.length > 0) {
 				GLightbox({
@@ -205,7 +220,6 @@ const breadcrumbJsonLd = {
 				});
 			}
 
-			// Re-trigger click on the element that initiated the load
 			if (clickedEl) {
 				requestAnimationFrame(() => clickedEl.click());
 			}
@@ -267,7 +281,6 @@ const breadcrumbJsonLd = {
 
 			if (clickDelegated) return;
 			clickDelegated = true;
-			// Defer GLightbox loading until first click on any lightbox trigger
 			document.addEventListener('click', (e) => {
 				const trigger = (e.target as HTMLElement).closest('.glightbox');
 				if (!trigger) return;
@@ -288,111 +301,16 @@ const breadcrumbJsonLd = {
 	</script>
 
 	<style>
-		.hero-image {
-			margin: 2rem 0;
-			text-align: center;
-		}
-
-		.hero-image img {
-			max-width: 100%;
-			height: auto;
-			border-radius: 12px;
-			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-		}
-
-		.prose {
-			max-width: none;
-			color: var(--text-secondary);
-			line-height: 1.7;
-		}
-
-		.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
-			color: var(--text-primary);
-		}
-
-		.title {
-			margin-bottom: 2rem;
-			padding-bottom: 1rem;
-			border-bottom: 1px solid var(--border-color);
-		}
-
-		.title h1 {
-			margin: 0.5rem 0;
-			font-size: 2.5rem;
-		}
-
-		.date {
+		.post-tags {
 			display: flex;
 			flex-wrap: wrap;
-			align-items: center;
 			gap: 0.5rem;
-			color: var(--text-muted);
-			font-size: 0.9rem;
-			margin-bottom: 1rem;
+			padding: 0;
+			margin: 0 0 1.5rem 0;
+			list-style: none;
 		}
 
-		.meta-sep,
-		.reading-time {
-			color: var(--text-muted);
-		}
-
-		.last-updated-on {
-			font-style: italic;
-			margin-top: 0.5rem;
-			flex-basis: 100%;
-		}
-
-		hr {
-			border: none;
-			height: 1px;
-			background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), transparent);
-			margin: 1rem 0;
-		}
-
-		/* Prose styling */
-		.prose :global(img) {
-			border-radius: 8px;
-			max-width: 100%;
-			height: auto;
-			margin: 1.5rem auto;
-			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-			display: block;
-		}
-
-		.prose :global(p:has(> img:only-child)),
-		.prose :global(p:has(> a.glightbox:only-child)) {
-			text-align: center;
-		}
-
-		.prose :global(video) {
-			border-radius: 8px;
-			max-width: 100%;
-			height: auto;
-			margin: 1.5rem auto;
-			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-			display: block;
-		}
-
-		.prose :global(.video-link) {
-			display: inline-block;
-		}
-
-		.prose blockquote {
-			border-left: 4px solid var(--accent-blue);
-			background: rgba(0, 212, 255, 0.05);
-			padding: 1rem 1.5rem;
-			margin: 1.5rem 0;
-			border-radius: 0 8px 8px 0;
-		}
-
-		.prose :global(a) {
-			color: var(--accent-blue);
-		}
-
-		.prose :global(a:hover) {
-			color: var(--accent-cyan);
-		}
-
+		/* Position copy button relative to pre */
 		.prose :global(pre) {
 			position: relative;
 		}
@@ -403,17 +321,17 @@ const breadcrumbJsonLd = {
 			right: 0.5rem;
 			width: 30px;
 			height: 30px;
-			background: rgba(22, 22, 37, 0.85);
-			color: var(--text-muted);
-			border: 1px solid var(--border-color);
-			border-radius: var(--radius-sm);
+			background: rgba(7,7,10,0.85);
+			color: var(--mute);
+			border: 1px solid var(--rule);
+			border-radius: 2px;
 			padding: 0;
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
 			cursor: pointer;
 			opacity: 0;
-			transition: opacity var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+			transition: opacity .15s, color .15s, border-color .15s;
 		}
 
 		.prose :global(.copy-btn svg) {
@@ -426,125 +344,73 @@ const breadcrumbJsonLd = {
 		}
 
 		.prose :global(.copy-btn:hover) {
-			color: var(--accent-blue);
-			border-color: var(--border-glow);
-			background: rgba(22, 22, 37, 0.95);
+			color: var(--steel);
+			border-color: var(--steel);
 		}
 
 		.prose :global(.copy-btn.copied) {
-			color: var(--accent-green);
-			border-color: rgba(34, 197, 94, 0.4);
+			color: var(--paper-bright);
+			border-color: var(--paper-dim);
 		}
 
-		.post-tags {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 0.5rem;
-			padding: 0;
-			margin: 1rem 0 0 0;
-			list-style: none;
+		/* Images inside prose */
+		.prose :global(img) {
+			max-width: 100%;
+			height: auto;
+			margin: 1.5rem auto;
+			display: block;
+			box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 		}
 
+		.prose :global(p:has(> img:only-child)),
+		.prose :global(p:has(> a.glightbox:only-child)) {
+			text-align: center;
+		}
+
+		.prose :global(video) {
+			max-width: 100%;
+			height: auto;
+			margin: 1.5rem auto;
+			display: block;
+		}
+
+		.prose :global(.video-link) {
+			display: inline-block;
+		}
+
+		/* Lightbox trigger styles */
+		.prose :global(a.glightbox) {
+			display: inline-block;
+			text-decoration: none;
+			cursor: pointer;
+			border-bottom: none;
+		}
+
+		.prose :global(a.glightbox:hover img) {
+			filter: brightness(1.08);
+			transition: filter .15s;
+		}
+
+		/* Related posts section */
 		.related {
-			margin: 4rem 0 2rem 0;
+			margin: 3rem 0 2rem;
 			padding-top: 2rem;
-			border-top: 1px solid var(--border-color);
 		}
 
-		.related h2 {
-			font-size: 1.5rem;
-			margin: 0 0 1.5rem 0;
-			color: var(--text-primary);
-		}
-
-		.related-list {
-			list-style: none;
-			padding: 0;
-			margin: 0;
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-			gap: 1rem;
-		}
-
-		.related-link {
-			display: flex;
-			flex-direction: column;
-			gap: 0.5rem;
-			text-decoration: none;
-			color: inherit;
-			padding: 1.25rem;
-			height: 100%;
-		}
-
-		.related-link:hover {
-			text-decoration: none;
-		}
-
-		.related-title {
-			font-weight: 600;
-			font-size: 1rem;
-			color: var(--text-primary);
-			line-height: 1.35;
-		}
-
-		.related-link:hover .related-title {
-			color: var(--accent-blue);
-		}
-
-		.related-desc {
-			color: var(--text-secondary);
-			font-size: 0.85rem;
-			line-height: 1.5;
-			display: -webkit-box;
-			-webkit-line-clamp: 2;
-			-webkit-box-orient: vertical;
-			overflow: hidden;
-		}
-
-		.related-date {
-			color: var(--text-muted);
-			font-size: 0.8rem;
-			margin-top: auto;
-		}
-
-		@media (max-width: 768px) {
-			.title h1 {
-				font-size: 2rem;
-			}
-		}
-
-		/* GLightbox dark theme overrides */
+		/* GLightbox noir overrides */
 		:global(.glightbox-clean .gslide-description) {
-			background: var(--bg-elevated);
-			color: var(--text-primary);
+			background: var(--ink);
+			color: var(--paper);
 		}
 
 		:global(.glightbox-clean .gclose),
 		:global(.glightbox-clean .gnext),
 		:global(.glightbox-clean .gprev) {
-			color: var(--text-primary);
+			color: var(--paper-bright);
 		}
 
 		:global(.goverlay) {
-			background: rgba(10, 10, 15, 0.95) !important;
-		}
-
-		/* Lightbox-enabled image styles */
-		.hero-image a {
-			display: inline-block;
-			text-decoration: none;
-		}
-
-		.prose :global(a.glightbox) {
-			display: inline-block;
-			text-decoration: none;
-			cursor: pointer;
-		}
-
-		.prose :global(a.glightbox:hover img),
-		.hero-image a:hover img {
-			filter: brightness(1.1);
-			transition: filter var(--transition-fast);
+			background: rgba(7,7,10,0.96) !important;
 		}
 	</style>
 </BaseLayout>

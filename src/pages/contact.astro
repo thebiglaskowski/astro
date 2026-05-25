@@ -4,13 +4,13 @@ import { SITE_TITLE } from '../consts';
 ---
 
 <BaseLayout title={`Contact | ${SITE_TITLE}`} description="Contact Joe Laskowski — tech questions, collaboration, or any nerdy argument you want to have.">
-	<div class="container">
+	<div class="contact-wrap">
 		<section class="contact-header">
-			<h1 class="gradient-text">Get in Touch</h1>
+			<h1>Get in Touch</h1>
 			<p>Got a question, want to collaborate, or just want to argue about something nerdy? Drop me a note.</p>
 		</section>
 
-		<form action="https://formspree.io/f/xwvnpkra" method="POST" class="contact-form card">
+		<form action="https://formspree.io/f/xwvnpkra" method="POST" class="contact-form">
 			<div class="form-group">
 				<label for="name">Name</label>
 				<input type="text" id="name" name="name" required />
@@ -31,28 +31,42 @@ import { SITE_TITLE } from '../consts';
 	</div>
 
 	<style>
+		.contact-wrap {
+			padding: 28px var(--gutter) 0;
+			max-width: 680px;
+			margin: 0 auto;
+		}
+
 		.contact-header {
 			text-align: center;
-			margin: 3rem 0;
+			margin-bottom: 2rem;
+			padding-bottom: 1.5rem;
+			border-bottom: 1px double var(--rule);
 		}
 
 		.contact-header h1 {
-			font-size: 3rem;
-			margin-bottom: 1rem;
-			font-weight: 700;
+			font-family: var(--font-serif);
+			font-size: clamp(32px, 5vw, 52px);
+			font-weight: 500;
+			color: var(--paper-bright);
+			letter-spacing: -0.02em;
+			margin-bottom: 0.75rem;
 		}
 
 		.contact-header p {
-			font-size: 1.25rem;
-			color: var(--text-secondary);
-			max-width: 600px;
+			font-family: var(--font-serif);
+			font-style: italic;
+			font-size: 1rem;
+			color: var(--mute);
+			max-width: 500px;
 			margin: 0 auto;
 		}
 
 		.contact-form {
-			max-width: 600px;
-			margin: 2rem auto;
+			border: 1px solid var(--rule);
+			background: rgba(255,255,255,0.02);
 			padding: 2rem;
+			position: relative;
 		}
 
 		.form-group {
@@ -61,65 +75,68 @@ import { SITE_TITLE } from '../consts';
 
 		label {
 			display: block;
-			color: var(--text-primary);
-			font-weight: 600;
+			font-family: var(--font-sans);
+			font-size: 10.5px;
+			letter-spacing: .22em;
+			text-transform: uppercase;
+			color: var(--mute);
 			margin-bottom: 0.5rem;
-			font-size: 0.95rem;
 		}
 
 		input,
 		textarea {
 			width: 100%;
-			padding: 0.75rem 1rem;
-			background: var(--bg-primary);
-			border: 1px solid var(--border-color);
-			border-radius: var(--radius-md);
-			color: var(--text-primary);
-			font-family: inherit;
+			padding: 0.65rem 0.85rem;
+			background: #0d0c0e;
+			border: 1px solid var(--rule);
+			color: var(--paper);
+			font-family: var(--font-serif);
 			font-size: 1rem;
-			transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+			line-height: 1.5;
+			transition: border-color .15s;
+			border-radius: 0;
+			-webkit-appearance: none;
+		}
+
+		input::placeholder,
+		textarea::placeholder {
+			color: var(--mute);
+			font-style: italic;
 		}
 
 		input:focus,
 		textarea:focus {
 			outline: none;
-			border-color: var(--accent-blue);
-			box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
+			border-color: var(--oxblood);
+			box-shadow: 0 0 0 2px rgba(74,143,232,0.15);
 		}
 
 		textarea {
 			resize: vertical;
-			min-height: 120px;
+			min-height: 140px;
 		}
 
 		.submit-btn {
 			display: inline-block;
-			background: var(--gradient-primary);
-			color: white;
-			padding: 0.75rem 2rem;
-			border: none;
-			border-radius: var(--radius-md);
-			font-family: inherit;
-			font-size: 1rem;
+			background: transparent;
+			color: var(--paper-bright);
+			padding: 0.6rem 2rem;
+			border: 1px solid var(--oxblood);
+			font-family: var(--font-sans);
+			font-size: 11px;
 			font-weight: 600;
+			letter-spacing: .22em;
+			text-transform: uppercase;
 			cursor: pointer;
-			transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+			transition: background .15s, color .15s;
 		}
 
 		.submit-btn:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 8px 25px var(--shadow-accent-blue);
+			background: var(--oxblood);
+			color: var(--ink);
 		}
 
-		@media (max-width: 768px) {
-			.contact-header h1 {
-				font-size: 2.5rem;
-			}
-
-			.contact-header p {
-				font-size: 1.125rem;
-			}
-
+		@media (max-width: 720px) {
 			.contact-form {
 				padding: 1.5rem;
 			}

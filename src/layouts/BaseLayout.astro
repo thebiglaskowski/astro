@@ -1,21 +1,48 @@
 ---
 import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
 import { ClientRouter } from 'astro:transitions';
 import { getImage } from 'astro:assets';
 import defaultOgImage from '../assets/images/joe_laskowski.webp';
 
 interface Props {
 	title: string;
-	description: string;
+	description?: string;
 	image?: string;
 	preloadImage?: string;
 }
 
-const { title, description, image, preloadImage } = Astro.props;
+const { title, description = '', image, preloadImage } = Astro.props;
 const defaultOg = await getImage({ src: defaultOgImage, format: 'webp', width: 1200, height: 1200 });
 const ogImage = image ?? defaultOg.src;
+
+const SITE = {
+	handle:      'thebiglaskowski',
+	bio:         'neural network navigator · crypto enthusiast · command-line cowboy',
+	eyebrow:     '— A literary journal of machines, shells & sats —',
+	title:       'The Big Laskowski',
+	established: 'Established Anno Domini Two Thousand & Twenty-One',
+	issue:       'Vol. I · MMXXVI',
+	motto:       'Printed & transmitted from the command line',
+	socials: [
+		{ label: 'GH', href: 'https://github.com/thebiglaskowski' },
+		{ label: 'X',  href: 'https://x.com/thebiglaskowski' },
+		{ label: 'IN', href: 'https://www.linkedin.com/in/thebiglaskowski' },
+		{ label: 'YT', href: 'https://www.youtube.com/@JoeLaskowski' },
+	],
+	nav: [
+		{ label: 'Blog',    href: '/' },
+		{ label: 'About',   href: '/about/' },
+		{ label: 'Contact', href: '/contact/' },
+		{ label: 'Tags',    href: '/tags/' },
+		{ label: 'RSS',     href: '/rss.xml' },
+	],
+};
+
+const pathname = Astro.url.pathname;
+const isActive = (href: string) =>
+	href === '/'
+		? pathname === '/' || pathname.startsWith('/blog/')
+		: pathname.startsWith(href);
 ---
 
 <!doctype html>
@@ -25,10 +52,71 @@ const ogImage = image ?? defaultOg.src;
 		<ClientRouter />
 	</head>
 	<body>
-		<Header />
-		<main id="main-content">
-			<slot />
-		</main>
-		<Footer />
+		<a href="#main-content" class="skip-link">Skip to content</a>
+		<div class="pagewrap">
+			<div class="running">
+				<span>{SITE.issue}</span>
+				<span class="star">✦</span>
+				<span style="text-align:right">{SITE.motto}</span>
+			</div>
+
+			<header class="masthead">
+				<div class="mast-eyebrow">{SITE.eyebrow}</div>
+				<h1 class="mast-title"><a href="/">{SITE.title}</a></h1>
+				<div class="mast-sub">{SITE.established}</div>
+			</header>
+
+			<div class="fleur-rule">
+				<span class="line"></span>
+				<span class="fleur">❦ ❧ ❦</span>
+				<span class="line"></span>
+			</div>
+
+			<nav class="navrow">
+				<div class="links">
+					{SITE.nav.map(item => (
+						<a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+							{item.label}
+						</a>
+					))}
+				</div>
+				<div class="links">
+					{SITE.socials.map(s => (
+						<a href={s.href} target="_blank" rel="noopener noreferrer">{s.label}</a>
+					))}
+				</div>
+			</nav>
+
+			<main id="main-content">
+				<slot />
+			</main>
+
+			<footer class="site-footer">
+				<span>{SITE.bio}</span>
+				<span class="ornament">⁂</span>
+				<span style="text-align:right">© {new Date().getFullYear()} {SITE.handle}</span>
+			</footer>
+		</div>
 	</body>
 </html>
+
+<style>
+	.skip-link {
+		position: absolute;
+		left: -9999px;
+		top: 0;
+		z-index: 100;
+		background: var(--oxblood);
+		color: var(--paper-bright);
+		padding: 0.5rem 1rem;
+		font-family: var(--font-sans);
+		font-size: 0.85rem;
+		text-decoration: none;
+		border-radius: 0 0 4px 4px;
+	}
+
+	.skip-link:focus {
+		left: 50%;
+		transform: translateX(-50%);
+	}
+</style>

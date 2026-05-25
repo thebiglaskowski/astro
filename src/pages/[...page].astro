@@ -4,7 +4,6 @@ import type { CollectionEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 import { Image } from 'astro:assets';
-import FormattedDate from '../components/FormattedDate.astro';
 import { getPublishedPosts, slugifyTag, readingTimeMinutes } from '../lib/blog';
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
@@ -15,329 +14,215 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
 type Props = { page: Page<CollectionEntry<'blog'>> };
 const { page } = Astro.props;
 const isFirstPage = page.currentPage === 1;
+
 const pageTitle = isFirstPage
 	? `${SITE_TITLE} — AI art, dev tutorials, and creative technology`
 	: `Page ${page.currentPage} | ${SITE_TITLE}`;
 
-const websiteJsonLd = isFirstPage
-	? {
-			'@context': 'https://schema.org',
-			'@type': 'WebSite',
-			name: SITE_TITLE,
-			description: SITE_DESCRIPTION,
-			url: new URL('/', Astro.site).toString(),
-			author: {
-				'@type': 'Person',
-				name: 'Joe Laskowski',
-				url: new URL('/about/', Astro.site).toString(),
-			},
-	  }
-	: null;
+const websiteJsonLd = isFirstPage ? {
+	'@context': 'https://schema.org',
+	'@type': 'WebSite',
+	name: SITE_TITLE,
+	description: SITE_DESCRIPTION,
+	url: new URL('/', Astro.site).toString(),
+	author: { '@type': 'Person', name: 'Joe Laskowski', url: new URL('/about/', Astro.site).toString() },
+} : null;
+
+const fmt = (d: Date) =>
+	d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+const romans = ['II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+
+const [lead, ...rest] = page.data;
+
+const postTag = (p: CollectionEntry<'blog'>) =>
+	p.data.tag ?? p.data.tags?.[0] ?? 'Essay';
+const postRead = (p: CollectionEntry<'blog'>) =>
+	p.data.read ?? `${readingTimeMinutes(p.body)} min read`;
 ---
 
 <BaseLayout title={pageTitle} description={SITE_DESCRIPTION}>
 	{websiteJsonLd && (
 		<script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
 	)}
-	<div class="container">
-		{isFirstPage && (
-			<section class="blog-header">
-				<p class="typewriter">
-					<span class="typewriter-text">{SITE_DESCRIPTION}</span><span class="cursor" aria-hidden="true">|</span>
-				</p>
-			</section>
-		)}
 
-		<section class="posts-grid">
-			{page.data.map((post, index) => {
-				const minutes = readingTimeMinutes(post.body);
-				const isHero = isFirstPage && index === 0;
-				return (
-					<article class={`post-card card ${isHero ? 'featured' : ''}`}>
-						<a href={`/blog/${post.id}/`} class="post-link">
-							{post.data.heroImage && (
-								<div class="post-image">
-									<Image
-										src={post.data.heroImage}
-										alt={post.data.title}
-										widths={[400, 600, 800]}
-										sizes={isHero
-											? "(max-width: 832px) 100vw, 800px"
-											: "(max-width: 768px) 100vw, 400px"}
-										width={800}
-										height={400}
-										loading={isHero ? "eager" : "lazy"}
-										{...(isHero ? { fetchpriority: "high" } : {})}
-									/>
-								</div>
-							)}
-							<div class="post-content">
-								<div class="post-meta">
-									<span class="post-date">
-										<FormattedDate date={post.data.pubDate} />
-									</span>
-									<span class="post-sep" aria-hidden="true">·</span>
-									<span class="post-reading-time">{minutes} min read</span>
-								</div>
-								<h2 class="post-title">{post.data.title}</h2>
-								{post.data.description && (
-									<p class="post-description">{post.data.description}</p>
-								)}
-							</div>
-						</a>
-						{post.data.tags && post.data.tags.length > 0 && (
-							<ul class="post-tags" role="list">
-								{post.data.tags.map((tag) => (
-									<li>
-										<a href={`/tags/${slugifyTag(tag)}/`} class="tag-pill">{tag}</a>
-									</li>
-								))}
-							</ul>
-						)}
-					</article>
-				);
-			})}
-		</section>
+	{isFirstPage && lead ? (
+		<div class="issue-body">
+			<article>
+				<div class="lead-kicker">
+					<span class="manicule">☞</span>
+					<span>The Feature</span>
+					<span class="sep">§</span>
+					<span class="italic">filed under {postTag(lead)}</span>
+					<span class="sep">§</span>
+					<span>{postRead(lead)}</span>
+				</div>
 
-		{page.lastPage > 1 && (
-			<nav class="pagination" aria-label="Pagination">
-				{page.url.prev ? (
-					<a href={page.url.prev} rel="prev">← Newer</a>
-				) : (
-					<span class="disabled">← Newer</span>
+				<h2 class="lead-title">
+					<a href={`/blog/${lead.id}/`}>{lead.data.title}</a>
+				</h2>
+
+				{lead.data.heroImage && (
+					<>
+						<figure class="plate">
+							<Image
+								src={lead.data.heroImage}
+								alt={lead.data.title}
+								width={800}
+								height={450}
+								loading="eager"
+								fetchpriority="high"
+							/>
+							<span class="corner-bl"></span>
+							<span class="corner-br"></span>
+						</figure>
+						<div class="plate-cap">
+							<span>Pl. I — {lead.data.title}</span>
+							<span>{fmt(lead.data.pubDate)} · {postRead(lead)}</span>
+						</div>
+					</>
 				)}
-				<span class="page-indicator">Page {page.currentPage} of {page.lastPage}</span>
-				{page.url.next ? (
-					<a href={page.url.next} rel="next">Older →</a>
+
+				{lead.data.excerpt ? (
+					<div class="prose two-col with-drop-cap" set:html={lead.data.excerpt} />
 				) : (
-					<span class="disabled">Older →</span>
+					<div class="prose two-col with-drop-cap">
+						<p>{lead.data.description}</p>
+					</div>
 				)}
-			</nav>
-		)}
-	</div>
 
-	<style>
-		.blog-header {
-			text-align: center;
-			margin: 3rem 0;
-		}
+				{lead.data.pullquote && (
+					<div class="pullquote">
+						<span class="mark">⁂</span>
+						{lead.data.pullquote}
+					</div>
+				)}
 
-		.typewriter {
-			font-size: 1.25rem;
-			color: var(--text-secondary);
-			max-width: 600px;
-			margin: 0 auto;
-			min-height: 1.8em;
-		}
+				<div class="byline">
+					<span>By Joe Laskowski · Set in Newsreader &amp; IBM Plex Sans</span>
+					<a class="cont" href={`/blog/${lead.id}/`}>Continue reading ❧</a>
+				</div>
+			</article>
 
-		.cursor {
-			color: var(--accent-blue);
-			animation: blink 0.7s step-end infinite;
-		}
+			<div class="col-divider"></div>
 
-		@keyframes blink {
-			50% { opacity: 0; }
-		}
+			<aside>
+				<h3 class="rail-head"><span class="fleur">❦</span> Table of Contents</h3>
+				<div class="rail-sub">In this issue — {page.data.length} dispatch{page.data.length !== 1 ? 'es' : ''}</div>
 
-		.posts-grid {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-			gap: 2rem;
-			margin-top: 3rem;
-		}
+				{rest.map((p, i) => (
+					<a class="toc-row" href={`/blog/${p.id}/`}>
+						<div class="toc-num">{romans[i] ?? String(i + 2)}</div>
+						<div>
+							<h4 class="toc-title">{p.data.title}</h4>
+							<div class="toc-meta">{fmt(p.data.pubDate)} · {postTag(p)} · {postRead(p)}</div>
+						</div>
+						<div class="toc-page">p.{String(8 + i * 4).padStart(2, '0')}</div>
+					</a>
+				))}
 
-		.post-card {
-			transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-			overflow: hidden;
-			padding: 0;
-		}
+				{page.data.length > 0 && (
+					<div class="marginalia">
+						<span class="corner-bl"></span>
+						<span class="corner-br"></span>
+						<div class="marginalia-eyebrow">❦ Marginalia</div>
+						<div class="marginalia-body">
+							<em>Currently reading</em> — The 48 Laws of Power, Robert Greene.<br/>
+							<em>Drinking</em> — 10 year, neat.<br/>
+							<em>Running</em> — out of patience.
+						</div>
+					</div>
+				)}
+			</aside>
+		</div>
+	) : (
+		<div class="archive-page">
+			<div class="archive-head">
+				<h2>Archive — Page {page.currentPage}</h2>
+				<div class="archive-sub">{page.total} dispatches in the archive</div>
+			</div>
 
-		.post-card.featured {
-			grid-column: 1 / -1;
-			max-width: 800px;
-			margin: 0 auto;
-		}
+			{page.data.map((post, i) => (
+				<a class="toc-row" href={`/blog/${post.id}/`}>
+					<div class="toc-num">{String((page.currentPage - 1) * 10 + i + 1)}</div>
+					<div>
+						<h4 class="toc-title">{post.data.title}</h4>
+						<div class="toc-meta">{fmt(post.data.pubDate)} · {postTag(post)} · {postRead(post)}</div>
+					</div>
+					<div class="toc-page">{fmt(post.data.pubDate)}</div>
+				</a>
+			))}
+		</div>
+	)}
 
-		.post-card:hover {
-			transform: translateY(-4px);
-			box-shadow: 0 8px 30px rgba(0, 212, 255, 0.15);
-			border-color: var(--border-glow);
-		}
-
-		.post-link {
-			text-decoration: none;
-			color: inherit;
-			display: block;
-			height: 100%;
-		}
-
-		.post-image {
-			width: 100%;
-			height: 200px;
-			overflow: hidden;
-			position: relative;
-		}
-
-		.featured .post-image {
-			height: 300px;
-		}
-
-		.post-image img {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-			transition: transform 0.3s ease;
-			border-radius: 0;
-		}
-
-		.post-card:hover .post-image img {
-			transform: scale(1.05);
-		}
-
-		.post-content {
-			padding: 1.5rem;
-		}
-
-		.post-meta {
-			display: flex;
-			flex-wrap: wrap;
-			align-items: center;
-			gap: 0.5rem;
-			margin-bottom: 0.5rem;
-			font-size: 0.9rem;
-			color: var(--text-muted);
-		}
-
-		.post-date {
-			font-weight: 600;
-		}
-
-		.post-sep {
-			color: var(--text-muted);
-		}
-
-		.post-reading-time {
-			font-weight: 500;
-		}
-
-		.post-title {
-			font-size: 1.5rem;
-			font-weight: 600;
-			color: var(--text-primary);
-			margin: 0.5rem 0;
-			line-height: 1.3;
-			transition: color 0.2s ease;
-		}
-
-		.featured .post-title {
-			font-size: 2rem;
-		}
-
-		.post-description {
-			color: var(--text-secondary);
-			font-size: 1rem;
-			line-height: 1.5;
-			margin: 1rem 0 0 0;
-			display: -webkit-box;
-			-webkit-line-clamp: 3;
-			-webkit-box-orient: vertical;
-			overflow: hidden;
-		}
-
-		.post-tags {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 0.4rem;
-			padding: 0 1.5rem 1.25rem 1.5rem;
-			margin: 0;
-			list-style: none;
-		}
-
-		.post-link:hover {
-			text-decoration: none;
-		}
-
-		.post-link:hover .post-title {
-			color: var(--accent-blue);
-		}
-
-		.pagination {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			gap: 1rem;
-			margin: 3rem 0 4rem 0;
-			padding: 1.5rem 0;
-			border-top: 1px solid var(--border-color);
-			font-size: 0.95rem;
-		}
-
-		.pagination a {
-			color: var(--accent-blue);
-			font-weight: 600;
-			padding: 0.5rem 1rem;
-			border: 1px solid var(--border-color);
-			border-radius: var(--radius-md);
-			transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-		}
-
-		.pagination a:hover {
-			border-color: var(--border-glow);
-			box-shadow: var(--glow-blue);
-			text-decoration: none;
-		}
-
-		.pagination .disabled {
-			color: var(--text-muted);
-			padding: 0.5rem 1rem;
-			opacity: 0.5;
-		}
-
-		.pagination .page-indicator {
-			color: var(--text-muted);
-			font-size: 0.85rem;
-		}
-
-		@media (max-width: 768px) {
-			.blog-header p {
-				font-size: 1.125rem;
-			}
-
-			.posts-grid {
-				grid-template-columns: 1fr;
-				gap: 1.5rem;
-			}
-
-			.post-card.featured {
-				grid-column: 1;
-			}
-
-			.post-image {
-				height: 180px;
-			}
-
-			.featured .post-image {
-				height: 220px;
-			}
-
-			.featured .post-title {
-				font-size: 1.75rem;
-			}
-		}
-	</style>
-
-	<script is:inline>
-		(function () {
-			var el = document.querySelector('.typewriter-text');
-			if (!el) return;
-			if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-			var text = el.textContent || '';
-			el.textContent = '';
-			var i = 0;
-			function type() {
-				if (i < text.length) { el.textContent += text[i++]; setTimeout(type, 50); }
-			}
-			setTimeout(type, 500);
-		})();
-	</script>
+	{page.lastPage > 1 && (
+		<nav class="pagination" aria-label="Pagination">
+			{page.url.prev ? (
+				<a href={page.url.prev} rel="prev">← Newer</a>
+			) : (
+				<span class="disabled">← Newer</span>
+			)}
+			<span class="page-info">Page {page.currentPage} of {page.lastPage}</span>
+			{page.url.next ? (
+				<a href={page.url.next} rel="next">Older →</a>
+			) : (
+				<span class="disabled">Older →</span>
+			)}
+		</nav>
+	)}
 </BaseLayout>
+
+<style>
+	.archive-page {
+		padding: 28px var(--gutter) 0;
+		max-width: 800px;
+		margin: 0 auto;
+	}
+
+	.archive-head {
+		margin-bottom: 24px;
+		padding-bottom: 14px;
+		border-bottom: 1px double var(--rule);
+	}
+
+	.archive-head h2 {
+		font-family: var(--font-serif);
+		font-size: 28px;
+		color: var(--paper-bright);
+	}
+
+	.archive-sub {
+		font-size: 10.5px;
+		letter-spacing: .28em;
+		text-transform: uppercase;
+		color: var(--mute);
+		margin-top: 6px;
+	}
+
+	.pagination {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
+		padding: 20px var(--gutter);
+		margin-top: 28px;
+		border-top: 1px solid var(--rule);
+		font-size: 11px;
+		letter-spacing: .22em;
+		text-transform: uppercase;
+		color: var(--mute);
+	}
+
+	.pagination a {
+		color: var(--steel);
+		transition: color .15s;
+	}
+
+	.pagination a:hover {
+		color: var(--paper-bright);
+	}
+
+	.pagination .disabled {
+		opacity: 0.35;
+	}
+</style>

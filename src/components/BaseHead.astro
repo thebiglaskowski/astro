@@ -1,7 +1,5 @@
 ---
 import '../styles/global.css';
-import '@fontsource-variable/inter';
-import interLatinFont from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import { SITE_TITLE } from '../consts';
 
 interface Props {
@@ -48,7 +46,7 @@ const TWITTER_HANDLE = '@thebiglaskowski';
 <!-- Global Metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<meta name="theme-color" content="#0a0a0f" />
+<meta name="theme-color" content="#07070a" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="apple-touch-icon" href="/favicon.svg" />
 <link rel="sitemap" href="/sitemap-index.xml" />
@@ -61,7 +59,6 @@ const TWITTER_HANDLE = '@thebiglaskowski';
 <meta name="generator" content={Astro.generator} />
 
 <!-- Preload critical assets -->
-<link rel="preload" href={interLatinFont} as="font" type="font/woff2" crossorigin />
 {preloadImage && (
 	<link rel="preload" href={preloadImage} as="image" fetchpriority="high" />
 )}
