@@ -62,7 +62,10 @@ const isActive = (href: string) =>
 
 			<header class="masthead">
 				<div class="mast-eyebrow">{SITE.eyebrow}</div>
-				<h1 class="mast-title"><a href="/">{SITE.title}</a></h1>
+				{(pathname === '/' || /^\/\d+\/$/.test(pathname))
+					? <h1 class="mast-title"><a href="/">{SITE.title}</a></h1>
+					: <p class="mast-title"><a href="/">{SITE.title}</a></p>
+				}
 				<div class="mast-sub">{SITE.established}</div>
 			</header>
 
