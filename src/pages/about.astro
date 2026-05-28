@@ -110,8 +110,8 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
             <Image
               src={locationImage}
               alt="South Bend, Indiana"
-              width={600}
-              height={400}
+              width={1020}
+              height={389}
               loading="eager"
             />
             <span class="corner-bl"></span>
@@ -208,7 +208,12 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
 
     .image-section {
       margin: 3rem 0;
-      max-width: 600px;
+      max-width: 700px;
+    }
+
+    .image-section :global(.plate img) {
+      aspect-ratio: unset;
+      height: auto;
     }
 
     @media (max-width: 768px) {
