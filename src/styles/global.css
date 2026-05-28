@@ -3,6 +3,10 @@
    Ink, paper, oxblood, steel. Replaces Electric Dark.
 --------------------------------------------------------------------------- */
 
+@import '@fontsource-variable/newsreader/opsz.css';
+@import '@fontsource-variable/newsreader/opsz-italic.css';
+@import '@fontsource-variable/ibm-plex-sans/wght.css';
+
 
 :root {
   /* Ink + paper */
@@ -21,8 +25,8 @@
   --steel:          #9bb0c0;
 
   /* Type */
-  --font-serif:     "Newsreader", Georgia, serif;
-  --font-sans:      "IBM Plex Sans", system-ui, sans-serif;
+  --font-serif:     "Newsreader Variable", Georgia, serif;
+  --font-sans:      "IBM Plex Sans Variable", system-ui, sans-serif;
 
   /* Layout */
   --gutter:         56px;
