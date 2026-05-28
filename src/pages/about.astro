@@ -106,15 +106,21 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
         </p>
 
         <div class="image-section">
-          <Image
-            src={locationImage}
-            alt="South Bend, Indiana"
-            class="location-image"
-            width={600}
-            height={400}
-            loading="eager"
-          />
-          <p class="image-caption">South Bend, Indiana</p>
+          <figure class="plate">
+            <Image
+              src={locationImage}
+              alt="South Bend, Indiana"
+              width={600}
+              height={400}
+              loading="eager"
+            />
+            <span class="corner-bl"></span>
+            <span class="corner-br"></span>
+          </figure>
+          <div class="plate-cap">
+            <span>South Bend, Indiana</span>
+            <span>Fig. I</span>
+          </div>
         </div>
 
         <h2>Family</h2>
@@ -202,25 +208,7 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
 
     .image-section {
       margin: 3rem 0;
-      text-align: center;
-    }
-
-    .location-image {
-      width: 100%;
       max-width: 600px;
-      height: auto;
-      display: block;
-      margin: 0 auto 1rem auto;
-      border: 1px solid var(--rule);
-    }
-
-    .image-caption {
-      font-family: var(--font-sans);
-      font-size: 10.5px;
-      letter-spacing: .22em;
-      text-transform: uppercase;
-      color: var(--mute);
-      margin: 0;
     }
 
     @media (max-width: 768px) {

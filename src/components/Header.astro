@@ -142,34 +142,34 @@ import { SITE_TITLE } from '../consts';
 </script>
 
 <style is:global>
-  /* Pagefind UI dark-theme overrides */
+  /* Pagefind UI noir-theme overrides */
   #search {
-    --pagefind-ui-primary: var(--accent-blue);
-    --pagefind-ui-text: var(--text-primary);
-    --pagefind-ui-background: var(--bg-elevated);
-    --pagefind-ui-border: var(--border-color);
-    --pagefind-ui-tag: var(--bg-surface);
+    --pagefind-ui-primary: var(--oxblood);
+    --pagefind-ui-text: var(--paper);
+    --pagefind-ui-background: #0d0c0e;
+    --pagefind-ui-border: var(--rule);
+    --pagefind-ui-tag: var(--rule-dim);
     --pagefind-ui-border-width: 1px;
-    --pagefind-ui-border-radius: var(--radius-md);
-    --pagefind-ui-font: 'Inter Variable', 'Inter', sans-serif;
+    --pagefind-ui-border-radius: 2px;
+    --pagefind-ui-font: var(--font-sans);
   }
 
   #search .pagefind-ui__search-input {
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background: var(--ink);
+    color: var(--paper);
   }
 
   #search .pagefind-ui__result-title a {
-    color: var(--accent-blue);
+    color: var(--oxblood);
   }
 </style>
 
 <style>
   header {
-    background: rgba(17, 17, 24, 0.8);
+    background: rgba(7, 7, 10, 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--rule);
     padding: 1rem 0;
     position: sticky;
     top: 0;
@@ -188,13 +188,13 @@ import { SITE_TITLE } from '../consts';
   }
 
   h2 a {
-    color: var(--accent-blue);
+    color: var(--oxblood);
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: color 0.15s;
   }
 
   h2 a:hover {
-    color: var(--accent-cyan);
+    color: var(--steel);
   }
 
   .internal-links {
@@ -204,28 +204,27 @@ import { SITE_TITLE } from '../consts';
 
   .search-toggle {
     background: transparent;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-muted);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    color: var(--mute);
     padding: 0.4rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+    transition: color 0.15s, border-color 0.15s;
   }
 
   .search-toggle:hover {
-    color: var(--accent-blue);
-    border-color: var(--border-glow);
-    box-shadow: var(--glow-blue);
+    color: var(--steel);
+    border-color: var(--steel);
   }
 
   .search-panel {
-    background: rgba(10, 10, 15, 0.95);
+    background: rgba(7, 7, 10, 0.96);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--rule);
     padding: 1.5rem 0;
   }
 
@@ -251,16 +250,13 @@ import { SITE_TITLE } from '../consts';
     justify-content: center;
     width: 36px;
     height: 36px;
-    border-radius: 8px;
-    color: var(--text-muted);
-    transition: all 0.2s ease;
+    color: var(--mute);
+    transition: color 0.15s;
     text-decoration: none;
   }
 
   .social-links a:hover {
-    color: var(--accent-blue);
-    box-shadow: var(--glow-blue);
-    transform: translateY(-1px);
+    color: var(--steel);
   }
 
   .skip-link {
@@ -268,8 +264,8 @@ import { SITE_TITLE } from '../consts';
     left: -9999px;
     top: 0;
     z-index: 100;
-    background: var(--accent-blue);
-    color: #0a0a0f;
+    background: var(--oxblood);
+    color: var(--ink);
     padding: 0.5rem 1rem;
     font-weight: 600;
     text-decoration: none;
