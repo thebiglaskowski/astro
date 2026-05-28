@@ -43,6 +43,8 @@ const fullSizeUrls = await Promise.all(
 					alt={alts?.[index] || `Gallery image ${index + 1}`}
 					width={400}
 					height={300}
+					widths={[200, 400]}
+					sizes="(max-width: 480px) 100vw, (max-width: 768px) calc(50vw - 24px), calc(33vw - 24px)"
 					loading="lazy"
 				/>
 			</a>

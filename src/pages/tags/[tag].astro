@@ -44,6 +44,8 @@ const posts = await getPostsByTag(tagSlug!);
 								alt={post.data.title}
 								width={400}
 								height={200}
+								widths={[200, 400]}
+								sizes="(max-width: 720px) calc(100vw - 44px), 400px"
 								loading="lazy"
 							/>
 						</div>

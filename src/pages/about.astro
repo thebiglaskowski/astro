@@ -24,6 +24,8 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
           class="profile-image"
           width={180}
           height={180}
+          widths={[180, 360]}
+          sizes="180px"
           loading="eager"
         />
         <div class="hero-text">
@@ -112,6 +114,8 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
               alt="South Bend, Indiana"
               width={1020}
               height={389}
+              widths={[480, 700, 1020]}
+              sizes="(max-width: 720px) calc(100vw - 44px), 700px"
               loading="eager"
             />
             <span class="corner-bl"></span>

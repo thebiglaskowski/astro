@@ -70,6 +70,8 @@ const postRead = (p: CollectionEntry<'blog'>) =>
 								alt={lead.data.title}
 								width={800}
 								height={450}
+								widths={[480, 640, 800]}
+								sizes="(max-width: 720px) calc(100vw - 44px), (max-width: 900px) calc(100vw - 112px), 640px"
 								loading="eager"
 								fetchpriority="high"
 							/>
