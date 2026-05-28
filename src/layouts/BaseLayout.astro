@@ -1,6 +1,5 @@
 ---
 import BaseHead from '../components/BaseHead.astro';
-import { ClientRouter } from 'astro:transitions';
 import { getImage } from 'astro:assets';
 import defaultOgImage from '../assets/images/joe_laskowski.webp';
 
@@ -49,7 +48,6 @@ const isActive = (href: string) =>
 <html lang="en">
 	<head>
 		<BaseHead title={title} description={description} image={ogImage} preloadImage={preloadImage} />
-		<ClientRouter />
 	</head>
 	<body>
 		<a href="#main-content" class="skip-link">Skip to content</a>
@@ -246,14 +244,7 @@ const isActive = (href: string) =>
 			}
 		});
 
-		document.addEventListener('astro:before-preparation', () => {
-			if (!panel.hasAttribute('hidden')) {
-				panel.setAttribute('hidden', '');
-				toggle.setAttribute('aria-expanded', 'false');
-			}
-		});
 	}
 
 	initSearch();
-	document.addEventListener('astro:page-load', initSearch);
 </script>
