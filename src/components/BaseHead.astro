@@ -1,6 +1,9 @@
 ---
 import '../styles/global.css';
 import { SITE_TITLE } from '../consts';
+import newsreaderNormalUrl from '@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2?url';
+import newsreaderItalicUrl from '@fontsource-variable/newsreader/files/newsreader-latin-opsz-italic.woff2?url';
+import ibmPlexUrl from '@fontsource-variable/ibm-plex-sans/files/ibm-plex-sans-latin-wght-normal.woff2?url';
 
 interface Props {
 	title: string;
@@ -42,6 +45,11 @@ const TWITTER_HANDLE = '@thebiglaskowski';
 		</script>
 	</>
 )}
+
+<!-- Preload critical fonts -->
+<link rel="preload" as="font" type="font/woff2" href={newsreaderNormalUrl} crossorigin />
+<link rel="preload" as="font" type="font/woff2" href={newsreaderItalicUrl} crossorigin />
+<link rel="preload" as="font" type="font/woff2" href={ibmPlexUrl} crossorigin />
 
 <!-- Global Metadata -->
 <meta charset="utf-8" />
