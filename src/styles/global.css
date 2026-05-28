@@ -504,7 +504,7 @@ em, i { color: var(--paper-bright); }
   color: var(--mute);
   background: rgba(155,176,192,0.06);
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: 2px;
   text-decoration: none;
   font-family: var(--font-sans);
   letter-spacing: .1em;
@@ -523,7 +523,7 @@ em, i { color: var(--paper-bright); }
   font-size: 0.7rem;
   padding: 0.1rem 0.4rem;
   background: rgba(255,255,255,0.06);
-  border-radius: 999px;
+  border-radius: 2px;
 }
 
 .tag-pill:hover .tag-count {
