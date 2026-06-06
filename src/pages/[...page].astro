@@ -86,9 +86,9 @@ const postRead = (p: CollectionEntry<'blog'>) =>
 				)}
 
 				{lead.data.excerpt ? (
-					<div class="prose two-col with-drop-cap" set:html={lead.data.excerpt} />
+					<div class="prose with-drop-cap" set:html={lead.data.excerpt} />
 				) : (
-					<div class="prose two-col with-drop-cap">
+					<div class="prose with-drop-cap">
 						<p>{lead.data.description}</p>
 					</div>
 				)}
