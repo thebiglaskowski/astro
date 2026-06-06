@@ -25,3 +25,9 @@ pnpm-debug.log*
 
 # Claude Code local config (agents, hooks, skills, state, session logs)
 .claude/
+
+# Playwright MCP throwaway artifacts (page snapshots, console logs)
+.playwright-mcp/
+
+# Scratch / reference workspace
+.temp/
