@@ -305,16 +305,30 @@ em, i { color: var(--paper-bright); }
   .prose.two-col { column-count: 1; }
 }
 
-/* Drop cap */
+/* Drop cap — uses initial-letter (an inline glyph, no float) so it stays
+   anchored to the start of the paragraph. A float-based ::first-letter
+   mis-positions inside the two-column lead: floats inside a CSS multicolumn
+   context are placed against the multicol box rather than the column box, so
+   the cap drifted right by an amount that scaled with viewport width. */
 .prose.with-drop-cap > p:first-of-type::first-letter {
   font-family: var(--font-serif);
   font-weight: 500;
-  float: left;
-  font-size: 76px;
-  line-height: 0.82;
-  padding: 6px 12px 0 0;
   color: var(--oxblood);
   text-shadow: 0 0 20px rgba(74,143,232,0.3);
+  -webkit-initial-letter: 2.8;
+  initial-letter: 2.8;
+  margin-right: 0.09em;
+}
+
+/* Firefox has no initial-letter support; fall back to a float drop cap.
+   Firefox positions floats inside multicol correctly, so this is safe there. */
+@supports not ((initial-letter: 2) or (-webkit-initial-letter: 2)) {
+  .prose.with-drop-cap > p:first-of-type::first-letter {
+    float: left;
+    font-size: 76px;
+    line-height: 0.82;
+    padding: 6px 12px 0 0;
+  }
 }
 
 /* ---- Pull quote ---- */
