@@ -1,0 +1,193 @@
+/* ---------------------------------------------------------------------------
+   giscus custom theme — "Noir editorial"
+   Matches the site's ink / paper / oxblood / steel palette (see global.css).
+
+   HOW THIS WORKS
+   - giscus renders comments inside a cross-origin iframe served from giscus.app.
+     Your site's global.css cannot reach inside it, so this standalone file is
+     loaded *into* the iframe via the `data-theme` URL.
+   - It must be served over public HTTPS. Once deployed it lives at:
+       https://thebiglaskowski.com/giscus/noir.css
+   - It will NOT load from localhost (the giscus iframe can't reach your dev
+     server), so this theme only renders on the deployed site.
+
+   TO ACTIVATE
+   - In src/layouts/BlogPost.astro, change the data-theme line in mountGiscus():
+       script.setAttribute('data-theme', 'https://thebiglaskowski.com/giscus/noir.css');
+     (Leave it on 'transparent_dark' until this file is live in production.)
+
+   BASE
+   - Forked from giscus's official transparent_dark.css (itself derived from
+     GitHub Primer's dark theme, MIT). Only the identity-carrying color
+     variables were recolored. Semantic status colors (success / attention /
+     danger) and code-syntax highlighting are intentionally left at GitHub
+     defaults for legibility.
+
+   PALETTE  (from src/styles/global.css :root)
+     --ink          #07070a   page background (kept transparent here)
+     --paper        #d8cebb   body text
+     --paper-bright #ede1c6   emphasis / headings
+     --paper-dim    #bcb098   neutral fills
+     --mute         #8a7f68   muted text / secondary borders
+     --rule         #3a2e1c   hairlines
+     --rule-dim     #2a221a   faint hairlines
+     --oxblood      #3a6ea8   accent (Prussian blue, despite the name)
+     --steel        #9bb0c0   links / hover
+--------------------------------------------------------------------------- */
+
+/* Site type, delivered into the iframe via CORS-enabled fontsource CDN.
+   These are the exact @fontsource families the site self-hosts. */
+@font-face {
+  font-family: 'IBM Plex Sans Iframe';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url('https://cdn.jsdelivr.net/fontsource/fonts/ibm-plex-sans:vf@latest/latin-wght-normal.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Newsreader Iframe';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('https://cdn.jsdelivr.net/fontsource/fonts/newsreader:vf@latest/latin-opsz-normal.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Newsreader Iframe';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('https://cdn.jsdelivr.net/fontsource/fonts/newsreader:vf@latest/latin-opsz-italic.woff2') format('woff2-variations');
+}
+
+main {
+  /* --- Code syntax highlighting: GitHub dark defaults (kept for legibility) --- */
+  --color-prettylights-syntax-comment: #8b949e;
+  --color-prettylights-syntax-constant: #79c0ff;
+  --color-prettylights-syntax-entity: #d2a8ff;
+  --color-prettylights-syntax-storage-modifier-import: #c9d1d9;
+  --color-prettylights-syntax-entity-tag: #7ee787;
+  --color-prettylights-syntax-keyword: #ff7b72;
+  --color-prettylights-syntax-string: #a5d6ff;
+  --color-prettylights-syntax-variable: #ffa657;
+  --color-prettylights-syntax-brackethighlighter-unmatched: #f85149;
+  --color-prettylights-syntax-invalid-illegal-text: #f0f6fc;
+  --color-prettylights-syntax-invalid-illegal-bg: #8e1519;
+  --color-prettylights-syntax-carriage-return-text: #f0f6fc;
+  --color-prettylights-syntax-carriage-return-bg: #b62324;
+  --color-prettylights-syntax-string-regexp: #7ee787;
+  --color-prettylights-syntax-markup-list: #f2cc60;
+  --color-prettylights-syntax-markup-heading: #1f6feb;
+  --color-prettylights-syntax-markup-italic: #c9d1d9;
+  --color-prettylights-syntax-markup-bold: #c9d1d9;
+  --color-prettylights-syntax-markup-deleted-text: #ffdcd7;
+  --color-prettylights-syntax-markup-deleted-bg: #67060c;
+  --color-prettylights-syntax-markup-inserted-text: #aff5b4;
+  --color-prettylights-syntax-markup-inserted-bg: #033a16;
+  --color-prettylights-syntax-markup-changed-text: #ffdfb6;
+  --color-prettylights-syntax-markup-changed-bg: #5a1e02;
+  --color-prettylights-syntax-markup-ignored-text: #c9d1d9;
+  --color-prettylights-syntax-markup-ignored-bg: #1158c7;
+  --color-prettylights-syntax-meta-diff-range: #d2a8ff;
+  --color-prettylights-syntax-brackethighlighter-angle: #8b949e;
+  --color-prettylights-syntax-sublimelinter-gutter-mark: #484f58;
+  --color-prettylights-syntax-constant-other-reference-link: #a5d6ff;
+
+  /* --- Buttons (reaction buttons, comment box chrome) --- */
+  --color-btn-text: #d8cebb;
+  --color-btn-bg: #1a140bcc;
+  --color-btn-border: #d8cebb1a;
+  --color-btn-shadow: 0 0 #0000;
+  --color-btn-inset-shadow: 0 0 #0000;
+  --color-btn-hover-bg: #241a0e80;
+  --color-btn-hover-border: #8a7f68;
+  --color-btn-active-bg: #1f160c80;
+  --color-btn-active-border: #6b6453;
+  --color-btn-selected-bg: #241a0e80;
+
+  /* Primary "Comment" submit button — oxblood instead of GitHub green */
+  --color-btn-primary-text: #ede1c6;
+  --color-btn-primary-bg: #3a6ea8;
+  --color-btn-primary-border: #ede1c61a;
+  --color-btn-primary-shadow: 0 0 #0000;
+  --color-btn-primary-inset-shadow: 0 0 #0000;
+  --color-btn-primary-hover-bg: #4a7eb8;
+  --color-btn-primary-hover-border: #ede1c61a;
+  --color-btn-primary-selected-bg: #3a6ea8;
+  --color-btn-primary-selected-shadow: 0 0 #0000;
+  --color-btn-primary-disabled-text: #ede1c680;
+  --color-btn-primary-disabled-bg: #3a6ea899;
+  --color-btn-primary-disabled-border: #ede1c61a;
+
+  --color-action-list-item-default-hover-bg: #bcb0981f;
+  --color-segmented-control-bg: #bcb0981a;
+  --color-segmented-control-button-bg: #0000;
+  --color-segmented-control-button-selected-border: #6b6453;
+
+  /* --- Foreground text --- */
+  --color-fg-default: #d8cebb;
+  --color-fg-muted: #8a7f68;
+  --color-fg-subtle: #6b6453;
+
+  /* --- Canvas: transparent so the noir page shows through (the whole point) --- */
+  --color-canvas-default: #0000;
+  --color-canvas-overlay: #0e0c0aef;
+  --color-canvas-inset: #0000;
+  --color-canvas-subtle: #0000;
+
+  /* --- Borders → site hairlines --- */
+  --color-border-default: #3a2e1c;
+  --color-border-muted: #2a221a;
+  --color-neutral-muted: #bcb0980d;
+  --color-neutral-subtle: #bcb0981a;
+
+  /* --- Accent → oxblood / steel --- */
+  --color-accent-fg: #9bb0c0;
+  --color-accent-emphasis: #3a6ea8;
+  --color-accent-muted: #3a6ea866;
+  --color-accent-subtle: #3a6ea81a;
+
+  /* --- Semantic status colors: kept at GitHub defaults for clarity --- */
+  --color-success-fg: #3fb950;
+  --color-attention-fg: #c69026;
+  --color-attention-muted: #ae7c1466;
+  --color-attention-subtle: #ae7c1426;
+  --color-danger-fg: #f85149;
+  --color-danger-muted: #e5534b66;
+  --color-danger-subtle: #e5534b1a;
+
+  --color-primer-shadow-inset: 0 0 #0000;
+  --color-scale-gray-7: #2a221a;
+  --color-scale-blue-8: #14233a;
+
+  /*! Extensions from @primer/css/alerts/flash.scss */
+  --color-social-reaction-bg-hover: var(--color-scale-gray-7);
+  --color-social-reaction-bg-reacted-hover: var(--color-scale-blue-8);
+
+  /* Site type inside the iframe */
+  font-family: 'IBM Plex Sans Iframe', system-ui, -apple-system, sans-serif;
+}
+
+main .pagination-loader-container {
+  background-image: url(https://github.com/images/modules/pulls/progressive-disclosure-line-dark.svg);
+}
+
+.gsc-pagination-button {
+  background-color: var(--color-btn-bg);
+}
+
+/* Empty-state gradient — retinted from giscus blues/purples to noir ink/oxblood */
+.gsc-homepage-bg {
+  animation: gradient 21s ease infinite;
+  background: linear-gradient(135deg, #0a1a24, #07101c, #120f0a);
+  background-size: 600% 600%;
+}
+
+@keyframes gradient {
+  0% { background-position: 2% 0; }
+  50% { background-position: 99% 100%; }
+  to { background-position: 2% 0; }
+}
+
+main .gsc-loading-image {
+  background-image: url(https://github.githubassets.com/images/mona-loading-dark.gif);
+}

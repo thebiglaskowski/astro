@@ -157,6 +157,12 @@ const breadcrumbJsonLd = {
 			</aside>
 		)}
 
+		<section class="comments" aria-labelledby="comments-heading">
+			<h2 id="comments-heading" class="rail-head"><span class="fleur">❦</span> Marginalia</h2>
+			<div class="rail-sub">Sign in with GitHub to leave a note</div>
+			<div id="giscus-container"></div>
+		</section>
+
 		<div class="byline">
 			<a href="/">← Back to the issue</a>
 			<span>Set in Newsreader &amp; IBM Plex Sans</span>
@@ -273,11 +279,53 @@ const breadcrumbJsonLd = {
 			});
 		}
 
+		let giscusObserver: IntersectionObserver | null = null;
+
+		function mountGiscus(container: HTMLElement) {
+			container.replaceChildren();
+			const script = document.createElement('script');
+			script.src = 'https://giscus.app/client.js';
+			script.setAttribute('data-repo', 'thebiglaskowski/astro');
+			script.setAttribute('data-repo-id', 'R_kgDOOs-KOg');
+			script.setAttribute('data-category', 'Announcements');
+			script.setAttribute('data-category-id', 'DIC_kwDOOs-KOs4C-wBr');
+			script.setAttribute('data-mapping', 'pathname');
+			script.setAttribute('data-strict', '0');
+			script.setAttribute('data-reactions-enabled', '1');
+			script.setAttribute('data-emit-metadata', '0');
+			script.setAttribute('data-input-position', 'bottom');
+			script.setAttribute('data-theme', 'transparent_dark');
+			script.setAttribute('data-lang', 'en');
+			script.setAttribute('data-loading', 'lazy');
+			script.crossOrigin = 'anonymous';
+			script.async = true;
+			container.appendChild(script);
+		}
+
+		function initGiscus() {
+			// ClientRouter swaps the whole <article>, so this is a fresh node each navigation.
+			const container = document.getElementById('giscus-container');
+			giscusObserver?.disconnect();
+			if (!container || container.dataset.mounted === 'true') return;
+
+			giscusObserver = new IntersectionObserver((entries, obs) => {
+				for (const entry of entries) {
+					if (!entry.isIntersecting) continue;
+					container.dataset.mounted = 'true';
+					mountGiscus(container);
+					obs.disconnect();
+				}
+			}, { rootMargin: '200px' });
+
+			giscusObserver.observe(container);
+		}
+
 		let clickDelegated = false;
 
 		function init() {
 			wrapProseImages();
 			addCodeCopyButtons();
+			initGiscus();
 
 			if (clickDelegated) return;
 			clickDelegated = true;
@@ -395,6 +443,20 @@ const breadcrumbJsonLd = {
 		.related {
 			margin: 3rem 0 2rem;
 			padding-top: 2rem;
+		}
+
+		/* Comments (giscus) section */
+		.comments {
+			margin: 3rem 0 2rem;
+			padding-top: 2rem;
+		}
+
+		.comments .rail-sub {
+			margin-bottom: 1.5rem;
+		}
+
+		#giscus-container {
+			min-height: 150px;
 		}
 
 		/* GLightbox noir overrides */
