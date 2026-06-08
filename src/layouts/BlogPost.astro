@@ -29,6 +29,16 @@ const ogImage = heroImage
 	? (await getImage({ src: heroImage, width: 1200, height: 630, format: 'jpeg' })).src
 	: undefined;
 
+// Shared between the rendered hero <Image> and its responsive preload, so the
+// browser preloads exactly the variant it will display (no double-fetch, no
+// preloading the full-res original).
+const heroSizes = '(max-width: 720px) calc(100vw - 44px), (max-width: 980px) calc(100vw - 112px), 980px';
+// Params MUST match the hero <Image> exactly (width/height/widths/format) so the
+// preloaded variants are the same files the browser will display.
+const heroResponsive = heroImage
+	? await getImage({ src: heroImage, width: 1020, height: 510, widths: [480, 768, 1020], format: 'webp' })
+	: undefined;
+
 const minutes = readingTimeMinutes(post.body);
 
 const allPosts = await getPublishedPosts();
@@ -81,7 +91,7 @@ const breadcrumbJsonLd = {
 };
 ---
 
-<BaseLayout title={title} description={description} image={ogImage} preloadImage={heroFullUrl}>
+<BaseLayout title={title} description={description} image={ogImage} preloadImageSrcset={heroResponsive?.srcSet.attribute} preloadImageSizes={heroSizes}>
 	<script type="application/ld+json" set:html={JSON.stringify(postJsonLd)} />
 	<script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
 
@@ -117,7 +127,7 @@ const breadcrumbJsonLd = {
 			<>
 				<figure class="plate">
 					<a href={heroFullUrl} class="glightbox" data-type="image" data-title={title}>
-						<Image src={heroImage} alt={title || ''} width={1020} height={510} widths={[480, 768, 1020]} sizes="(max-width: 720px) calc(100vw - 44px), (max-width: 980px) calc(100vw - 112px), 980px" loading="eager" fetchpriority="high" />
+						<Image src={heroImage} alt={title || ''} width={1020} height={510} widths={[480, 768, 1020]} sizes={heroSizes} loading="eager" fetchpriority="high" />
 					</a>
 					<span class="corner-bl"></span>
 					<span class="corner-br"></span>
