@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import partytown from '@astrojs/partytown';
+import { unified } from '@astrojs/markdown-remark';
 
 /**
  * Wrap each standalone markdown image (a paragraph whose only content is one
@@ -79,7 +80,7 @@ export default defineConfig({
     site: 'https://thebiglaskowski.com',
     trailingSlash: 'always',
     markdown: {
-        rehypePlugins: [rehypeFramePostImages],
+        processor: unified({ rehypePlugins: [rehypeFramePostImages] }),
     },
     build: {
         inlineStylesheets: 'always',
