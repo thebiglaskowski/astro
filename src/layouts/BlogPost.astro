@@ -92,8 +92,8 @@ const breadcrumbJsonLd = {
 ---
 
 <BaseLayout title={title} description={description} image={ogImage} preloadImageSrcset={heroResponsive?.srcSet.attribute} preloadImageSizes={heroSizes}>
-	<script type="application/ld+json" set:html={JSON.stringify(postJsonLd)} />
-	<script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
+	<script is:inline type="application/ld+json" set:html={JSON.stringify(postJsonLd)} />
+	<script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
 
 	<article class="post-page">
 		<div class="lead-kicker">

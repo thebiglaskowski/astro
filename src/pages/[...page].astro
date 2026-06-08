@@ -4,7 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 import { Image } from 'astro:assets';
-import { getPublishedPosts, slugifyTag, readingTimeMinutes } from '../lib/blog';
+import { getPublishedPosts, readingTimeMinutes } from '../lib/blog';
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
 	const posts = await getPublishedPosts();
@@ -43,7 +43,7 @@ const postRead = (p: CollectionEntry<'blog'>) =>
 
 <BaseLayout title={pageTitle} description={SITE_DESCRIPTION}>
 	{websiteJsonLd && (
-		<script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
+		<script is:inline type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
 	)}
 
 	{isFirstPage && lead ? (
