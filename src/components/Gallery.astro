@@ -73,13 +73,13 @@ const fullSizeUrls = await Promise.all(
 		transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 		text-decoration: none;
 		display: block;
-		border: 1px solid var(--border-color);
+		border: 1px solid var(--rule);
 	}
 
 	.gallery-item:hover {
 		transform: scale(1.03);
-		box-shadow: var(--glow-blue);
-		border-color: var(--border-glow);
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+		border-color: var(--steel);
 	}
 
 	.gallery-item img {
@@ -102,7 +102,7 @@ const fullSizeUrls = await Promise.all(
 		margin: 0.5rem 0 0 0;
 		font-size: 0.85rem;
 		font-style: italic;
-		color: var(--text-muted);
+		color: var(--mute);
 		text-align: center;
 		line-height: 1.4;
 	}
