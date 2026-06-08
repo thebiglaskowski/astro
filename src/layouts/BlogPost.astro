@@ -3,6 +3,7 @@ import { Image, getImage } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
+import ShareLinks from '../components/ShareLinks.astro';
 import {
 	slugifyTag,
 	readingTimeMinutes,
@@ -20,6 +21,12 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = post.data;
 
 const heroFullUrl = heroImage
 	? (await getImage({ src: heroImage, format: 'webp' })).src
+	: undefined;
+
+// Dedicated social-card image: 1200x630 JPEG (cover-cropped). JPEG + the 1200px
+// cap keeps X/Twitter happy — it skips oversized images and renders WebP unreliably.
+const ogImage = heroImage
+	? (await getImage({ src: heroImage, width: 1200, height: 630, format: 'jpeg' })).src
 	: undefined;
 
 const minutes = readingTimeMinutes(post.body);
@@ -74,7 +81,7 @@ const breadcrumbJsonLd = {
 };
 ---
 
-<BaseLayout title={title} description={description} image={heroFullUrl} preloadImage={heroFullUrl}>
+<BaseLayout title={title} description={description} image={ogImage} preloadImage={heroFullUrl}>
 	<script type="application/ld+json" set:html={JSON.stringify(postJsonLd)} />
 	<script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
 
@@ -125,6 +132,8 @@ const breadcrumbJsonLd = {
 		<div class="prose">
 			<slot />
 		</div>
+
+		<ShareLinks url={Astro.url.href} title={title} />
 
 		<template id="copy-icon-tpl">
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

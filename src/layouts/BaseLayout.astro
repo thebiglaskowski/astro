@@ -12,7 +12,7 @@ interface Props {
 }
 
 const { title, description = '', image, preloadImage } = Astro.props;
-const defaultOg = await getImage({ src: defaultOgImage, format: 'webp', width: 1200, height: 1200 });
+const defaultOg = await getImage({ src: defaultOgImage, format: 'jpeg', width: 1200, height: 1200 });
 const ogImage = image ?? defaultOg.src;
 
 const SITE = {
