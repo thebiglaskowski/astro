@@ -16,7 +16,7 @@
     "@astrojs/sitemap": "^3.6.0",
     "@fontsource-variable/ibm-plex-sans": "^5.2.8",
     "@fontsource-variable/newsreader": "^5.2.10",
-    "astro": "^6.1.7",
+    "astro": "^6.4.4",
     "glightbox": "^3.3.1"
   },
   "devDependencies": {
