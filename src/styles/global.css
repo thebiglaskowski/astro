@@ -231,6 +231,17 @@ em, i { color: var(--paper-bright); }
 figure.plate img {
   aspect-ratio: 16 / 9;
   object-fit: cover;
+  /* Overrides the intrinsic `height` attribute so the 16:9 aspect-ratio above
+     actually governs the box. Without this the attribute height wins and the
+     plate renders at whatever ratio the requested variant happens to be. */
+  height: auto;
+}
+/* The hero's lightbox <a> must be block-level for the same reason the body
+   figure's is (see the note below) — as an inline box it shrink-wraps and
+   `width: 100%` on the image resolves against the wrong containing block. */
+figure.plate > a.glightbox {
+  display: block;
+  border-bottom: none;
 }
 .plate::before,
 .plate::after,
