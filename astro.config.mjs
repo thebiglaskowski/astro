@@ -5,6 +5,8 @@ import sitemap from '@astrojs/sitemap';
 import partytown from '@astrojs/partytown';
 import { unified } from '@astrojs/markdown-remark';
 
+const SITE = 'https://thebiglaskowski.com';
+
 /**
  * Wrap each standalone markdown image (a paragraph whose only content is one
  * `<img>`) in the same editorial "plate" frame the hero image uses: bordered
@@ -75,12 +77,47 @@ function rehypeFramePostImages() {
     };
 }
 
+/**
+ * Open external links in markdown/MDX prose in a new tab, matching what the
+ * hand-authored components (Header, ShareLinks, about) already do.
+ *
+ * Only off-site http(s) links are touched. Internal links keep default
+ * behaviour on purpose — a new tab for same-site navigation is hostile and
+ * would bypass the ClientRouter — and so do mailto:, tel: and bare #anchors.
+ *
+ * Build time rather than a runtime script so the attributes survive the
+ * ClientRouter swap without needing to re-run on every navigation.
+ */
+function rehypeExternalLinksNewTab() {
+    const isExternal = (/** @type {string} */ href) => {
+        try {
+            return new URL(href, SITE).origin !== new URL(SITE).origin;
+        } catch {
+            return false; // relative, mailto:, tel:, #anchor — all stay put
+        }
+    };
+
+    return (/** @type {any} */ tree) => {
+        const walk = (/** @type {any} */ node) => {
+            if (node.type === 'element' && node.tagName === 'a') {
+                const href = node.properties && node.properties.href;
+                if (typeof href === 'string' && isExternal(href)) {
+                    node.properties.target = '_blank';
+                    node.properties.rel = 'noopener noreferrer';
+                }
+            }
+            if (node.children) node.children.forEach(walk);
+        };
+        walk(tree);
+    };
+}
+
 // https://astro.build/config
 export default defineConfig({
-    site: 'https://thebiglaskowski.com',
+    site: SITE,
     trailingSlash: 'always',
     markdown: {
-        processor: unified({ rehypePlugins: [rehypeFramePostImages] }),
+        processor: unified({ rehypePlugins: [rehypeFramePostImages, rehypeExternalLinksNewTab] }),
     },
     build: {
         inlineStylesheets: 'always',
