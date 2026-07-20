@@ -14,7 +14,17 @@
  *
  * Usage: npm run smoke [-- https://other-host]
  */
+import { readdirSync, existsSync } from 'node:fs';
+import { dirname, resolve, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 const SITE = process.argv[2] || 'https://thebiglaskowski.com';
+
+/** Local dist/_astro filenames, when present — lets the report tell "asset was
+ *  removed by a later deploy, stale HTML still points at it" apart from "this
+ *  build is genuinely broken". Absent (fresh clone, no build) is fine. */
+const DIST_ASTRO = join(resolve(dirname(fileURLToPath(import.meta.url)), '..'), 'dist/_astro');
+const localBuild = existsSync(DIST_ASTRO) ? new Set(readdirSync(DIST_ASTRO)) : null;
 const UA =
 	'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36';
 
@@ -49,21 +59,101 @@ for (const route of routes) {
 }
 console.log(`  ${assets.size} build assets referenced`);
 
-const broken = [];
-for (const path of assets) {
-	const res = await get(`${SITE}${path}`, 'HEAD');
-	if (res.ok) continue;
+const RETRIES = 3;
+const RETRY_DELAY_MS = 30_000;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-	// Distinguish a poisoned cache entry from a genuinely missing file.
-	const busted = await get(`${SITE}${path}?cb=${Date.now()}${Math.random()}`, 'HEAD');
-	broken.push({
-		path,
-		status: res.status,
-		cache: res.headers.get('cf-cache-status') ?? '-',
-		age: res.headers.get('age') ?? '-',
-		originOk: busted.ok,
-	});
+/**
+ * Settle gate — do not remove.
+ *
+ * Probing a bare asset URL while a deploy is still propagating is what CREATES
+ * the poisoned entries this script exists to find: origin 404s for a moment,
+ * and the edge caches that 404 under `max-age=31536000`. Running the sweep too
+ * early does not just report a false alarm, it causes a real one. (Learned the
+ * hard way — an early run of this script poisoned two live assets.)
+ *
+ * So: confirm the deploy has landed using cache-BUSTED probes, which go to
+ * origin and can only ever cache under a throwaway unique URL. Only once those
+ * pass do we touch the canonical URLs.
+ */
+const bust = (path) => `${SITE}${path}?cb=${Date.now()}${Math.random()}`;
+const sample = [...assets].slice(0, 12);
+for (let attempt = 1; attempt <= 10; attempt++) {
+	const results = await Promise.all(sample.map((p) => get(bust(p), 'HEAD')));
+	const missing = results.filter((r) => !r.ok).length;
+	if (missing === 0) {
+		console.log('  origin settled — sweeping edge');
+		break;
+	}
+	if (attempt === 10) {
+		console.error(
+			`\n✗ origin still missing ${missing}/${sample.length} sampled assets after ` +
+				`10 tries — deploy looks incomplete. Not sweeping (a sweep now would ` +
+				`poison the cache). Re-run once the deploy finishes.\n`,
+		);
+		process.exit(1);
+	}
+	console.log(`  origin missing ${missing}/${sample.length} — deploy still landing, waiting 30s`);
+	await sleep(RETRY_DELAY_MS);
 }
+
+/**
+ * Even settled, individual edge nodes can lag — so retry failures before
+ * reporting, and only surface what is still failing at the end.
+ */
+let suspects = [...assets];
+let broken = [];
+
+for (let attempt = 1; attempt <= RETRIES; attempt++) {
+	broken = [];
+	for (const path of suspects) {
+		const res = await get(`${SITE}${path}`, 'HEAD');
+		if (res.ok) continue;
+		const busted = await get(`${SITE}${path}?cb=${Date.now()}${Math.random()}`, 'HEAD');
+		broken.push({
+			path,
+			status: res.status,
+			cache: res.headers.get('cf-cache-status') ?? '-',
+			age: res.headers.get('age') ?? '-',
+			originOk: busted.ok,
+		});
+	}
+	if (broken.length === 0) break;
+	suspects = broken.map((b) => b.path);
+	if (attempt < RETRIES) {
+		console.log(
+			`  ${broken.length} asset(s) failing — retry ${attempt}/${RETRIES - 1} ` +
+				`in ${RETRY_DELAY_MS / 1000}s (deploys need time to propagate)`,
+		);
+		await sleep(RETRY_DELAY_MS);
+	}
+}
+
+/**
+ * The discriminator is cf-cache-status, not the cache-buster alone:
+ *   HIT  + origin serves it → the edge cached a miss. Purge.
+ *   MISS + origin serves it → propagation lag or an edge node behind. Wait.
+ *   MISS + origin 404s      → the file really isn't there. Redeploy.
+ */
+const verdict = (b) => {
+	if (b.cache === 'HIT' && b.originOk)
+		return (
+			'poisoned cache entry — the edge cached a miss while origin serves it.\n' +
+			'                 Fix: Cloudflare > Caching > Purge Custom Purge, this URL.'
+		);
+	if (b.originOk)
+		return (
+			'origin serves it but the edge does not — most likely still propagating.\n' +
+			'                 Re-run in a few minutes before purging anything.'
+		);
+	if (localBuild && !localBuild.has(b.path.split('/').pop()))
+		return (
+			'not in the current build — a still-cached HTML page is referencing an\n' +
+			'                 asset a later deploy removed. Clears when that page expires;\n' +
+			'                 purge the page (not the asset) to clear it now.'
+		);
+	return 'absent at origin too — redeploy.';
+};
 
 if (broken.length === 0) {
 	console.log('\n✓ smoke passed — every referenced asset is serving\n');
@@ -74,12 +164,7 @@ console.error(`\n✗ smoke failed — ${broken.length} asset(s) not serving\n`);
 for (const b of broken) {
 	console.error(`  ${b.status}  ${b.path}`);
 	console.error(`        cf-cache-status=${b.cache} age=${b.age}`);
-	console.error(
-		b.originOk
-			? '        VERDICT: poisoned cache entry — origin serves it fine.\n' +
-					'                 Fix: Cloudflare > Caching > Purge Custom Purge, this URL.'
-			: '        VERDICT: genuinely absent at origin — redeploy.',
-	);
+	console.error(`        VERDICT: ${verdict(b)}`);
 	console.error('');
 }
 process.exit(1);
