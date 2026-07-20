@@ -1,0 +1,29 @@
+#!/bin/sh
+# Pre-push gate: build clean, then audit the built output.
+#
+# Cloudflare deploys straight off a push to main — there is no CI checkpoint
+# between here and production, so this is the last automated look at the site
+# before readers see it.
+#
+# Activate once per clone:
+#   git config core.hooksPath .githooks
+#
+# Bypass (deliberately, when you know why):
+#   git push --no-verify
+
+set -e
+
+echo "pre-push: building..."
+npm run build >/tmp/astro-prepush-build.log 2>&1 || {
+	echo "pre-push: BUILD FAILED — push blocked"
+	tail -30 /tmp/astro-prepush-build.log
+	exit 1
+}
+
+echo "pre-push: auditing..."
+node scripts/audit.mjs || {
+	echo "pre-push: push blocked. Fix the above, or 'git push --no-verify' to override."
+	exit 1
+}
+
+echo "pre-push: ok"

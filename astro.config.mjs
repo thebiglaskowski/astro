@@ -101,7 +101,14 @@ function rehypeExternalLinksNewTab() {
         const walk = (/** @type {any} */ node) => {
             if (node.type === 'element' && node.tagName === 'a') {
                 const href = node.properties && node.properties.href;
-                if (typeof href === 'string' && isExternal(href)) {
+                // glightbox anchors are lightbox triggers (YouTube embeds, and
+                // the image anchors the runtime script injects) — a new tab
+                // would bypass the overlay and navigate the reader away.
+                const cls = /** @type {any[]} */ ([]).concat(
+                    (node.properties && node.properties.className) || [],
+                );
+                const isLightbox = cls.includes('glightbox');
+                if (typeof href === 'string' && isExternal(href) && !isLightbox) {
                     node.properties.target = '_blank';
                     node.properties.rel = 'noopener noreferrer';
                 }

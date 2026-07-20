@@ -6,6 +6,8 @@
     "dev": "astro dev",
     "build": "astro check && astro build && pagefind --site dist",
     "preview": "astro preview",
+    "audit": "node scripts/audit.mjs",
+    "smoke": "node scripts/smoke.mjs",
     "check": "astro check",
     "astro": "astro"
   },

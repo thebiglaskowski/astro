@@ -74,6 +74,42 @@ public/
 | `npm run dev` | Start dev server |
 | `npm run build` | Production build |
 | `npm run preview` | Preview production build locally |
+| `npm run audit` | Audit `dist/` — hero ratios, asset existence, link targets, dead links |
+| `npm run smoke` | Post-deploy: verify every live asset actually serves (catches edge-cached 404s) |
+
+## Quality Gates
+
+A `pre-push` hook builds and runs `npm run audit`, blocking the push on failure.
+Cloudflare deploys straight off a push to `main`, so this is the last automated
+check before readers see the site.
+
+**Activate once per clone** (git does not version `.git/hooks`):
+
+```sh
+git config core.hooksPath .githooks
+```
+
+What the audit enforces:
+
+- **Hero images are 16:9** (within 2%). Heroes render inside `figure.plate`,
+  which crops to 16:9 — a non-16:9 source is silently sliced. Pad the source
+  rather than loosening the check: replicate the edge row/column when the edge
+  is flat (screenshots), or letterbox in the plate mat `#0d0c0e` when it isn't
+  (photographic images streak under replication).
+- **Every referenced build asset exists**, including `srcset`-only variants.
+- **External links carry `target="_blank"` + `rel="noopener"`.** `glightbox`
+  anchors are exempt — they are lightbox triggers, and a new tab would bypass
+  the overlay.
+- **Internal links resolve** to a page that was actually built.
+
+The audit reads `dist/`, not source, because that is the only place the whole
+pipeline is observable — rehype plugins have run and `.md`/`.mdx`/raw-HTML all
+look alike by then.
+
+**It cannot catch edge-layer failures.** An asset can be correct in `dist/` and
+at origin yet still 404 for readers if Cloudflare cached a miss. Run
+`npm run smoke` after a deploy lands; it reports whether a failure is a poisoned
+cache entry (purge it) or genuinely absent (redeploy).
 
 ## Code Standards
 
