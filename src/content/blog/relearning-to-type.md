@@ -1,5 +1,5 @@
 ---
-title: "The Slowest I've Typed in 26 Years"
+title: "The Slowest I've Typed in 40 Years"
 description: "I spent years blaming my sore wrists on carpal tunnel. It was De Quervain's. So I switched to a 40% split keyboard and built an app to relearn how to type."
 pubDate: 2026-07-20
 tags:
@@ -11,9 +11,9 @@ draft: false
 heroImage: '../../assets/images/posts/2026-07-20/featured.webp'
 ---
 
-I spent years assuming my wrists hurt because of carpal tunnel. It's the reflex diagnosis for a guy who's typed for a living since the Y2K panic — something finally aches, and of course it's carpal tunnel, that's the keyboard guy's version of the runner's bad knee. Everybody knows that one. So I did what you do with a problem that already has an explanation attached: I ignored it for a long time.
+I spent years assuming my wrists hurt because of carpal tunnel. It's the reflex diagnosis for a guy who learned to touch-type in elementary school and has been paid to do it since the Y2K panic — something finally aches, and of course it's carpal tunnel, that's the keyboard guy's version of the runner's bad knee. Everybody knows that one. So I did what you do with a problem that already has an explanation attached: I ignored it for a long time.
 
-When I finally got serious — read past the first search result, actually paid attention to what was happening — the story fell apart. Carpal tunnel is a median-nerve problem: numbness and tingling in the thumb, index, and middle fingers, usually worst in the middle of the night. I didn't have any of that. What I had was random. Some days my wrist was fine. Other days it hurt like hell for no reason I could point to, and every so often something stupid and small — turning a doorknob — would fire a shooting pain up the thumb side of my wrist and buy me an hour of sitting there massaging it. No numbness, no nighttime pattern, just a thumb-side tendon that apparently had opinions now. Median-nerve problems don't do that. Inflamed tendons do. What I had — what I'm now pretty sure I had — was **De Quervain's tenosynovitis**: the tendons that run your thumb, swollen and cranky from doing the same few motions a couple million times. Twenty-six years of mouse-clicking and space-bar-thumbing will apparently send a bill, and mine had come due.
+When I finally got serious — read past the first search result, actually paid attention to what was happening — the story fell apart. Carpal tunnel is a median-nerve problem: numbness and tingling in the thumb, index, and middle fingers, usually worst in the middle of the night. I didn't have any of that. What I had was random. Some days my wrist was fine. Other days it hurt like hell for no reason I could point to, and every so often something stupid and small — turning a doorknob — would fire a shooting pain up the thumb side of my wrist and buy me an hour of sitting there massaging it. No numbness, no nighttime pattern, just a thumb-side tendon that apparently had opinions now. Median-nerve problems don't do that. Inflamed tendons do. What I had — what I'm now pretty sure I had — was **De Quervain's tenosynovitis**: the tendons that run your thumb, swollen and cranky from doing the same few motions a couple million times. Forty years of keys and clicks and space-bar-thumbing will apparently send a bill, and mine had come due.
 
 ## The overhaul
 
@@ -47,7 +47,7 @@ Under the hood it's deliberately boring, which is a compliment. Vanilla JavaScri
 
 ## The valley
 
-Here's the honest part. I'm still slow. Genuinely, embarrassingly slow — the kind of slow where firing off a Slack message feels like defusing a bomb. Every guide about switching to a board like this warns you about "the valley," the stretch where your old speed is gone and your new speed hasn't shown up yet, and they are not exaggerating. I'm a 26-year keyboard professional currently typing like I'm wearing oven mitts, and there's no shortcut through it except reps. Layer Tutor makes the reps *targeted* instead of random, which helps, but it can't do them for me.
+Here's the honest part. I'm still slow. Genuinely, embarrassingly slow — the kind of slow where firing off a Slack message feels like defusing a bomb. Every guide about switching to a board like this warns you about "the valley," the stretch where your old speed is gone and your new speed hasn't shown up yet, and they are not exaggerating. I'm a forty-year typist currently typing like I'm wearing oven mitts, and there's no shortcut through it except reps. Layer Tutor makes the reps *targeted* instead of random, which helps, but it can't do them for me.
 
 And I don't actually know yet whether any of it worked — that's the thing I have to be straight about. It's early. Wrists are a long game; De Quervain's walks back over weeks and months, not afternoons, and "I bought a split keyboard and my tendons healed" would be exactly the kind of tidy story I don't trust when other people tell it. Ask me in six months. What I can tell you is that I can find the number 4 now without looking, which I flat-out couldn't do when I started, and that the whole setup — straight wrists, handshake mouse, thumbs doing the reaching instead of my pinkies — *feels* less like slowly spraining myself all day. Whether "feels better" turns into "is better" is the part I don't get to know yet.
 
