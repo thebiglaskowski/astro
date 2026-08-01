@@ -38,6 +38,39 @@ const projects = [
   },
 ];
 
+const more = [
+  {
+    name: 'PromptVault',
+    body: 'A deterministic prompt compiler and semantic library — raw idea in, structured and provider-optimized prompt out, through a card/template engine and a multi-pass critic. Ships with 92 system cards across image, LLM, and code generation plus 27 templates, and a 30-case regression harness that diffs output against stored baselines so a change to the compiler cannot silently degrade it. Single-user by design: the API key is passed per request from the browser and never persisted server-side.',
+    stack: 'Node 22 · pnpm monorepo · Fastify · Next.js · PostgreSQL 16 + pgvector with HNSW indexes · Redis 7 · Drizzle ORM',
+  },
+  {
+    name: 'SEO content pipeline',
+    body: 'A thirteen-package monorepo running the whole chain: seed keyword discovery, gap analysis, revenue-per-keyword scoring, competitive analysis into generated content briefs, AI copy and image generation, static site build, and finally GEO scoring — grading each page for citation-readiness across generative search engines rather than for blue links. Built before most people had a name for that problem.',
+    stack: 'TypeScript · pnpm workspace · OpenAI + Anthropic · DALL·E 3 + Stability AI · Serper.dev SERP data',
+  },
+  {
+    name: 'DropTok',
+    body: 'A TikTok commerce platform wired to live marketplace APIs rather than mock data — multi-shop management, an AI listing generator for titles, hooks and descriptions, a content pipeline producing video hooks and shot lists, an AI-scored opportunity board, creator outreach with a CRM behind it, a fulfillment queue built as an explicit state machine, and a dashboard tracking my own model token spend.',
+    stack: 'TypeScript end to end · React 18 / Vite 6 / Tailwind / Zustand · Express 4 / Drizzle / better-sqlite3 · TikTok Shop Seller, Ads, CJ Dropshipping and AutoDS integrations · Vitest',
+  },
+  {
+    name: 'BudgetLedger',
+    body: 'A budgeting application on live Plaid account sync, with CSRF protection, rate limiting, and optional TOTP multi-factor. Its one genuinely good idea was pay-period planning: bills auto-assigned to the specific paycheck that covers them by due date, leftover computed per paycheck, and negative paychecks flagged before they happen. I built it, used it, and went back to my spreadsheet — which had absorbed enough of the good ideas by then to win.',
+    stack: 'Flask 3.1 · SQLAlchemy 2.0 · SQLite (Postgres-ready) · Chart.js · Plaid',
+  },
+  {
+    name: 'xrp-ticker',
+    body: 'A terminal portfolio tracker that reads balances straight off the XRP ledger over WebSocket and aggregates them across multiple self-custody wallets, with live pricing from a separate exchange API. Four cyclable sparkline renderers, two themes, auto-reconnect, entirely keyboard-driven. It only works against self-custody addresses, because exchange deposit addresses sit in shared omnibus wallets — which is exactly the sort of detail you only learn by building the thing.',
+    stack: 'Python 3.11+ · Textual · uv · XRPL WebSocket · Coinbase API · public on GitHub',
+  },
+  {
+    name: 'SKYNET backup',
+    body: 'Encrypted, deduplicated, snapshot-preserving backup across three redundancy layers — live working copy, local restic repository, off-site cloud — driven by both systemd timers and Windows Task Scheduler, with green/yellow/red Slack alerts on every single run and fail-only alerts on prune and verify. Restores have been round-tripped and confirmed byte-identical by SHA-256, which is the part almost nobody actually does.',
+    stack: 'restic · systemd · Task Scheduler · Slack webhooks · Bash',
+  },
+];
+
 const roles = [
   {
     title: 'AI Quality Analyst',
@@ -161,15 +194,19 @@ const toolset = [
           </div>
         ))}
 
+        <h3 class="more-head">Also built</h3>
+
+        {more.map(m => (
+          <div class="more-item">
+            <p><strong>{m.name}</strong> — {m.body}</p>
+            <p class="more-stack">{m.stack}</p>
+          </div>
+        ))}
+
         <p class="also">
-          Also on the shelf: a self-hosted prompt compiler with a pgvector
-          semantic library and a multi-pass critic · an SEO content pipeline
-          scoring output for citation-readiness across generative search engines
-          · a TikTok commerce platform wired to live marketplace APIs · a
-          terminal portfolio tracker reading the XRP ledger over WebSocket · an
-          encrypted, deduplicated backup system with alerting and verified
-          restore round-trips · a novel drafted with AI tooling under a pen name,
-          with an Amazon launch pending.
+          And a novel, drafted with AI tooling under a pen name, with an Amazon
+          launch pending — which turned out to be a pipeline problem wearing a
+          different hat.
         </p>
       </section>
 
@@ -361,6 +398,39 @@ const toolset = [
       font-size: 0.78rem;
       color: var(--oxblood);
       letter-spacing: 0.04em;
+    }
+
+    .more-head {
+      font-family: var(--font-sans);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--mute);
+      margin: 2.6rem 0 1.4rem 0;
+      padding-top: 1.4rem;
+      border-top: 1px solid var(--rule-dim);
+      font-weight: 400;
+    }
+
+    .more-item {
+      margin: 0 0 1.5rem 0;
+    }
+
+    .more-item p {
+      margin: 0;
+      line-height: 1.65;
+    }
+
+    .more-item strong {
+      color: var(--paper-bright);
+    }
+
+    .more-stack {
+      font-family: var(--font-sans);
+      font-size: 0.74rem;
+      color: var(--mute);
+      letter-spacing: 0.03em;
+      margin-top: 0.35rem !important;
     }
 
     .also {
