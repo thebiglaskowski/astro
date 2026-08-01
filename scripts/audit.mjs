@@ -125,7 +125,7 @@ if (!existsSync(DIST)) {
 		// 4. Internal links resolve to a page that was actually built.
 		for (const [, href] of html.matchAll(/href="(\/[^"#?][^"]*)"/g)) {
 			if (href.startsWith('/_astro/') || href.startsWith('/pagefind/')) continue;
-			if (/\.(xml|txt|svg|webp|png|jpe?g|ico|json|js|css)$/.test(href)) {
+			if (/\.(xml|txt|svg|webp|png|jpe?g|ico|json|js|css|pdf)$/.test(href)) {
 				if (!existsSync(join(DIST, href))) fail('file-missing', `${rel} -> ${href}`);
 				continue;
 			}

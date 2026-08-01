@@ -1,0 +1,448 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE_TITLE } from '../consts';
+
+const CAREER_START_YEAR = 2001;
+const yearsInIT = new Date().getFullYear() - CAREER_START_YEAR;
+
+const projects = [
+  {
+    name: 'Nexus Signals',
+    kind: 'Market analysis platform',
+    body: 'Python 3.12 / FastAPI / PostgreSQL / Redis behind a React 19 and TypeScript front end. Domain-driven design across six bounded contexts, CQRS, seven market-data providers chained behind circuit breakers, 23 technical indicators feeding a scoring model, LLM-driven sentiment analysis, paper trading with live P&L, and WebSocket streaming over 43 REST endpoints.',
+    stat: '3,764 passing tests · mypy --strict, zero Any types',
+  },
+  {
+    name: 'cowork-graph',
+    kind: 'Custom MCP server',
+    body: 'A local SQLite knowledge graph over a several-thousand-file Markdown corpus, exposed to Claude Desktop and Claude Code through a Model Context Protocol server I wrote. Eight query tools — document search, project subgraphs, blocker detection, decision trails, corpus audit. Markdown stays canonical; the graph is derived state, rebuilt incrementally on commit.',
+    stat: 'Registered across five surfaces · shipped',
+  },
+  {
+    name: 'Claude Sentient',
+    kind: 'Agent orchestration layer — public',
+    body: 'An autonomous development loop for Claude Code: quality gates on lint, test, build, and git; nine language profiles with environment detection; fifteen hooks; nine agent roles; and a self-improvement mechanism that proposes its own rule updates after corrections. I used it for months, then watched the platform ship native features that made my abstraction layer overhead — and took it back out. Both calls were right.',
+    stat: 'github.com/thebiglaskowski/claude-sentient',
+  },
+  {
+    name: 'Documentary production pipeline',
+    kind: 'Three chained tools',
+    body: 'End-to-end automated video production. Stage one turns a script into narration through a TTS model and aligns it to sentence-level beats with WhisperX. Stage two is a browser-based asset manager for the roughly 150 individual image generations a single episode consumes. Stage three assembles everything in Remotion — motion, transitions, per-era color grading — and renders finished 1080p.',
+    stat: '90% test coverage on stage one · five episodes shipped',
+  },
+  {
+    name: 'NexusLedger',
+    kind: 'Multi-entity finance system',
+    body: 'Bank and card data in through Plaid, categorized against learned rules, reconciled, and pushed to reporting — across three separate legal entities. Checksummed migrations, period locks, pending-to-posted carryover, and an integrity-check command that catches drift before it reaches a report.',
+    stat: '662-test Python suite',
+  },
+];
+
+const roles = [
+  {
+    title: 'AI Quality Analyst',
+    org: 'Aunalytics',
+    dates: 'March 2026 — Present',
+    bullets: [
+      'The human in the loop for two LLM-powered ticket enrichment assistants — scoring model output against a five-dimension rubric I authored, with a coded failure taxonomy that turns individual bad answers into diagnosable model weaknesses. The finding that has held for five months: the failure is in synthesis, not retrieval.',
+      'Designed and built the Microsoft Teams chatbots technicians use to reach both systems — Azure Functions and Copilot Studio over an in-house LLM, with live third-party data wired in through Power Automate. Two near-identical bots were refactored into a single shared core at 95% statement coverage.',
+      'Raised technician documentation quality 29% across eighteen weekly coaching cycles, more than doubling the share of tickets carrying a usable resolution entry. Because those notes are the model’s training corpus, the improvement compounds.',
+      'Measured an automated remediation program to 96% script success with 61% of tickets resolving without a technician ever touching them, and drove script failures to zero.',
+      'Caught and corrected a data-export defect that had inflated a reporting population by an order of magnitude. Suspended trend comparisons, rebuilt the baseline from scratch, and published the corrected figure rather than letting a flattering artifact stand.',
+      'Authored the operating standards for the function — scoring rubrics, failure codes, documentation style guides, and a twelve-KPI measurement framework — plus the architecture proposal for productizing the whole thing on Azure.',
+    ],
+  },
+  {
+    title: 'Internal Support Engineer',
+    org: 'Aunalytics',
+    dates: 'August 2023 — March 2026',
+    bullets: [
+      'Designed and built the company’s user lifecycle automation end to end — nine PowerShell modules covering Active Directory, Microsoft 365, and ticket-driven provisioning, with certificate-based authentication from Key Vault, schema-validated configuration, separate production and test environments, and a full Pester test suite.',
+      'Built zero-touch Windows Autopilot deployment: certificate-only auth, a resumable checkpoint state machine with exponential backoff, and automated cleanup of stale Intune, Autopilot, and Entra records.',
+      'Wrote the quarterly privileged-access review tooling — a privileged-access exporter, risk flagger, and quarter-over-quarter diff — along with a Microsoft 365 tenant audit module carrying CIS and vendor baselines.',
+      'Served as Linux subject-matter expert for the Centralized Services team, and worked part-time with the Security team as a SOC analyst on internal and client security needs.',
+      'Provided Tier 1 and Tier 2 support to internal staff and contributed to organization-wide rollouts.',
+    ],
+  },
+  {
+    title: 'Service Desk Location Lead — Kalamazoo',
+    org: 'Aunalytics',
+    dates: 'January 2022 — August 2023',
+    bullets: [
+      'Led the Kalamazoo team through Tier 1 and Tier 2 delivery — incident management, escalation, and SLA maintenance — while managing staff performance, mentoring, and training.',
+      'Co-lead engineer for internal departments: user access administration, Microsoft 365 licensing, and general engineering support.',
+    ],
+  },
+  {
+    title: 'Service Desk Lead',
+    org: 'Aunalytics',
+    dates: 'October 2019 — January 2022',
+    bullets: [
+      'Led a team of technicians and engineers supporting the service desk’s largest accounts, including environments north of 1,500 users.',
+      'Owned customer relationships through the IT point of contact — service delivery, escalation communication, and ticket follow-through.',
+    ],
+  },
+  {
+    title: 'Managed Services Specialist',
+    org: 'MicroIntegration',
+    dates: 'March 2017 — September 2019',
+    bullets: [
+      'Resolved 70 to 100 tickets a week across remote first-level support, investigating complex hardware and software faults and escalating what needed escalating.',
+    ],
+  },
+  {
+    title: 'Field Technician Manager',
+    org: 'Realm Technologies',
+    dates: 'July 2007 — March 2017',
+    bullets: [
+      'Ran day-to-day operations for break/fix technicians nationwide — recruiting and certifying more than 200 techs delivering warranty repair for Dell, Sony, IBM, HP, and Lexmark.',
+      'Managed service call dispatch, parts logistics, and vendor relations, and maintained the company intranet and public site.',
+    ],
+  },
+];
+
+const toolset = [
+  { label: 'AI & LLM', items: 'LLM output evaluation and rubric design · prompt and agent-instruction engineering · Model Context Protocol (MCP) server development · Microsoft Copilot Studio · Anthropic and OpenAI APIs · retrieval and knowledge-gap analysis · agent orchestration and multi-agent design' },
+  { label: 'Languages', items: 'PowerShell · Python · TypeScript · JavaScript · SQL · Bash' },
+  { label: 'Cloud & platform', items: 'Azure (Functions, Bot Service, SQL, Key Vault, App Insights) · Entra ID · Microsoft 365 · Intune · Active Directory · Power Automate' },
+  { label: 'Systems', items: 'Linux — RHEL, Ubuntu, CentOS — as a daily driver since 2007 and exclusively for sixteen years · Proxmox and virtualization · Bash and shell tooling · self-hosted infrastructure, backup, and monitoring' },
+  { label: 'Engineering', items: 'Pester · pytest · Vitest · REST and GraphQL integration · circuit breakers and retry design · pandas · FastAPI · React · Remotion · Git' },
+  { label: 'Practice', items: 'Spec before implementation · test-driven development · dry-run defaults on destructive operations · schema-drift guards · documentation as a first-class deliverable' },
+];
+---
+
+<BaseLayout
+  title={`Resume | ${SITE_TITLE}`}
+  description={`Joe Laskowski — AI solutions engineering, LLM evaluation, and ${yearsInIT} years in IT. Resume and selected work.`}
+>
+  <div class="resume-wrap">
+    <article class="resume">
+      <header class="res-head">
+        <h1>Joe Laskowski</h1>
+        <p class="res-target">
+          AI solutions engineering · LLM evaluation · agent infrastructure
+        </p>
+        <p class="res-lead">
+          I build the systems that decide whether AI output is any good — and
+          then I build the things that deliver it. {yearsInIT} years in IT, the
+          last stretch spent as the human in the loop for production LLM
+          assistants: authoring the rubrics, coding the failure taxonomy,
+          shipping the chatbots technicians actually use, and measuring whether
+          any of it moved. Outside the day job I've been doing the same work
+          unsupervised for years — orchestration layers, evaluation harnesses,
+          knowledge graphs, and a great deal of code nobody asked me to write.
+          Nearly all of it built with AI in the loop, which is the point rather
+          than the asterisk: getting these systems to produce tested,
+          production-grade work is itself the skill, and it happens to be the
+          one I'm paid to evaluate.
+        </p>
+        <p class="res-meta">
+          South Bend, Indiana · <a href="/contact/">Get in touch</a> ·
+          <a href="https://github.com/thebiglaskowski" target="_blank" rel="noopener noreferrer">GitHub</a> ·
+          <a href="https://www.linkedin.com/in/thebiglaskowski" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        </p>
+      </header>
+
+      <section class="res-section">
+        <h2>Selected Work</h2>
+        <p class="section-note">
+          Personal projects. Built on my own time, for my own reasons, and the
+          reason the rest of this page reads the way it does.
+        </p>
+
+        {projects.map(p => (
+          <div class="project">
+            <div class="project-head">
+              <h3>{p.name}</h3>
+              <span class="project-kind">{p.kind}</span>
+            </div>
+            <p>{p.body}</p>
+            <p class="project-stat">{p.stat}</p>
+          </div>
+        ))}
+
+        <p class="also">
+          Also on the shelf: a self-hosted prompt compiler with a pgvector
+          semantic library and a multi-pass critic · an SEO content pipeline
+          scoring output for citation-readiness across generative search engines
+          · a TikTok commerce platform wired to live marketplace APIs · a
+          terminal portfolio tracker reading the XRP ledger over WebSocket · an
+          encrypted, deduplicated backup system with alerting and verified
+          restore round-trips · a novel drafted with AI tooling under a pen name,
+          with an Amazon launch pending.
+        </p>
+      </section>
+
+      <section class="res-section">
+        <h2>Experience</h2>
+
+        {roles.map(r => (
+          <div class="role">
+            <div class="role-head">
+              <h3>{r.title}</h3>
+              <span class="role-dates">{r.dates}</span>
+            </div>
+            <div class="role-org">{r.org}</div>
+            <ul>
+              {r.bullets.map(b => <li>{b}</li>)}
+            </ul>
+          </div>
+        ))}
+
+        <p class="earlier">
+          <strong>Earlier —</strong> field and deployment technician work through
+          the 2000s: warranty repair for Dell and the other OEMs, and a
+          multi-site enterprise hardware rollout where I supervised a small team
+          through six thousand machines. It is not on this page because it is
+          recent; it is on this page because knowing what the tech on the other
+          end of the ticket is actually looking at is why the AI work lands.
+        </p>
+      </section>
+
+      <section class="res-section">
+        <h2>Toolset</h2>
+        <dl class="toolset">
+          {toolset.map(t => (
+            <>
+              <dt>{t.label}</dt>
+              <dd>{t.items}</dd>
+            </>
+          ))}
+        </dl>
+      </section>
+
+      <section class="res-section">
+        <h2>Also</h2>
+        <p>
+          <strong>Co-founder — Michiana InfoSec, 2019.</strong> I helped start
+          the regional information-security community here in South Bend and ran
+          it through its early years — which, given the timing, meant its first
+          few months in a room and the rest of them not. Handed the reins to new
+          leadership a few years back. It kept going without me, which is the only real test of
+          whether a thing like that got built properly.
+        </p>
+        <p>
+          <strong>Linux, exclusively, for sixteen straight years</strong> — and
+          an obsession considerably older than that. The terminal is where I
+          think clearest, and most of what I know about systems I learned by
+          breaking my own first.
+        </p>
+        <p>
+          Pursuing the <strong>Claude Certified Architect — Foundations</strong>
+          credential. Mentor in my employer's internal mentoring program. I write
+          about most of this at <a href="/">the blog</a>, which has been running
+          in one form or another since 2021 and covers the AI tooling side back
+          when that was still a strange thing to be interested in.
+        </p>
+        <p class="pdf-line">
+          <a href="/joe-laskowski-resume.pdf" download>Download as PDF</a>
+          <span class="pdf-note">— for the systems that insist on one.</span>
+        </p>
+      </section>
+    </article>
+  </div>
+
+  <style>
+    .resume-wrap {
+      padding: 28px var(--gutter) 0;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .res-head {
+      margin: 3rem 0;
+      padding-bottom: 2rem;
+      border-bottom: 1px double var(--rule);
+    }
+
+    .res-head h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(26px, 5vw, 40px);
+      font-weight: 500;
+      color: var(--paper-bright);
+      letter-spacing: -0.02em;
+      margin: 0 0 0.6rem 0;
+    }
+
+    .res-target {
+      font-family: var(--font-sans);
+      font-size: 11.5px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--oxblood);
+      margin: 0 0 1.4rem 0;
+    }
+
+    .res-lead {
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      color: var(--paper-dim);
+      line-height: 1.7;
+      margin: 0 0 1.4rem 0;
+    }
+
+    .res-meta {
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      color: var(--mute);
+      margin: 0;
+    }
+
+    .res-section {
+      margin: 3.2rem 0;
+    }
+
+    .res-section h2 {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--paper-bright);
+      margin: 0 0 0.5rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .section-note {
+      font-family: var(--font-serif);
+      font-style: italic;
+      color: var(--mute);
+      font-size: 0.95rem;
+      margin: 0 0 2rem 0;
+    }
+
+    .project {
+      margin: 0 0 2rem 0;
+    }
+
+    .project-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .project-head h3,
+    .role-head h3 {
+      font-family: var(--font-serif);
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--paper-bright);
+      margin: 0;
+    }
+
+    .project-kind {
+      font-family: var(--font-sans);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+
+    .project p {
+      margin: 0 0 0.4rem 0;
+      line-height: 1.65;
+    }
+
+    .project-stat {
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      color: var(--oxblood);
+      letter-spacing: 0.04em;
+    }
+
+    .also {
+      margin-top: 2.4rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid var(--rule-dim);
+      color: var(--paper-dim);
+      line-height: 1.7;
+    }
+
+    .role {
+      margin: 0 0 2.2rem 0;
+    }
+
+    .role-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .role-dates {
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      color: var(--mute);
+      white-space: nowrap;
+    }
+
+    .role-org {
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      color: var(--oxblood);
+      letter-spacing: 0.06em;
+      margin: 0.15rem 0 0.7rem 0;
+    }
+
+    .role ul {
+      margin: 0;
+      padding-left: 1.1rem;
+    }
+
+    .role li {
+      margin-bottom: 0.6rem;
+      line-height: 1.65;
+    }
+
+    .earlier {
+      padding-top: 1.4rem;
+      border-top: 1px solid var(--rule-dim);
+      color: var(--paper-dim);
+      line-height: 1.7;
+    }
+
+    .toolset {
+      margin: 1.6rem 0 0 0;
+    }
+
+    .toolset dt {
+      font-family: var(--font-sans);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--oxblood);
+      margin-top: 1.1rem;
+    }
+
+    .toolset dd {
+      margin: 0.35rem 0 0 0;
+      line-height: 1.65;
+      color: var(--paper-dim);
+    }
+
+    .pdf-line {
+      margin-top: 2rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid var(--rule-dim);
+      font-family: var(--font-sans);
+      font-size: 0.88rem;
+    }
+
+    .pdf-note {
+      color: var(--mute);
+    }
+
+    @media (max-width: 768px) {
+      .role-head {
+        display: block;
+      }
+
+      .role-dates {
+        display: block;
+        margin-top: 0.2rem;
+      }
+    }
+  </style>
+</BaseLayout>
