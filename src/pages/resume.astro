@@ -7,33 +7,33 @@ const yearsInIT = new Date().getFullYear() - CAREER_START_YEAR;
 
 const projects = [
   {
-    name: 'Nexus Signals',
-    kind: 'Market analysis platform',
-    body: 'Python 3.12 / FastAPI / PostgreSQL / Redis behind a React 19 and TypeScript front end. Domain-driven design across six bounded contexts, CQRS, seven market-data providers chained behind circuit breakers, 23 technical indicators feeding a scoring model, LLM-driven sentiment analysis, paper trading with live P&L, and WebSocket streaming over 43 REST endpoints.',
-    stat: '3,764 passing tests · mypy --strict, zero Any types',
+    name: 'cowork-rag + cowork-graph',
+    kind: 'Private retrieval infrastructure · MCP',
+    body: '<p>The retrieval layer my agents actually run on — two complementary systems over the same corpus, both exposed as Model Context Protocol servers and shared across Claude, Codex, Grok Build, and Hermes. The host supplies the answer model; these supply the evidence.</p><p><strong>cowork-rag</strong> is a fully local stack: Nomic embed-text-v1.5 at 768 dimensions and a MiniLM-L-6-v2 cross-encoder both running in-process through FastEmbed ONNX, over ChromaDB — no GPU server, no API key, no Ollama. Retrieval is hybrid, fusing a disk-backed SQLite FTS5 keyword lane with the vector lane by reciprocal-rank fusion so exact identifiers stay findable, then reranking the fused pool. On top of that sit map-reduce document summaries, a GraphRAG layer that extracts entities and relationships per document and clusters them into summarized communities, date-aware filtering, per-domain scoping, local OCR and image captioning through Tesseract and Florence-2, cross-session persistent memory, and an optional PII detector that masks identifiers before they ever reach a host\'s context. Sync is two-level — mtime scan, then content-hash confirmation — with chunk-level embedding reuse, so editing one paragraph of a large file re-embeds one chunk instead of the file. Generation is deliberately separated behind a provider-neutral interface, defaulting to a local llama.cpp Qwen3-8B that a nightly systemd timer starts, uses for summaries and graph extraction, and shuts down again.</p><p><strong>cowork-graph</strong> is the structured counterpart: a SQLite knowledge graph parsed from the same Markdown, answering the questions embeddings are bad at — what is active, what is blocked, what links to what, what got decided and when. Markdown stays canonical in both; every index is derived state, rebuildable from scratch.</p>',
+    stat: '2,651 files · 98,242 chunks · 38,345 graph entities in 150 communities · 15 MCP tools · ~6,900 lines Python, 1,800 in tests',
   },
   {
-    name: 'cowork-graph',
-    kind: 'Custom MCP server',
-    body: 'A local SQLite knowledge graph over a several-thousand-file Markdown corpus, exposed to Claude Desktop and Claude Code through a Model Context Protocol server I wrote. Eight query tools — document search, project subgraphs, blocker detection, decision trails, corpus audit. Markdown stays canonical; the graph is derived state, rebuilt incrementally on commit.',
-    stat: 'Registered across five surfaces · shipped',
+    name: 'Nexus Signals',
+    kind: 'Market analysis platform',
+    body: 'Python 3.12 / FastAPI / PostgreSQL 16 / Redis 7 behind a React 19 and TypeScript front end. Domain-driven design across six bounded contexts with CQRS throughout. Seven market-data providers chained behind circuit-breaker fallbacks so a dead vendor degrades instead of failing, 23 technical indicators feeding a −10 to +10 signal score, LLM-driven sentiment and directional analysis, paper trading with portfolios, orders, positions and live P&L, and WebSocket streaming across 43 versioned REST endpoints. I got deep into v1, realized I could build it properly, and threw it away to start over — the version that exists is the second one.',
+    stat: '3,764 passing tests · mypy --strict, zero Any types',
   },
   {
     name: 'Claude Sentient',
     kind: 'Agent orchestration layer — public',
-    body: 'An autonomous development loop for Claude Code: quality gates on lint, test, build, and git; nine language profiles with environment detection; fifteen hooks; nine agent roles; and a self-improvement mechanism that proposes its own rule updates after corrections. I used it for months, then watched the platform ship native features that made my abstraction layer overhead — and took it back out. Both calls were right.',
-    stat: 'github.com/thebiglaskowski/claude-sentient',
+    body: 'An autonomous development loop for coding agents, structured as INIT → UNDERSTAND → PLAN → EXECUTE → VERIFY → COMMIT → EVALUATE with hard quality gates on lint, test, build, and git between stages. Nineteen slash commands, fifteen hooks, nine agent roles, nine language profiles with Python environment detection across conda, venv, poetry and pdm, twelve JSON schemas enforcing cross-module integrity, and a self-improvement mechanism that proposes its own rule updates after it gets corrected. I ran it for months, then watched the platform ship native features that turned my abstraction layer into drag — and pulled it back out of every project. Building it and retiring it were both the right call.',
+    stat: '924 tests · public on GitHub',
   },
   {
     name: 'Documentary production pipeline',
     kind: 'Three chained tools',
-    body: 'End-to-end automated video production. Stage one turns a script into narration through a TTS model and aligns it to sentence-level beats with WhisperX. Stage two is a browser-based asset manager for the roughly 150 individual image generations a single episode consumes. Stage three assembles everything in Remotion — motion, transitions, per-era color grading — and renders finished 1080p.',
-    stat: '90% test coverage on stage one · five episodes shipped',
+    body: 'Script in, finished 1080p video out. Stage one synthesizes narration through a TTS model using a seven-rule chunker that will not split mid-sentence or inside an emotion tag, then aligns the audio with WhisperX into sentence-level beat timestamps the downstream stages key off. Stage two is a browser-based asset manager — React and Express, filesystem as the source of truth, no database — that turns a Markdown prompt sheet into an assignable grid for the roughly 150 individual image generations a single episode consumes, then deploys config, beats, images, and audio into the renderer in one click. Stage three assembles it in Remotion: Ken Burns motion, crossfade and zoom-dissolve transitions, lower thirds fired on beat boundaries, and a per-era color grade and film-texture overlay whose era value is classified upstream by an LLM and carried through the whole chain.',
+    stat: '90% test coverage on stage one · ~$0.38 of narration per 30 minutes · five episodes shipped',
   },
   {
     name: 'NexusLedger',
     kind: 'Multi-entity finance system',
-    body: 'Bank and card data in through Plaid, categorized against learned rules, reconciled, and pushed to reporting — across three separate legal entities. Checksummed migrations, period locks, pending-to-posted carryover, and an integrity-check command that catches drift before it reaches a report.',
+    body: 'Plaid ingestion into SQLite, categorized against learned rules, reconciled, and pushed out to reporting workbooks — across three separate legal entities that must never bleed into each other. Checksummed migrations, period locks so a closed month cannot silently move, pending-to-posted carryover, synthetic transaction pairs for transfers, and a doctor command that runs integrity checks and catches drift before it reaches a report rather than after.',
     stat: '662-test Python suite',
   },
 ];
@@ -156,7 +156,7 @@ const toolset = [
               <h3>{p.name}</h3>
               <span class="project-kind">{p.kind}</span>
             </div>
-            <p>{p.body}</p>
+            <div class="project-body" set:html={p.body} />
             <p class="project-stat">{p.stat}</p>
           </div>
         ))}
@@ -339,9 +339,21 @@ const toolset = [
       color: var(--mute);
     }
 
-    .project p {
+    .project-body {
       margin: 0 0 0.4rem 0;
       line-height: 1.65;
+    }
+
+    .project-body :global(p) {
+      margin: 0 0 0.7rem 0;
+    }
+
+    .project-body :global(p:last-child) {
+      margin-bottom: 0;
+    }
+
+    .project-body :global(strong) {
+      color: var(--paper-bright);
     }
 
     .project-stat {
