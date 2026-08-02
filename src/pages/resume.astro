@@ -5,84 +5,18 @@ import { SITE_TITLE } from '../consts';
 const CAREER_START_YEAR = 2001;
 const yearsInIT = new Date().getFullYear() - CAREER_START_YEAR;
 
-const projects = [
-  {
-    name: 'cowork-rag + cowork-graph',
-    kind: 'Private retrieval infrastructure · MCP',
-    body: '<p>The retrieval layer my agents actually run on — two complementary systems over the same corpus, both exposed as Model Context Protocol servers and shared across Claude, Codex, Grok Build, and Hermes. The host supplies the answer model; these supply the evidence.</p><p><strong>cowork-rag</strong> is a fully local stack: Nomic embed-text-v1.5 at 768 dimensions and a MiniLM-L-6-v2 cross-encoder both running in-process through FastEmbed ONNX, over ChromaDB — no GPU server, no API key, no Ollama. Retrieval is hybrid, fusing a disk-backed SQLite FTS5 keyword lane with the vector lane by reciprocal-rank fusion so exact identifiers stay findable, then reranking the fused pool. On top of that sit map-reduce document summaries, a GraphRAG layer that extracts entities and relationships per document and clusters them into summarized communities, date-aware filtering, per-domain scoping, local OCR and image captioning through Tesseract and Florence-2, cross-session persistent memory, and an optional PII detector that masks identifiers before they ever reach a host\'s context. Sync is two-level — mtime scan, then content-hash confirmation — with chunk-level embedding reuse, so editing one paragraph of a large file re-embeds one chunk instead of the file. Generation is deliberately separated behind a provider-neutral interface, defaulting to a local llama.cpp Qwen3-8B that a nightly systemd timer starts, uses for summaries and graph extraction, and shuts down again.</p><p><strong>cowork-graph</strong> is the structured counterpart: a SQLite knowledge graph parsed from the same Markdown, answering the questions embeddings are bad at — what is active, what is blocked, what links to what, what got decided and when. Markdown stays canonical in both; every index is derived state, rebuildable from scratch.</p>',
-    stat: '2,651 files · 98,242 chunks · 38,345 graph entities in 150 communities · 15 MCP tools · ~6,900 lines Python, 1,800 in tests',
-  },
-  {
-    name: 'Nexus Signals',
-    kind: 'Market analysis platform',
-    body: 'Python 3.12 / FastAPI / PostgreSQL 16 / Redis 7 behind a React 19 and TypeScript front end. Domain-driven design across six bounded contexts with CQRS throughout. Seven market-data providers chained behind circuit-breaker fallbacks so a dead vendor degrades instead of failing, 23 technical indicators feeding a −10 to +10 signal score, LLM-driven sentiment and directional analysis, paper trading with portfolios, orders, positions and live P&L, and WebSocket streaming across 43 versioned REST endpoints. I got deep into v1, realized I could build it properly, and threw it away to start over — the version that exists is the second one.',
-    stat: '3,764 passing tests · mypy --strict, zero Any types',
-  },
-  {
-    name: 'Claude Sentient',
-    kind: 'Agent orchestration layer — public',
-    body: 'An autonomous development loop for coding agents, structured as INIT → UNDERSTAND → PLAN → EXECUTE → VERIFY → COMMIT → EVALUATE with hard quality gates on lint, test, build, and git between stages. Nineteen slash commands, fifteen hooks, nine agent roles, nine language profiles with Python environment detection across conda, venv, poetry and pdm, twelve JSON schemas enforcing cross-module integrity, and a self-improvement mechanism that proposes its own rule updates after it gets corrected. I ran it for months, then watched the platform ship native features that turned my abstraction layer into drag — and pulled it back out of every project. Building it and retiring it were both the right call.',
-    stat: '924 tests · public on GitHub',
-  },
-  {
-    name: 'Documentary production pipeline',
-    kind: 'Three chained tools',
-    body: 'Script in, finished 1080p video out. Stage one synthesizes narration through a TTS model using a seven-rule chunker that will not split mid-sentence or inside an emotion tag, then aligns the audio with WhisperX into sentence-level beat timestamps the downstream stages key off. Stage two is a browser-based asset manager — React and Express, filesystem as the source of truth, no database — that turns a Markdown prompt sheet into an assignable grid for the roughly 150 individual image generations a single episode consumes, then deploys config, beats, images, and audio into the renderer in one click. Stage three assembles it in Remotion: Ken Burns motion, crossfade and zoom-dissolve transitions, lower thirds fired on beat boundaries, and a per-era color grade and film-texture overlay whose era value is classified upstream by an LLM and carried through the whole chain.',
-    stat: '90% test coverage on stage one · ~$0.38 of narration per 30 minutes · five episodes shipped',
-  },
-  {
-    name: 'NexusLedger',
-    kind: 'Multi-entity finance system',
-    body: 'Plaid ingestion into SQLite, categorized against learned rules, reconciled, and pushed out to reporting workbooks — across three separate legal entities that must never bleed into each other. Checksummed migrations, period locks so a closed month cannot silently move, pending-to-posted carryover, synthetic transaction pairs for transfers, and a doctor command that runs integrity checks and catches drift before it reaches a report rather than after.',
-    stat: '662-test Python suite',
-  },
-];
-
-const more = [
-  {
-    name: 'PromptVault',
-    body: 'A deterministic prompt compiler and semantic library — raw idea in, structured and provider-optimized prompt out, through a card/template engine and a multi-pass critic. Ships with 92 system cards across image, LLM, and code generation plus 27 templates, and a 30-case regression harness that diffs output against stored baselines so a change to the compiler cannot silently degrade it. Single-user by design: the API key is passed per request from the browser and never persisted server-side.',
-    stack: 'Node 22 · pnpm monorepo · Fastify · Next.js · PostgreSQL 16 + pgvector with HNSW indexes · Redis 7 · Drizzle ORM',
-  },
-  {
-    name: 'SEO content pipeline',
-    body: 'A thirteen-package monorepo running the whole chain: seed keyword discovery, gap analysis, revenue-per-keyword scoring, competitive analysis into generated content briefs, AI copy and image generation, static site build, and finally GEO scoring — grading each page for citation-readiness across generative search engines rather than for blue links. Built before most people had a name for that problem.',
-    stack: 'TypeScript · pnpm workspace · OpenAI + Anthropic · DALL·E 3 + Stability AI · Serper.dev SERP data',
-  },
-  {
-    name: 'DropTok',
-    body: 'A TikTok commerce platform wired to live marketplace APIs rather than mock data — multi-shop management, an AI listing generator for titles, hooks and descriptions, a content pipeline producing video hooks and shot lists, an AI-scored opportunity board, creator outreach with a CRM behind it, a fulfillment queue built as an explicit state machine, and a dashboard tracking my own model token spend.',
-    stack: 'TypeScript end to end · React 18 / Vite 6 / Tailwind / Zustand · Express 4 / Drizzle / better-sqlite3 · TikTok Shop Seller, Ads, CJ Dropshipping and AutoDS integrations · Vitest',
-  },
-  {
-    name: 'BudgetLedger',
-    body: 'A budgeting application on live Plaid account sync, with CSRF protection, rate limiting, and optional TOTP multi-factor. Its one genuinely good idea was pay-period planning: bills auto-assigned to the specific paycheck that covers them by due date, leftover computed per paycheck, and negative paychecks flagged before they happen. I built it, used it, and went back to my spreadsheet — which had absorbed enough of the good ideas by then to win.',
-    stack: 'Flask 3.1 · SQLAlchemy 2.0 · SQLite (Postgres-ready) · Chart.js · Plaid',
-  },
-  {
-    name: 'xrp-ticker',
-    body: 'A terminal portfolio tracker that reads balances straight off the XRP ledger over WebSocket and aggregates them across multiple self-custody wallets, with live pricing from a separate exchange API. Four cyclable sparkline renderers, two themes, auto-reconnect, entirely keyboard-driven. It only works against self-custody addresses, because exchange deposit addresses sit in shared omnibus wallets — which is exactly the sort of detail you only learn by building the thing.',
-    stack: 'Python 3.11+ · Textual · uv · XRPL WebSocket · Coinbase API · public on GitHub',
-  },
-  {
-    name: 'SKYNET backup',
-    body: 'Encrypted, deduplicated, snapshot-preserving backup across three redundancy layers — live working copy, local restic repository, off-site cloud — driven by both systemd timers and Windows Task Scheduler, with green/yellow/red Slack alerts on every single run and fail-only alerts on prune and verify. Restores have been round-tripped and confirmed byte-identical by SHA-256, which is the part almost nobody actually does.',
-    stack: 'restic · systemd · Task Scheduler · Slack webhooks · Bash',
-  },
-];
-
 const roles = [
   {
     title: 'AI Quality Analyst',
     org: 'Aunalytics',
     dates: 'March 2026 — Present',
     bullets: [
-      'The human in the loop for two LLM-powered ticket enrichment assistants — scoring model output against a five-dimension rubric I authored, with a coded failure taxonomy that turns individual bad answers into diagnosable model weaknesses. The finding that has held for five months: the failure is in synthesis, not retrieval.',
-      'Designed and built the Microsoft Teams chatbots technicians use to reach both systems — Azure Functions and Copilot Studio over an in-house LLM, with live third-party data wired in through Power Automate. Two near-identical bots were refactored into a single shared core at 95% statement coverage.',
-      'Raised technician documentation quality 29% across eighteen weekly coaching cycles, more than doubling the share of tickets carrying a usable resolution entry. Because those notes are the model’s training corpus, the improvement compounds.',
-      'Measured an automated remediation program to 96% script success with 61% of tickets resolving without a technician ever touching them, and drove script failures to zero.',
-      'Caught and corrected a data-export defect that had inflated a reporting population by an order of magnitude. Suspended trend comparisons, rebuilt the baseline from scratch, and published the corrected figure rather than letting a flattering artifact stand.',
-      'Authored the operating standards for the function — scoring rubrics, failure codes, documentation style guides, and a twelve-KPI measurement framework — plus the architecture proposal for productizing the whole thing on Azure.',
+      'I\'m the human in the loop for 2 LLM-powered ticket enrichment assistants. I wrote the 5-dimension rubric we score them against, plus the coded failure taxonomy that turns a bad answer into something the data science team can act on. The finding that\'s held up for 5 months: the model finds the right documentation and then stops short. Synthesis is the problem, not retrieval.',
+      'I designed and built the Microsoft Teams chatbots the technicians use to reach both systems. Azure Functions and Copilot Studio over an in-house LLM, with live third-party data wired in through Power Automate. Two near-identical bots got refactored down into one shared core at 95% statement coverage.',
+      'Technician documentation quality is up 29% across 18 weekly coaching cycles, and the share of tickets carrying a usable resolution entry has more than doubled. Those notes are what the model trains on, so it compounds.',
+      'Measured an automated remediation program to 96% script success, with 61% of tickets closing without a technician ever touching them, and drove script failures to 0.',
+      'Caught a data-export defect that had been quietly inflating a reporting population by roughly 10x. I suspended the trend comparisons, rebuilt the baseline, and published the corrected numbers. The old numbers looked better.',
+      'Wrote the operating standards for the whole function: scoring rubrics, failure codes, documentation style guides, and a 12-KPI measurement framework. Also the Azure architecture proposal for turning the function into a product.',
     ],
   },
   {
@@ -90,11 +24,11 @@ const roles = [
     org: 'Aunalytics',
     dates: 'August 2023 — March 2026',
     bullets: [
-      'Designed and built the company’s user lifecycle automation end to end — nine PowerShell modules covering Active Directory, Microsoft 365, and ticket-driven provisioning, with certificate-based authentication from Key Vault, schema-validated configuration, separate production and test environments, and a full Pester test suite.',
+      'Built the company\'s user onboarding and offboarding automation end to end. 9 PowerShell modules covering Active Directory, Microsoft 365, and provisioning driven straight off the ticket, with certificate-based auth from Key Vault, schema-validated config, separate prod and test environments, and a full Pester suite.',
       'Built zero-touch Windows Autopilot deployment: certificate-only auth, a resumable checkpoint state machine with exponential backoff, and automated cleanup of stale Intune, Autopilot, and Entra records.',
-      'Wrote the quarterly privileged-access review tooling — a privileged-access exporter, risk flagger, and quarter-over-quarter diff — along with a Microsoft 365 tenant audit module carrying CIS and vendor baselines.',
-      'Served as Linux subject-matter expert for the Centralized Services team, and worked part-time with the Security team as a SOC analyst on internal and client security needs.',
-      'Provided Tier 1 and Tier 2 support to internal staff and contributed to organization-wide rollouts.',
+      'Wrote the quarterly privileged-access review tooling. Exporter, risk flagger, and a quarter-over-quarter diff, plus a Microsoft 365 tenant audit module carrying CIS and vendor baselines.',
+      'Linux subject-matter expert for the Centralized Services team. Also worked part-time with the security team as a SOC analyst on internal and client work.',
+      'Tier 1 and Tier 2 support for internal staff, and a hand in most organization-wide rollouts.',
     ],
   },
   {
@@ -102,8 +36,8 @@ const roles = [
     org: 'Aunalytics',
     dates: 'January 2022 — August 2023',
     bullets: [
-      'Led the Kalamazoo team through Tier 1 and Tier 2 delivery — incident management, escalation, and SLA maintenance — while managing staff performance, mentoring, and training.',
-      'Co-lead engineer for internal departments: user access administration, Microsoft 365 licensing, and general engineering support.',
+      'Led the Kalamazoo team through Tier 1 and Tier 2 delivery: incident management, escalation, SLA maintenance. Owned staff performance, mentoring, and training.',
+      'Co-lead engineer for internal departments. User access administration, Microsoft 365 licensing, and whatever engineering support came up.',
     ],
   },
   {
@@ -111,8 +45,8 @@ const roles = [
     org: 'Aunalytics',
     dates: 'October 2019 — January 2022',
     bullets: [
-      'Led a team of technicians and engineers supporting the service desk’s largest accounts, including environments north of 1,500 users.',
-      'Owned customer relationships through the IT point of contact — service delivery, escalation communication, and ticket follow-through.',
+      'Led a team of technicians and engineers on the service desk\'s largest accounts, including environments north of 1,500 users.',
+      'Owned the customer relationship through their IT point of contact. Service delivery, escalation communication, ticket follow-through.',
     ],
   },
   {
@@ -120,7 +54,7 @@ const roles = [
     org: 'MicroIntegration',
     dates: 'March 2017 — September 2019',
     bullets: [
-      'Resolved 70 to 100 tickets a week across remote first-level support, investigating complex hardware and software faults and escalating what needed escalating.',
+      'Closed 70 to 100 tickets a week on remote first-level support, working complex hardware and software faults and escalating what needed it.',
     ],
   },
   {
@@ -128,19 +62,181 @@ const roles = [
     org: 'Realm Technologies',
     dates: 'July 2007 — March 2017',
     bullets: [
-      'Ran day-to-day operations for break/fix technicians nationwide — recruiting and certifying more than 200 techs delivering warranty repair for Dell, Sony, IBM, HP, and Lexmark.',
-      'Managed service call dispatch, parts logistics, and vendor relations, and maintained the company intranet and public site.',
+      'Ran day-to-day operations for break/fix technicians nationwide. Recruited and certified more than 200 techs doing warranty repair for Dell, Sony, IBM, HP, and Lexmark.',
+      'Managed dispatch, parts logistics, and vendor relations. Kept the company intranet and public site running.',
     ],
   },
 ];
 
+const projects = [
+  {
+    name: 'cowork-rag + cowork-graph',
+    kind: 'Retrieval infrastructure · MCP',
+    blurb: 'Two search systems over the same pile of my own documents. One is semantic, one is structured, and both are wired into Claude, Codex, Grok Build, and Hermes over MCP. The host brings the model. These bring the evidence. It all runs on my own hardware, so there\'s no API key and no monthly bill.',
+    specs: [
+      ['Retrieval', 'Nomic embed-text-v1.5 (768-dim) + MiniLM-L-6-v2 cross-encoder, both in-process via FastEmbed ONNX · ChromaDB · SQLite FTS5'],
+      ['Generation', 'Provider-neutral, defaulting to local llama.cpp Qwen3-8B on a nightly systemd timer'],
+      ['Index', '2,651 files · 98,242 chunks · 2,573 summaries · 38,345 graph entities in 150 communities'],
+      ['Surface', '15 MCP tools · ~6,900 lines of Python, 1,800 of it tests'],
+    ],
+    detail: `<p><strong>Hybrid retrieval.</strong> A disk-backed FTS5 keyword lane runs next to the vector lane, and the two get fused by reciprocal-rank fusion. Embeddings are famously bad at exact identifiers, so case numbers and filenames and account IDs stay findable. A cross-encoder then reranks the fused pool in-process.</p>
+      <p><strong>GraphRAG sits on top.</strong> An LLM pulls entities and relationships out of each document, cached by content hash, merges them into a graph, clusters that into communities, and summarizes each one. Relational questions and big "what's going on across the whole corpus" questions get their own tools.</p>
+      <p><strong>It knows about time and domain.</strong> Chunks carry the date ranges they mention, so asking about a specific year filters automatically. Every chunk is tagged with its top-level folder, and a scope argument keeps fiction from contaminating a factual answer.</p>
+      <p><strong>Sync respects my compute.</strong> Change detection runs in 2 passes, a quick mtime scan and then a content-hash confirmation, because a folder syncing between machines rewrites timestamps constantly and I got tired of re-embedding files that hadn't changed. Embedding reuse is chunk-level. Edit one paragraph of a big document and exactly one chunk gets re-embedded.</p>
+      <p><strong>Everything else is local too.</strong> Tesseract pulls text out of scanned documents while Florence-2 writes a description of standalone images. There's an optional PII detector that scans at ingest and masks identifiers in tool output before they reach a host's context. It also refuses to save a memory note containing a raw one.</p>
+      <p><strong>cowork-graph</strong> handles what embeddings handle badly. It's a SQLite knowledge graph parsed out of the same markdown, and it answers structural questions: what's active, what's blocked, what links to what, what got decided and when. Markdown stays canonical in both systems. Every index is derived state I can throw away and rebuild.</p>`,
+  },
+  {
+    name: 'PixelDrops production pipeline',
+    kind: 'Automated documentary studio · 5 tools',
+    blurb: 'I hand it a research question and it hands back a finished, published documentary. Five tools pass work down a chain, a runner carries a per-video manifest between them, and an agent team drives the whole thing, stopping at 7 human approval gates where I actually need to look at something. Everywhere else it runs unattended.',
+    specs: [
+      ['Chain', 'pixeldrops-research-mcp → scriptcast-cli → shotlist → framecast-cli → yt-publish-cli'],
+      ['Orchestration', 'Manifest-as-baton runner · 7 gate types with policies · stub-skip, manual-halt and auto-pass advancer · spend mirror'],
+      ['Render', 'Remotion · 1920×1080 H.264 at 30fps · roughly 1–2 minutes of render per minute of video'],
+      ['Economics', '~$0.38 of narration per 30 minutes · ~150 image generations per episode · 4 channels · 5 episodes shipped'],
+    ],
+    detail: `<p><strong>pixeldrops-research-mcp</strong> conducts. It owns the per-video manifest, the stage machinery, and the gates: packaging, angle, script, shot plan, asset, QC, final cut. Each gate has its own policy, confidence, and exception path. An advancer walks the chain, skips stubs, halts for me where the policy says to, auto-passes where it doesn't, and mirrors spend as it goes. The research itself wraps Gemini, Perplexity, and OpenAI.</p>
+      <p><strong>scriptcast-cli</strong> turns an approved script into narration and timing. A 7-rule priority chunker splits text for synthesis without ever breaking mid-sentence or inside an emotion tag. Emotion tags get passed through to the voice model, production markers get stripped before anything can read them out loud. WhisperX then force-aligns the rendered audio back against the script and produces sentence-level beat timestamps. Everything downstream keys off those.</p>
+      <p><strong>The shot planner</strong> reads the script and the beats and emits a plan for every cue: a primary layer that's either a generated image or a scene authored in code, plus overlays. Data motif, citation lower third, kinetic type, or code composited over image. That plan fans out into the artifacts each tool consumes, and I sign off once instead of approving 150 decisions one at a time.</p>
+      <p><strong>shotlist</strong> is where I spend most of my time. It parses a markdown prompt sheet into a grid of assignable slots. Click a slot and the prompt lands on the clipboard, paste it into an image model, drop the result back, click to assign, and the file gets renamed and tracked. No database, no auth, the filesystem is the source of truth. One more click deploys config, beats, images, and audio into the renderer and registers the composition.</p>
+      <p><strong>framecast-cli</strong> assembles in Remotion, and it takes 2 completely different inputs through the same path: generated stills, or scenes written in code. Ken Burns motion in 4 patterns, crossfade and zoom-dissolve transitions, spring-animated title cards, lower thirds fired on beat boundaries, kinetic typography, and a per-era color grade and film texture so 1995 material doesn't look like 2025 material. An LLM classifies the era way upstream and the value rides through the entire chain.</p>
+      <p><strong>The data motifs are my favorite thing in here.</strong> An authoring step pulls figures out of the researched script, and framecast turns them into animated overlays bound to specific beats. Counters, node graphs, dials, with per-cue overrides. The components are a discriminated union, and the architecture made a promise: adding a new motif variant should cost 1 union member and 1 switch case, with nothing existing getting reshaped. That's held 3 times now. The node-graph variant went in and its sibling components came out byte-identical.</p>
+      <p><strong>Citations get the same treatment.</strong> On-screen source attributions authored per episode, resolved by ID instead of position, rendered as lower thirds that coexist with motifs on the same slide. <strong>yt-publish-cli</strong> closes it out with caption generation and the publish push. All 4 channels carry a full kit of themes, motion profiles, signature motifs, and transitions.</p>`,
+  },
+  {
+    name: 'Nexus Signals',
+    kind: 'Market analysis platform',
+    blurb: 'A market analysis platform for crypto and stocks. I got about halfway into the first version, saw exactly how I should have built it, and started over. This is the second one, and it\'s the cleanest architecture I\'ve written.',
+    specs: [
+      ['Backend', 'Python 3.12 · FastAPI · SQLAlchemy 2 async · PostgreSQL 16 · Redis 7'],
+      ['Frontend', 'React 19 · TypeScript · Vite · TradingView lightweight-charts'],
+      ['Architecture', 'DDD · Clean Architecture · CQRS · 6 bounded contexts · 43 versioned REST endpoints'],
+      ['Rigor', '3,764 passing tests (3,043 backend, 721 frontend) · mypy --strict, 0 Any types'],
+    ],
+    detail: `<p><strong>Seven market data providers sit behind circuit-breaker fallback chains.</strong> When a vendor rate-limits or falls over, the breaker opens and the next one picks it up. Looks like overkill right up until the day a provider goes dark mid-session.</p>
+      <p><strong>Twenty-three technical indicators</strong> feed a normalized −10 to +10 signal score. LLM sentiment and directional analysis run alongside the quantitative signals.</p>
+      <p><strong>There's a full paper-trading context</strong> with portfolios, orders, positions, and live P&amp;L, so a strategy can run against streaming data over WebSocket without any money on the table.</p>
+      <p><strong>It's parked.</strong> I pivoted to side projects that had some chance of generating revenue. The code's still there and I still like it.</p>`,
+  },
+  {
+    name: 'Claude Sentient',
+    kind: 'Agent orchestration layer · public',
+    blurb: 'An autonomous development loop for coding agents, built back when the tooling didn\'t ship one. Seven stages with hard quality gates between them, language-aware profiles, and a mechanism that watched me override it and proposed edits to its own rules. I ran it for months and then took it back out of everything.',
+    specs: [
+      ['The loop', 'INIT → UNDERSTAND → PLAN → EXECUTE → VERIFY → COMMIT → EVALUATE'],
+      ['Surface', '19 slash commands · 15 hooks · 9 agent roles · 9 language profiles · 12 JSON schemas'],
+      ['Rigor', '897 tests across profiles, hooks, commands, schemas and integration, all passing'],
+      ['Where', 'Public — github.com/thebiglaskowski/claude-sentient'],
+    ],
+    detail: `<p><strong>Quality gates are the spine.</strong> Lint, test, build, and git state get checked between stages, with auto-fix where auto-fix is safe, and the loop won't advance past a red gate. Nine language profiles detect their own environment, including Python across conda, venv, poetry, and pdm, so the gates run the right commands without being told.</p>
+      <p><strong>Twelve JSON schemas enforce cross-module integrity</strong>, with a suite asserting that profiles, agents, and gates stay structurally consistent with each other. With this many moving parts, those tests are what stop a rename in one place from quietly breaking 3 others.</p>
+      <p><strong>It learned from being corrected.</strong> A self-improvement mechanism watched for cases where I overrode its behavior and proposed amendments to its own rule files.</p>
+      <p><strong>Then I retired it.</strong> The platform kept shipping native features that did what my abstraction layer did, and my abstraction layer stopped helping and started getting in the way. I pulled it out of every project and went vanilla. Building it taught me how these systems behave under load. Knowing when it had stopped earning its keep was the harder call, and I've left the repo public because both halves are worth reading.</p>`,
+  },
+  {
+    name: 'NexusLedger',
+    kind: 'Multi-entity finance system',
+    blurb: 'One ledger covering my personal accounts and 2 companies, where the entities can\'t bleed into each other and a closed month can\'t quietly move underneath a report that already quoted it. Plaid in, rules-based categorization, reconciliation, reports out. Built assuming I\'ll eventually make a mistake.',
+    specs: [
+      ['Stack', 'Python CLI · Plaid · SQLite · rules in YAML · workbook and Sheets output'],
+      ['Scope', '3 legal entities — personal, an Indiana operating company, a Wyoming holding company'],
+      ['Correctness', 'Checksummed migrations · period locks · pending-to-posted carryover · synthetic transfer pairs · integrity-check doctor command'],
+      ['Rigor', '662-test Python suite'],
+    ],
+    detail: `<p><strong>Period locks</strong> mean a closed month can't change under a report that already quoted it. <strong>Checksummed migrations</strong> mean a schema change that didn't apply cleanly fails loudly. <strong>Pending-to-posted carryover</strong> handles the window where one transaction exists twice in 2 different states. <strong>Synthetic pairs</strong> keep a transfer between entities from reading as income on one side and an expense on the other.</p>
+      <p><strong>A doctor command</strong> runs integrity checks across the whole ledger and reports drift before it lands in a report, which is well before somebody makes a decision off a bad number.</p>
+      <p><strong>Categorization learns.</strong> Rules live in YAML, so adding a pattern re-categorizes matching historical rows on the spot, with a full recategorize pass available when the rules change in a big way.</p>
+      <p>This replaced an earlier Flask and Plaid budgeting app I built, used for a while, and outgrew. That one taught me what the problem actually was.</p>`,
+  },
+  {
+    name: 'PromptVault',
+    kind: 'Prompt compiler and semantic library',
+    blurb: 'A compiler for prompts. Rough idea in, structured prompt out, and everything it generates lands in a searchable library that gets more useful as it fills up. I built it because large parts of prompt engineering are clearly a compilation problem that people keep treating as a craft.',
+    specs: [
+      ['Stack', 'Node 22 · pnpm monorepo · Fastify · Next.js · PostgreSQL 16 + pgvector · Redis 7 · Drizzle ORM'],
+      ['Retrieval', 'HNSW vector indexes for semantic search across the library'],
+      ['Content', '92 system cards (28 image, 32 LLM, 32 code) · 27 templates'],
+      ['Rigor', '30-case regression suite diffing compiler output against stored baselines'],
+    ],
+    detail: `<p><strong>A card and template engine</strong> composes prompts out of reusable structured pieces instead of string concatenation, and a multi-pass critic reviews and revises the assembled result before it ships.</p>
+      <p><strong>The regression suite is the load-bearing piece.</strong> Thirty cases run against stored baselines, so an edit to the compiler or the cards can't silently degrade output. That's the failure mode that makes most prompt tooling untrustworthy after a few months of tinkering.</p>
+      <p><strong>Single user by design.</strong> The API key gets passed per request from the browser and never persists server-side, and I reach it across devices over a tunnel.</p>
+      <p>Honest status: I don't reach for it as much as I expected to, partly because the models got better at the thing it compensates for. It's still genuinely handy when a prompt has to be exactly right.</p>`,
+  },
+  {
+    name: 'SEO content pipeline',
+    kind: '13-package monorepo',
+    blurb: 'A whole content operation as software, from seed keyword discovery through published pages. It ranks candidate keywords by expected revenue before a word gets written, and the last stage grades finished pages on whether an AI search engine would actually cite them.',
+    specs: [
+      ['Stack', 'TypeScript · pnpm workspace · 13 packages'],
+      ['Chain', 'Seed discovery → gap analysis → revenue-per-keyword scoring → competitive briefs → content and image generation → static build → GEO scoring'],
+      ['Providers', 'OpenAI · Anthropic · DALL·E 3 · Stability AI · Serper.dev SERP data'],
+      ['Status', 'Shelved. The working name is taken and it needs a rebrand before it goes anywhere'],
+    ],
+    detail: `<p><strong>Revenue-per-keyword scoring</strong> is what keeps it from being a content mill. Volume and difficulty are cheap to get. What matters is expected value per page, and the pipeline ranks candidates on that first.</p>
+      <p><strong>GEO scoring</strong> (generative engine optimization) grades finished pages on citation-readiness across ChatGPT, Perplexity, Google's AI surfaces, and Claude. The bet is that getting quoted by an answer engine matters more every year than ranking on a page of blue links. I built that stage before the acronym was in common use, which was either good timing or a lucky guess.</p>
+      <p><strong>Copy and imagery get generated in the same pass</strong>, copy from a mix of models and illustration from 2 image providers, then assembled into a static site with a web dashboard front-ending the toolchain.</p>`,
+  },
+  {
+    name: 'DropTok',
+    kind: 'TikTok commerce platform',
+    blurb: 'End-to-end operations for TikTok Shop, running against the live marketplace APIs. Product research, listing generation, creative, creator outreach, and fulfillment, all in one place. It handles the parts of that business that are actually hard.',
+    specs: [
+      ['Stack', 'TypeScript end to end · npm monorepo · React 18 / Vite 6 / Tailwind / Zustand · Express 4 / Drizzle / better-sqlite3'],
+      ['Integrations', 'TikTok Shop Seller API · TikTok for Business · TikTok Ads · CJ Dropshipping · AutoDS'],
+      ['AI', 'Anthropic SDK for listing generation, the content pipeline, and opportunity scoring'],
+      ['Ops', 'node-cron scheduling · Vitest · token-spend dashboard'],
+    ],
+    detail: `<p><strong>An AI-scored opportunity board and a trend radar</strong> rank products against each other, so what I open in the morning is a ranked shortlist.</p>
+      <p><strong>The listing generator</strong> writes titles, hooks, and descriptions, and a separate content pipeline produces video hooks, scripts, and shot lists. That's the creative bottleneck, automated far enough that I'm editing.</p>
+      <p><strong>Fulfillment is an explicit state machine.</strong> Order states in dropshipping have real transitions and real dead ends, and modeling them as a status column is how orders go missing.</p>
+      <p><strong>A token-usage dashboard</strong> tracks my own model spend against the operation. That number is the difference between a tool that's profitable and one that just looks busy.</p>`,
+  },
+  {
+    name: 'SKYNET backup',
+    kind: 'Encrypted backup and alerting',
+    blurb: 'Encrypted, deduplicated, snapshot-preserving backups across 3 redundancy layers on 2 machines, with alerting on every single run. I built it after admitting that I\'d never once tested a restore, which meant I didn\'t really have backups.',
+    specs: [
+      ['Stack', 'restic · systemd timers · Windows Task Scheduler · Slack webhooks · Bash'],
+      ['Layers', 'Live working copy → local encrypted repository → off-site cloud'],
+      ['Alerting', 'Green/yellow/red to a dedicated channel on every run, fail-only on prune and verify'],
+      ['Verification', 'Restore round-trips confirmed byte-identical by SHA-256'],
+    ],
+    detail: `<p><strong>Two machines, two schedulers, one alert channel.</strong> A systemd timer covers the Linux side and Task Scheduler covers Windows, and both report into the same place, so a silent failure on either surface shows up the next morning.</p>
+      <p><strong>It alerts on success too</strong>, at least while I was still learning to trust it. A backup system that only speaks up when it breaks looks identical to one that quietly stopped running 3 months ago.</p>
+      <p><strong>The restores are tested.</strong> Both surfaces have been round-tripped and verified byte-identical by hash. Almost everybody skips that step, and it's the only one that proves the rest of it works.</p>`,
+  },
+  {
+    name: 'xrp-ticker',
+    kind: 'Terminal portfolio tracker · public',
+    blurb: 'A keyboard-driven terminal dashboard that reads balances straight off the XRP ledger over WebSocket, aggregates them across multiple self-custody wallets, and prices them live. Small, finished, and the direct descendant of a decade of ricing my terminal.',
+    specs: [
+      ['Stack', 'Python 3.11+ · Textual · uv · XRPL WebSocket · Coinbase API'],
+      ['Features', 'Multi-wallet aggregation · USD valuation · 24h market stats · auto-reconnect'],
+      ['Interface', '4 cyclable sparkline renderers (blocks, braille, dots, line) · 2 themes · fully keyboard-driven'],
+      ['Where', 'Public on GitHub'],
+    ],
+    detail: `<p><strong>It only works against self-custody addresses.</strong> Exchange deposit addresses sit inside shared omnibus wallets, so querying one tells you about the exchange's pooled balance and nothing about your holdings. The app tells you so. I learned that by building it and watching it lie to me once.</p>
+      <p><strong>Live on both axes.</strong> Price comes from an exchange API, balances come off the ledger over a WebSocket subscription, and the two reconcile into a valuation that updates without a refresh key.</p>`,
+  },
+];
+
 const toolset = [
-  { label: 'AI & LLM', items: 'LLM output evaluation and rubric design · prompt and agent-instruction engineering · Model Context Protocol (MCP) server development · Microsoft Copilot Studio · Anthropic and OpenAI APIs · retrieval and knowledge-gap analysis · agent orchestration and multi-agent design' },
+  { label: 'AI & LLM', items: 'LLM output evaluation and rubric design · prompt and agent-instruction engineering · MCP server development · RAG and GraphRAG pipelines · embedding, reranking, hybrid retrieval · Microsoft Copilot Studio · Anthropic and OpenAI APIs · agent orchestration' },
   { label: 'Languages', items: 'PowerShell · Python · TypeScript · JavaScript · SQL · Bash' },
   { label: 'Cloud & platform', items: 'Azure (Functions, Bot Service, SQL, Key Vault, App Insights) · Entra ID · Microsoft 365 · Intune · Active Directory · Power Automate' },
-  { label: 'Systems', items: 'Linux — RHEL, Ubuntu, CentOS — as a daily driver since 2007 and exclusively for sixteen years · Proxmox and virtualization · Bash and shell tooling · self-hosted infrastructure, backup, and monitoring' },
-  { label: 'Engineering', items: 'Pester · pytest · Vitest · REST and GraphQL integration · circuit breakers and retry design · pandas · FastAPI · React · Remotion · Git' },
-  { label: 'Practice', items: 'Spec before implementation · test-driven development · dry-run defaults on destructive operations · schema-drift guards · documentation as a first-class deliverable' },
+  { label: 'Systems', items: 'Linux (RHEL, Ubuntu, CentOS) daily since 2007 and exclusively for 16 years · Proxmox and virtualization · systemd · shell tooling · self-hosted infrastructure, backup, monitoring' },
+  { label: 'Data & storage', items: 'PostgreSQL · SQLite · Redis · ChromaDB · pgvector · pandas · FTS5' },
+  { label: 'Engineering', items: 'Pester · pytest · Vitest · REST and GraphQL · circuit breakers and retry design · FastAPI · React · Remotion · Git' },
+  { label: 'How I work', items: 'Spec before implementation · test-driven where it counts · dry-run defaults on anything destructive · schema-drift guards · documentation as a deliverable' },
+];
+
+const nav = [
+  { href: '#experience', label: 'Experience' },
+  { href: '#work', label: 'Selected work' },
+  { href: '#toolset', label: 'Toolset' },
+  { href: '#more', label: 'More' },
 ];
 ---
 
@@ -151,66 +247,47 @@ const toolset = [
   <div class="resume-wrap">
     <article class="resume">
       <header class="res-head">
-        <h1>Joe Laskowski</h1>
         <p class="res-target">
           AI solutions engineering · LLM evaluation · agent infrastructure
         </p>
+        <h1>Joe Laskowski</h1>
+
         <p class="res-lead">
-          I build the systems that decide whether AI output is any good — and
-          then I build the things that deliver it. {yearsInIT} years in IT, the
-          last stretch spent as the human in the loop for production LLM
-          assistants: authoring the rubrics, coding the failure taxonomy,
-          shipping the chatbots technicians actually use, and measuring whether
-          any of it moved. Outside the day job I've been doing the same work
-          unsupervised for years — orchestration layers, evaluation harnesses,
-          knowledge graphs, and a great deal of code nobody asked me to write.
-          Nearly all of it built with AI in the loop, which is the point rather
-          than the asterisk: getting these systems to produce tested,
-          production-grade work is itself the skill, and it happens to be the
-          one I'm paid to evaluate.
+          I build the systems that decide whether AI output is any good, and then
+          I build the things that deliver it. {yearsInIT} years in IT. Right now
+          I'm the human in the loop for a pair of production LLM assistants,
+          which means I wrote the rubrics, coded the failure taxonomy, shipped
+          the chatbots the technicians actually use, and then measured whether
+          any of it moved.
         </p>
+        <p class="res-lead">
+          Outside the day job I've been doing the same work unsupervised for
+          years. Retrieval infrastructure, orchestration layers, evaluation
+          tooling, and a lot of code nobody asked me to write. Nearly all of it
+          built with AI in the loop, which I'd rather say out loud than bury.
+          Getting these systems to produce tested, production-grade work is the
+          skill, and it happens to be the one I get paid to evaluate.
+        </p>
+
+        <dl class="glance">
+          <div><dt>Now</dt><dd>AI Quality Analyst, Aunalytics</dd></div>
+          <div><dt>Based</dt><dd>South Bend, Indiana</dd></div>
+          <div><dt>In IT</dt><dd>{yearsInIT} years</dd></div>
+        </dl>
+
         <p class="res-meta">
-          South Bend, Indiana · <a href="/contact/">Get in touch</a> ·
-          <a href="https://github.com/thebiglaskowski" target="_blank" rel="noopener noreferrer">GitHub</a> ·
+          <a href="/joe-laskowski-resume.pdf" download class="pdf-btn">Download PDF</a>
+          <a href="/contact/">Get in touch</a>
+          <a href="https://github.com/thebiglaskowski" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="https://www.linkedin.com/in/thebiglaskowski" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         </p>
       </header>
 
-      <section class="res-section">
-        <h2>Selected Work</h2>
-        <p class="section-note">
-          Personal projects. Built on my own time, for my own reasons, and the
-          reason the rest of this page reads the way it does.
-        </p>
+      <nav class="jump" aria-label="Sections">
+        {nav.map(n => <a href={n.href}>{n.label}</a>)}
+      </nav>
 
-        {projects.map(p => (
-          <div class="project">
-            <div class="project-head">
-              <h3>{p.name}</h3>
-              <span class="project-kind">{p.kind}</span>
-            </div>
-            <div class="project-body" set:html={p.body} />
-            <p class="project-stat">{p.stat}</p>
-          </div>
-        ))}
-
-        <h3 class="more-head">Also built</h3>
-
-        {more.map(m => (
-          <div class="more-item">
-            <p><strong>{m.name}</strong> — {m.body}</p>
-            <p class="more-stack">{m.stack}</p>
-          </div>
-        ))}
-
-        <p class="also">
-          And a novel, drafted with AI tooling under a pen name, with an Amazon
-          launch pending — which turned out to be a pipeline problem wearing a
-          different hat.
-        </p>
-      </section>
-
-      <section class="res-section">
+      <section class="res-section" id="experience">
         <h2>Experience</h2>
 
         {roles.map(r => (
@@ -227,16 +304,60 @@ const toolset = [
         ))}
 
         <p class="earlier">
-          <strong>Earlier —</strong> field and deployment technician work through
-          the 2000s: warranty repair for Dell and the other OEMs, and a
-          multi-site enterprise hardware rollout where I supervised a small team
-          through six thousand machines. It is not on this page because it is
-          recent; it is on this page because knowing what the tech on the other
-          end of the ticket is actually looking at is why the AI work lands.
+          <strong>Before that</strong> — field and deployment technician work
+          through the 2000s. Warranty repair for Dell and the rest of the OEMs,
+          and a multi-site enterprise rollout where I supervised a small team
+          through 6,000 machines. It's on this page because knowing what the tech
+          on the other end of the ticket is looking at is why the AI work lands.
         </p>
       </section>
 
-      <section class="res-section">
+      <section class="res-section" id="work">
+        <div class="work-head">
+          <h2>Selected work</h2>
+          <button type="button" class="expand-all" data-expand>Expand all</button>
+        </div>
+        <p class="section-note">
+          Personal projects, built on my own time. Several ship under
+          <a href="https://autoscript.studio" target="_blank" rel="noopener noreferrer">AutoScript Studio LLC</a>,
+          an Indiana company I started to hold the work that outgrew being a
+          hobby.
+        </p>
+
+        {projects.map((p, i) => (
+          <div class="project">
+            <div class="project-head">
+              <span class="project-num">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{p.name}</h3>
+              <span class="project-kind">{p.kind}</span>
+            </div>
+
+            <p class="project-blurb">{p.blurb}</p>
+
+            <dl class="specs">
+              {p.specs.map(([label, value]) => (
+                <>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </>
+              ))}
+            </dl>
+
+            <details class="project-more">
+              <summary><span class="more-label">Read more</span></summary>
+              <div class="project-detail" set:html={p.detail} />
+            </details>
+          </div>
+        ))}
+
+        <p class="also">
+          There's also a novel I drafted with AI tooling under a pen name, with
+          an Amazon launch pending. Turned out to be a pipeline problem in a
+          different costume.
+        </p>
+      </section>
+
+      <section class="res-section" id="toolset">
         <h2>Toolset</h2>
         <dl class="toolset">
           {toolset.map(t => (
@@ -248,32 +369,31 @@ const toolset = [
         </dl>
       </section>
 
-      <section class="res-section">
-        <h2>Also</h2>
+      <section class="res-section" id="more">
+        <h2>More</h2>
         <p>
-          <strong>Co-founder — Michiana InfoSec, 2019.</strong> I helped start
-          the regional information-security community here in South Bend and ran
-          it through its early years — which, given the timing, meant its first
-          few months in a room and the rest of them not. Handed the reins to new
-          leadership a few years back. It kept going without me, which is the only real test of
-          whether a thing like that got built properly.
+          <strong>Co-founder, Michiana InfoSec, 2019.</strong> I helped start the
+          regional information security community here in South Bend and ran it
+          through the early years, which given the timing meant a few months in a
+          room and the rest of them not. I handed the reins to a new admin a few
+          years back and it kept going without me. That's the only real test of
+          whether a thing like that got built right.
         </p>
         <p>
-          <strong>Linux, exclusively, for sixteen straight years</strong> — and
-          an obsession considerably older than that. The terminal is where I
-          think clearest, and most of what I know about systems I learned by
-          breaking my own first.
+          <strong>Linux, exclusively, for 16 straight years</strong>, and an
+          obsession considerably older than that. The terminal is where I think
+          clearest, and most of what I know about systems I learned by breaking
+          my own first.
         </p>
         <p>
-          Pursuing the <strong>Claude Certified Architect — Foundations</strong>
-          credential. Mentor in my employer's internal mentoring program. I write
-          about most of this at <a href="/">the blog</a>, which has been running
-          in one form or another since 2021 and covers the AI tooling side back
-          when that was still a strange thing to be interested in.
+          I'm working toward the <strong>Claude Certified Architect —
+          Foundations</strong> credential, and I mentor in my employer's internal
+          program. Most of this eventually shows up on <a href="/">the blog</a>,
+          which has been running in one form or another since 2021.
         </p>
         <p class="pdf-line">
           <a href="/joe-laskowski-resume.pdf" download>Download as PDF</a>
-          <span class="pdf-note">— for the systems that insist on one.</span>
+          <span class="pdf-note">for the systems that insist on one.</span>
         </p>
       </section>
     </article>
@@ -282,56 +402,132 @@ const toolset = [
   <style>
     .resume-wrap {
       padding: 28px var(--gutter) 0;
-      max-width: 800px;
+      max-width: 760px;
       margin: 0 auto;
     }
 
+    /* ── header ───────────────────────────────────────────── */
+
     .res-head {
-      margin: 3rem 0;
+      margin: 2.4rem 0 0;
       padding-bottom: 2rem;
       border-bottom: 1px double var(--rule);
     }
 
-    .res-head h1 {
-      font-family: var(--font-serif);
-      font-size: clamp(26px, 5vw, 40px);
-      font-weight: 500;
-      color: var(--paper-bright);
-      letter-spacing: -0.02em;
-      margin: 0 0 0.6rem 0;
-    }
-
     .res-target {
       font-family: var(--font-sans);
-      font-size: 11.5px;
+      font-size: 10.5px;
       letter-spacing: 0.22em;
       text-transform: uppercase;
       color: var(--oxblood);
-      margin: 0 0 1.4rem 0;
+      margin: 0 0 0.7rem 0;
+    }
+
+    .res-head h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(30px, 6vw, 46px);
+      font-weight: 500;
+      color: var(--paper-bright);
+      letter-spacing: -0.025em;
+      margin: 0 0 1.5rem 0;
+      line-height: 1.05;
     }
 
     .res-lead {
       font-family: var(--font-serif);
       font-size: 1.05rem;
       color: var(--paper-dim);
-      line-height: 1.7;
-      margin: 0 0 1.4rem 0;
+      line-height: 1.72;
+      margin: 0 0 1rem 0;
+    }
+
+    .glance {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 2.4rem;
+      margin: 1.8rem 0 1.4rem;
+      padding: 1rem 0;
+      border-top: 1px solid var(--rule-dim);
+      border-bottom: 1px solid var(--rule-dim);
+    }
+
+    .glance div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .glance dt {
+      font-family: var(--font-sans);
+      font-size: 9.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+
+    .glance dd {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: 0.84rem;
+      color: var(--paper-bright);
     }
 
     .res-meta {
       font-family: var(--font-sans);
-      font-size: 0.82rem;
+      font-size: 0.84rem;
       color: var(--mute);
       margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.3rem;
     }
 
+    .pdf-btn {
+      border: 1px solid var(--rule);
+      padding: 0.4rem 0.85rem;
+      border-radius: 2px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .pdf-btn:hover {
+      border-color: var(--oxblood);
+    }
+
+    /* ── jump nav ─────────────────────────────────────────── */
+
+    .jump {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.4rem;
+      padding: 1rem 0;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--rule-dim);
+      font-family: var(--font-sans);
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .jump a {
+      color: var(--mute);
+      transition: color 0.15s;
+    }
+
+    .jump a:hover {
+      color: var(--oxblood);
+    }
+
+    /* ── sections ─────────────────────────────────────────── */
+
     .res-section {
-      margin: 3.2rem 0;
+      margin: 3rem 0;
+      scroll-margin-top: 1.5rem;
     }
 
     .res-section h2 {
       font-family: var(--font-serif);
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: 500;
       color: var(--paper-bright);
       margin: 0 0 0.5rem 0;
@@ -339,110 +535,53 @@ const toolset = [
       border-bottom: 1px solid var(--rule);
     }
 
+    .work-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+
+    .work-head h2 {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0;
+    }
+
+    .expand-all {
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--mute);
+      transition: color 0.15s;
+      white-space: nowrap;
+    }
+
+    .expand-all:hover {
+      color: var(--oxblood);
+    }
+
     .section-note {
       font-family: var(--font-serif);
       font-style: italic;
       color: var(--mute);
       font-size: 0.95rem;
-      margin: 0 0 2rem 0;
+      margin: 0 0 2.2rem 0;
+      line-height: 1.6;
     }
 
-    .project {
-      margin: 0 0 2rem 0;
-    }
-
-    .project-head {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 0.75rem;
-      margin-bottom: 0.4rem;
-    }
-
-    .project-head h3,
-    .role-head h3 {
-      font-family: var(--font-serif);
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: var(--paper-bright);
-      margin: 0;
-    }
-
-    .project-kind {
-      font-family: var(--font-sans);
-      font-size: 10.5px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--mute);
-    }
-
-    .project-body {
-      margin: 0 0 0.4rem 0;
-      line-height: 1.65;
-    }
-
-    .project-body :global(p) {
-      margin: 0 0 0.7rem 0;
-    }
-
-    .project-body :global(p:last-child) {
-      margin-bottom: 0;
-    }
-
-    .project-body :global(strong) {
-      color: var(--paper-bright);
-    }
-
-    .project-stat {
-      font-family: var(--font-sans);
-      font-size: 0.78rem;
-      color: var(--oxblood);
-      letter-spacing: 0.04em;
-    }
-
-    .more-head {
-      font-family: var(--font-sans);
-      font-size: 10.5px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--mute);
-      margin: 2.6rem 0 1.4rem 0;
-      padding-top: 1.4rem;
-      border-top: 1px solid var(--rule-dim);
-      font-weight: 400;
-    }
-
-    .more-item {
-      margin: 0 0 1.5rem 0;
-    }
-
-    .more-item p {
-      margin: 0;
-      line-height: 1.65;
-    }
-
-    .more-item strong {
-      color: var(--paper-bright);
-    }
-
-    .more-stack {
-      font-family: var(--font-sans);
-      font-size: 0.74rem;
-      color: var(--mute);
-      letter-spacing: 0.03em;
-      margin-top: 0.35rem !important;
-    }
-
-    .also {
-      margin-top: 2.4rem;
-      padding-top: 1.4rem;
-      border-top: 1px solid var(--rule-dim);
-      color: var(--paper-dim);
-      line-height: 1.7;
-    }
+    /* ── experience ───────────────────────────────────────── */
 
     .role {
-      margin: 0 0 2.2rem 0;
+      margin: 0 0 2rem 0;
     }
 
     .role-head {
@@ -451,6 +590,15 @@ const toolset = [
       align-items: baseline;
       justify-content: space-between;
       gap: 0.5rem;
+    }
+
+    .role-head h3,
+    .project-head h3 {
+      font-family: var(--font-serif);
+      font-size: 1.18rem;
+      font-weight: 500;
+      color: var(--paper-bright);
+      margin: 0;
     }
 
     .role-dates {
@@ -462,7 +610,7 @@ const toolset = [
 
     .role-org {
       font-family: var(--font-sans);
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--oxblood);
       letter-spacing: 0.06em;
       margin: 0.15rem 0 0.7rem 0;
@@ -470,12 +618,12 @@ const toolset = [
 
     .role ul {
       margin: 0;
-      padding-left: 1.1rem;
+      padding-left: 1.05rem;
     }
 
     .role li {
       margin-bottom: 0.6rem;
-      line-height: 1.65;
+      line-height: 1.68;
     }
 
     .earlier {
@@ -485,13 +633,161 @@ const toolset = [
       line-height: 1.7;
     }
 
+    /* ── projects ─────────────────────────────────────────── */
+
+    .project {
+      margin: 0 0 1.6rem 0;
+      padding: 1.5rem 0 0;
+      border-top: 1px solid var(--rule-dim);
+    }
+
+    .project:first-of-type {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .project-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.7rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .project-num {
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      color: var(--oxblood);
+      letter-spacing: 0.1em;
+    }
+
+    .project-kind {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+
+    .project-blurb {
+      margin: 0 0 1.1rem 0;
+      line-height: 1.7;
+    }
+
+    .specs {
+      margin: 0;
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 0.45rem 1.2rem;
+      align-items: baseline;
+    }
+
+    .specs dt {
+      font-family: var(--font-sans);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--oxblood);
+      white-space: nowrap;
+      padding-top: 0.15rem;
+    }
+
+    .specs dd {
+      margin: 0;
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      line-height: 1.55;
+      color: var(--paper-dim);
+    }
+
+    .project-more {
+      margin-top: 1.1rem;
+    }
+
+    .project-more summary {
+      list-style: none;
+      cursor: pointer;
+      display: block;
+      padding: 0.5rem 0;
+      border-top: 1px solid var(--rule-dim);
+      transition: border-color 0.15s;
+    }
+
+    .project-more summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .more-label {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--mute);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.15s;
+    }
+
+    .more-label::after {
+      content: '+';
+      font-size: 1.15em;
+      line-height: 1;
+      color: var(--oxblood);
+    }
+
+    .project-more[open] .more-label::after {
+      content: '−';
+    }
+
+    .project-more[open] .more-label {
+      color: var(--paper-bright);
+    }
+
+    .project-more summary:hover {
+      border-color: var(--oxblood);
+    }
+
+    .project-more summary:hover .more-label {
+      color: var(--paper-bright);
+    }
+
+    .project-detail {
+      padding-top: 0.5rem;
+    }
+
+    .project-detail :global(p) {
+      margin: 0 0 0.85rem 0;
+      line-height: 1.7;
+      color: var(--paper-dim);
+    }
+
+    .project-detail :global(p:last-child) {
+      margin-bottom: 0;
+    }
+
+    .project-detail :global(strong) {
+      color: var(--paper-bright);
+      font-weight: 500;
+    }
+
+    .also {
+      margin-top: 2.2rem;
+      padding-top: 1.4rem;
+      border-top: 1px solid var(--rule-dim);
+      color: var(--paper-dim);
+      line-height: 1.7;
+    }
+
+    /* ── toolset ──────────────────────────────────────────── */
+
     .toolset {
       margin: 1.6rem 0 0 0;
     }
 
     .toolset dt {
       font-family: var(--font-sans);
-      font-size: 10.5px;
+      font-size: 10px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: var(--oxblood);
@@ -516,6 +812,8 @@ const toolset = [
       color: var(--mute);
     }
 
+    /* ── responsive ───────────────────────────────────────── */
+
     @media (max-width: 768px) {
       .role-head {
         display: block;
@@ -525,6 +823,80 @@ const toolset = [
         display: block;
         margin-top: 0.2rem;
       }
+
+      .specs {
+        grid-template-columns: 1fr;
+        gap: 0.1rem;
+      }
+
+      .specs dt {
+        margin-top: 0.7rem;
+      }
+
+      .glance {
+        gap: 1rem 1.8rem;
+      }
+    }
+
+    /* ── print ────────────────────────────────────────────── */
+
+    @media print {
+      .jump,
+      .expand-all,
+      .pdf-btn,
+      .pdf-line {
+        display: none;
+      }
+
+      .project-more summary {
+        display: none;
+      }
+
+      .project {
+        break-inside: avoid;
+      }
     }
   </style>
+
+  <script>
+    function initResume() {
+      const btn = document.querySelector<HTMLButtonElement>('[data-expand]');
+      const items = Array.from(
+        document.querySelectorAll<HTMLDetailsElement>('.project-more')
+      );
+      if (!btn || items.length === 0) return;
+      if (btn.dataset.wired === '1') return;
+      btn.dataset.wired = '1';
+
+      const sync = () => {
+        const allOpen = items.every(d => d.open);
+        btn.textContent = allOpen ? 'Collapse all' : 'Expand all';
+      };
+
+      btn.addEventListener('click', () => {
+        const allOpen = items.every(d => d.open);
+        items.forEach(d => { d.open = !allOpen; });
+        sync();
+      });
+
+      items.forEach(d => d.addEventListener('toggle', sync));
+      sync();
+
+      // Printing a collapsed <details> hides its content, so open everything
+      // for the print run and put it back afterwards.
+      let restore: HTMLDetailsElement[] = [];
+      window.addEventListener('beforeprint', () => {
+        restore = items.filter(d => !d.open);
+        restore.forEach(d => { d.open = true; });
+      });
+      window.addEventListener('afterprint', () => {
+        restore.forEach(d => { d.open = false; });
+        restore = [];
+        sync();
+      });
+    }
+
+    initResume();
+    document.addEventListener('astro:page-load', initResume);
+  </script>
 </BaseLayout>
