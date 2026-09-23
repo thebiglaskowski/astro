@@ -20,10 +20,12 @@
     "@fontsource-variable/ibm-plex-sans": "^5.2.8",
     "@fontsource-variable/newsreader": "^5.2.10",
     "astro": "^7.3.4",
-    "glightbox": "^3.3.1"
+    "glightbox": "^3.3.1",
+    "three": "^0.186.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@types/three": "^0.186.0",
     "marked": "^18.0.1",
     "pagefind": "^1.5.2",
     "typescript": "^6.0.3"

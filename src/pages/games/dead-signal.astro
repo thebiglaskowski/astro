@@ -1,0 +1,57 @@
+---
+/**
+ * Dead Signal — a procedural night-city extraction shooter (Three.js).
+ *
+ * Deliberately skips BaseLayout/BaseHead: the game owns the full viewport, and
+ * global.css's body texture overlays and editorial fonts would sit on top of the
+ * canvas. Meta tags mirror BaseHead's so sharing still unfurls properly.
+ */
+import { SITE_TITLE } from '../../consts';
+
+const title = `Dead Signal | ${SITE_TITLE}`;
+const description =
+	'A browser FPS built entirely from code: defend the uplink, hunt Warden-9, and reach extraction in a rain-soaked quarantine city.';
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<meta name="theme-color" content="#05070a" />
+		<meta name="robots" content="noindex, nofollow" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="canonical" href={canonicalURL} />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={SITE_TITLE} />
+		<meta property="og:url" content={canonicalURL} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta name="twitter:card" content="summary" />
+		<meta name="twitter:site" content="@thebiglaskowski" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<style is:global>
+			html,
+			body {
+				margin: 0;
+				height: 100%;
+				background: #05070a;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body data-pagefind-ignore="all">
+		<div id="dead-signal"></div>
+		<noscript>Dead Signal needs JavaScript and WebGL.</noscript>
+		<script>
+			import { startDeadSignal } from '../../games/dead-signal/game';
+
+			const root = document.getElementById('dead-signal');
+			if (root) startDeadSignal(root, { exitHref: '/', exitLabel: 'THEBIGLASKOWSKI.COM' });
+		</script>
+	</body>
+</html>

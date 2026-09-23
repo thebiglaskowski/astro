@@ -136,6 +136,10 @@ export default defineConfig({
     },
     vite: {
         build: {
+            // /games/dead-signal/ ships three.js; its core alone is ~550 kB
+            // minified (~135 kB gzipped) and only that page loads it. 600 kB
+            // clears it while still flagging anything else that balloons.
+            chunkSizeWarningLimit: 600,
             rolldownOptions: {
                 // Astro 7 emits a `"use astro:head-inject"` marker at the top of
                 // the propagated-assets module it generates for each MDX post.
@@ -145,12 +149,25 @@ export default defineConfig({
                     if (log.code === 'MODULE_LEVEL_DIRECTIVE' && log.message.includes('use astro:head-inject')) return;
                     handler(level, log);
                 },
+                output: {
+                    // Keep three's core and its add-ons (post-processing etc.)
+                    // in their own long-cached chunks, apart from game code.
+                    // Groups pull in their dependencies, so the core outranks
+                    // the add-ons — otherwise it would be swept into their chunk.
+                    codeSplitting: {
+                        groups: [
+                            { name: 'three', test: /node_modules[\\/]three[\\/](?!examples[\\/])/, priority: 2 },
+                            { name: 'three-addons', test: /node_modules[\\/]three[\\/]examples[\\/]/, priority: 1 },
+                        ],
+                    },
+                },
             },
         },
     },
     integrations: [
         mdx(),
-        sitemap(),
+        // /games/ is personal and unlinked — keep it out of search results.
+        sitemap({ filter: (page) => !page.includes('/games/') }),
         partytown({
             config: {
                 forward: ['dataLayer.push'],
