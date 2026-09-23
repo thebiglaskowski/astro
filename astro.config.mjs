@@ -123,6 +123,11 @@ function rehypeExternalLinksNewTab() {
 export default defineConfig({
     site: SITE,
     trailingSlash: 'always',
+    // Astro 7 defaults to JSX whitespace rules ('jsx'), which drop the space
+    // where prose wraps onto a new line before an inline element — "it is\n
+    // <strong>X</strong>" renders as "it isX". The pages here are prose-heavy
+    // templates, so keep the HTML-aware compression Astro 6 used.
+    compressHTML: true,
     markdown: {
         processor: unified({ rehypePlugins: [rehypeFramePostImages, rehypeExternalLinksNewTab] }),
     },
@@ -135,14 +140,25 @@ export default defineConfig({
             // minified (~135 kB gzipped) and only that page loads it. 600 kB
             // clears it while still flagging anything else that balloons.
             chunkSizeWarningLimit: 600,
-            rollupOptions: {
+            rolldownOptions: {
+                // Astro 7 emits a `"use astro:head-inject"` marker at the top of
+                // the propagated-assets module it generates for each MDX post.
+                // Nothing reads it back, so Rolldown dropping it is harmless —
+                // silence only that exact directive, not directive warnings at large.
+                onLog(level, log, handler) {
+                    if (log.code === 'MODULE_LEVEL_DIRECTIVE' && log.message.includes('use astro:head-inject')) return;
+                    handler(level, log);
+                },
                 output: {
                     // Keep three's core and its add-ons (post-processing etc.)
                     // in their own long-cached chunks, apart from game code.
-                    manualChunks(id) {
-                        if (id.includes('node_modules/three/examples/')) return 'three-addons';
-                        if (id.includes('node_modules/three/')) return 'three';
-                        return undefined;
+                    // Groups pull in their dependencies, so the core outranks
+                    // the add-ons — otherwise it would be swept into their chunk.
+                    codeSplitting: {
+                        groups: [
+                            { name: 'three', test: /node_modules[\\/]three[\\/](?!examples[\\/])/, priority: 2 },
+                            { name: 'three-addons', test: /node_modules[\\/]three[\\/]examples[\\/]/, priority: 1 },
+                        ],
                     },
                 },
             },

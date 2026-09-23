@@ -312,12 +312,16 @@ export class Sound {
 
 	/** Inharmonic partials read as struck metal. */
 	private metal(dest: AudioNode | null, base: number, dur: number, vol: number, delay = 0): void {
+		// High casing pings push the top partials past Nyquist, where the
+		// oscillator would clamp to a stray tone at the band edge — drop them.
+		const nyquist = (this.ctx?.sampleRate ?? 44100) / 2;
 		for (const [ratio, amp] of [
 			[1, 1],
 			[2.76, 0.6],
 			[5.4, 0.4],
 			[8.93, 0.25],
 		]) {
+			if (base * ratio >= nyquist) break;
 			this.tone(dest, { f0: base * ratio, dur: dur / Math.sqrt(ratio), vol: vol * amp, type: 'sine', delay });
 		}
 	}
