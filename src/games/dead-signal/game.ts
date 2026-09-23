@@ -61,6 +61,8 @@ interface Settings {
 	fov: number;
 	volume: number;
 	music: number;
+	/** Multiplier on the base exposure. */
+	brightness: number;
 	quality: Quality;
 	showFps: boolean;
 	difficulty: Difficulty;
@@ -95,6 +97,8 @@ export interface DeadSignalOptions {
 }
 
 const SETTINGS_KEY = 'dead-signal-settings-v2';
+/** Tone-mapping exposure at 100% brightness. */
+const BASE_EXPOSURE = 1.55;
 
 function defaultQuality(): Quality {
 	const coarse = window.matchMedia('(pointer: coarse)').matches;
@@ -104,7 +108,7 @@ function defaultQuality(): Quality {
 }
 
 function loadSettings(): Settings {
-	const base: Settings = { sensitivity: 1, fov: 80, volume: 0.8, music: 0.55, quality: defaultQuality(), showFps: false, difficulty: 'operator' };
+	const base: Settings = { sensitivity: 1, fov: 80, volume: 0.8, music: 0.55, brightness: 1, quality: defaultQuality(), showFps: false, difficulty: 'operator' };
 	try {
 		const raw = localStorage.getItem(SETTINGS_KEY);
 		if (raw) {
@@ -332,7 +336,7 @@ class Game implements EnemyHost {
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFShadowMap;
 		this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-		this.renderer.toneMappingExposure = 1.3;
+		this.renderer.toneMappingExposure = BASE_EXPOSURE;
 		this.renderer.domElement.className = 'ds-gl';
 		root.appendChild(this.renderer.domElement);
 
@@ -343,7 +347,7 @@ class Game implements EnemyHost {
 		this.scene.fog = new THREE.FogExp2(0x0d141e, 0.0098);
 
 		this.skyMat = this.buildSky();
-		this.hemi = new THREE.HemisphereLight(0x4a6290, 0x14141c, 1.5);
+		this.hemi = new THREE.HemisphereLight(0x4a6290, 0x1a1a24, 1.9);
 		this.scene.add(this.hemi);
 		this.moon = new THREE.DirectionalLight(0xa8bcff, 0.85);
 		this.moon.castShadow = true;
@@ -464,9 +468,21 @@ class Game implements EnemyHost {
 					vec3 col = mix(hor, top, pow(h, 0.5));
 					// sodium glow of the city bleeding into the low sky
 					col += vec3(0.2, 0.11, 0.05) * pow(1.0 - h, 8.0) * 0.9;
-					// stars
+					// stars: at most one per grid cell, jittered inside it and drawn as a
+					// soft round point — lighting whole cells read as squares lined up
+					// along the grid.
 					vec2 sp = d.xz / (d.y + 0.3) * 60.0;
-					float star = step(0.9965, hash(floor(sp))) * smoothstep(0.1, 0.3, h);
+					vec2 cell = floor(sp);
+					float seed = hash(cell);
+					float star = 0.0;
+					if (seed > 0.9965) {
+						vec2 at = vec2(hash(cell + 17.1), hash(cell + 43.7)) * 0.6 + 0.2;
+						float px = length(fwidth(sp));
+						float size = max(mix(0.04, 0.09, hash(cell + 7.3)), px * 0.75);
+						float twinkle = 0.85 + 0.15 * sin(uTime * 2.5 + seed * 400.0);
+						star = smoothstep(size, 0.0, length(fract(sp) - at)) * mix(0.4, 1.0, hash(cell + 91.7)) * twinkle;
+					}
+					star *= smoothstep(0.1, 0.3, h);
 					// moon + halo
 					float m = max(dot(d, uMoon), 0.0);
 					vec3 moon = vec3(0.85, 0.9, 1.0) * (smoothstep(0.9993, 0.9996, m) * 1.6 + pow(m, 180.0) * 0.35 + pow(m, 12.0) * 0.05);
@@ -520,6 +536,7 @@ class Game implements EnemyHost {
 		this.camera.updateProjectionMatrix();
 		this.glow.setScale(this.renderer.domElement.height, this.camera.projectionMatrix.elements[5]);
 		this.smoke.setScale(this.renderer.domElement.height, this.camera.projectionMatrix.elements[5]);
+		this.renderer.toneMappingExposure = BASE_EXPOSURE * this.settings.brightness;
 		this.sound.setVolume(this.settings.volume);
 		this.sound.setMusicVolume(this.settings.music);
 		this.bloom.enabled = q.bloom;
@@ -843,6 +860,7 @@ class Game implements EnemyHost {
 		const o = this.hud.overlay(`
 			<h3>SETTINGS</h3>
 			<div class="ds-seg-row">GRAPHICS${seg('quality', ['low', 'medium', 'high', 'ultra'], s.quality)}</div>
+			<label class="ds-set">BRIGHTNESS<input type="range" min="0.6" max="1.8" step="0.05" value="${s.brightness}" data-k="brightness"><output>${Math.round(s.brightness * 100)}</output></label>
 			<label class="ds-set">SENSITIVITY<input type="range" min="0.3" max="3" step="0.05" value="${s.sensitivity}" data-k="sensitivity"><output>${s.sensitivity.toFixed(2)}</output></label>
 			<label class="ds-set">FIELD OF VIEW<input type="range" min="60" max="110" step="1" value="${s.fov}" data-k="fov"><output>${s.fov}</output></label>
 			<label class="ds-set">MASTER VOLUME<input type="range" min="0" max="1" step="0.05" value="${s.volume}" data-k="volume"><output>${Math.round(s.volume * 100)}</output></label>
@@ -854,6 +872,10 @@ class Game implements EnemyHost {
 				const v = Number(inp.value);
 				const out = inp.nextElementSibling as HTMLOutputElement;
 				switch (inp.dataset.k) {
+					case 'brightness':
+						s.brightness = v;
+						out.textContent = String(Math.round(v * 100));
+						break;
 					case 'sensitivity':
 						s.sensitivity = v;
 						out.textContent = v.toFixed(2);
@@ -1758,7 +1780,7 @@ class Game implements EnemyHost {
 		}
 		this.flashAmt = Math.max(flash, this.flashAmt - dt * 5);
 		this.bolt.intensity = this.flashAmt * 2.4;
-		this.hemi.intensity = 1.5 + this.flashAmt * 1.6;
+		this.hemi.intensity = 1.9 + this.flashAmt * 1.6;
 		this.skyMat.uniforms.uFlash.value = this.flashAmt;
 	}
 

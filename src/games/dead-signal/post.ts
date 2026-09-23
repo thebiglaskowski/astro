@@ -12,7 +12,7 @@ export const GradeShader = {
 		uHurt: { value: 0 },
 		uAberration: { value: 0.0012 },
 		uGrain: { value: 0.045 },
-		uVignette: { value: 0.42 },
+		uVignette: { value: 0.32 },
 		uFlash: { value: 0 },
 		uRain: { value: 0 },
 		uResolution: { value: new THREE.Vector2(1, 1) },
@@ -76,8 +76,10 @@ export const GradeShader = {
 			vec3 shadows = vec3(0.86, 0.98, 1.12);
 			vec3 highs = vec3(1.08, 1.0, 0.9);
 			col *= mix(shadows, highs, smoothstep(0.05, 0.7, l));
-			// gentle S-curve for punch
-			col = mix(col, col * col * (3.0 - 2.0 * col), 0.25);
+			// gentle S-curve for punch, then lift the deepest shadows a touch so
+			// silhouettes stay readable instead of crushing to black
+			col = mix(col, col * col * (3.0 - 2.0 * col), 0.15);
+			col += vec3(0.012, 0.015, 0.022) * (1.0 - smoothstep(0.0, 0.2, l));
 
 			// lightning wash
 			col += vec3(0.55, 0.62, 0.8) * uFlash * (0.35 + l);
