@@ -1,177 +1,241 @@
 import * as THREE from 'three';
+import { Debris, type RobotPalette, type RobotRig, buildRobot } from './robot';
 import { type AABB, damp, rand, rayAABB, raySphere, wrapAngle } from './util';
 import type { World } from './world';
 
 export type EnemyKind = 'husk' | 'stalker' | 'gunner' | 'warden';
 
 interface Spec {
+	name: string;
 	hp: number;
 	speed: number;
 	scale: number;
-	skin: number;
-	cloth: number;
-	eye: number;
 	damage: number;
 	reach: number;
 	cooldown: number;
 	reward: number;
 	sight: number;
+	palette: RobotPalette;
 }
 
+const RED = 0xff1a12;
+
 const SPEC: Record<EnemyKind, Spec> = {
-	husk: { hp: 70, speed: 3.1, scale: 1, skin: 0x6f6b2c, cloth: 0x3d3a1d, eye: 0xffd84a, damage: 14, reach: 1.7, cooldown: 1.1, reward: 10, sight: 30 },
-	stalker: { hp: 40, speed: 6.4, scale: 0.9, skin: 0x2f3236, cloth: 0x17191c, eye: 0xff4a3a, damage: 9, reach: 1.6, cooldown: 0.7, reward: 15, sight: 40 },
-	gunner: { hp: 95, speed: 2.7, scale: 1.05, skin: 0x3c4b5c, cloth: 0x1c242e, eye: 0x4ad8ff, damage: 11, reach: 30, cooldown: 2.1, reward: 25, sight: 45 },
-	warden: { hp: 1800, speed: 2.5, scale: 2.5, skin: 0x5a3322, cloth: 0x2a1810, eye: 0xff2a10, damage: 32, reach: 4.2, cooldown: 1.7, reward: 500, sight: 60 },
+	husk: {
+		name: 'OPTIMUS UNIT',
+		hp: 80,
+		speed: 3.3,
+		scale: 1.02,
+		damage: 14,
+		reach: 1.7,
+		cooldown: 1.1,
+		reward: 10,
+		sight: 32,
+		palette: { shell: 0xd4d8dd, joint: 0x141518, visor: 0x040405, accent: 0x2a2c30, eye: RED, cannon: false, armored: false, slim: 1 },
+	},
+	stalker: {
+		name: 'HUNTER UNIT',
+		hp: 50,
+		speed: 6.6,
+		scale: 0.96,
+		damage: 10,
+		reach: 1.6,
+		cooldown: 0.7,
+		reward: 15,
+		sight: 42,
+		palette: { shell: 0x1b1d21, joint: 0x09090a, visor: 0x020202, accent: 0x5a0a08, eye: RED, cannon: false, armored: false, slim: 0.85 },
+	},
+	gunner: {
+		name: 'ENFORCER UNIT',
+		hp: 110,
+		speed: 2.8,
+		scale: 1.06,
+		damage: 12,
+		reach: 34,
+		cooldown: 2.4,
+		reward: 25,
+		sight: 48,
+		palette: { shell: 0x7d838c, joint: 0x17181b, visor: 0x030303, accent: 0x8a1a12, eye: RED, cannon: true, armored: false, slim: 1.1 },
+	},
+	warden: {
+		name: 'WARDEN-9',
+		hp: 2400,
+		speed: 2.5,
+		scale: 2.45,
+		damage: 34,
+		reach: 4.4,
+		cooldown: 1.7,
+		reward: 500,
+		sight: 65,
+		palette: { shell: 0x2b2d32, joint: 0x0d0d0f, visor: 0x020202, accent: 0x9a140e, eye: RED, cannon: true, armored: true, slim: 1.25 },
+	},
 };
+
+export type RobotSfx = 'alert' | 'bolt' | 'swipe' | 'roar' | 'step' | 'servo' | 'charge' | 'death' | 'lunge' | 'slam';
 
 export interface EnemyHost {
 	world: World;
 	playerPos: THREE.Vector3;
 	playerEye: THREE.Vector3;
+	cameraPos: THREE.Vector3;
+	difficulty: { hp: number; damage: number };
 	playerAlive(): boolean;
 	damagePlayer(amount: number, from: THREE.Vector3): void;
 	onEnemyKilled(e: Enemy, headshot: boolean): void;
 	onBossSummon(pos: THREE.Vector3): void;
+	onBossEnrage(): void;
+	shockwave(pos: THREE.Vector3, radius: number): void;
 	sparks(pos: THREE.Vector3, color: number, count: number, speed?: number): void;
-	sfx(name: 'groan' | 'bolt' | 'swipe' | 'roar', pos: THREE.Vector3): void;
+	sfx(name: RobotSfx, pos: THREE.Vector3): void;
 }
-
-const box = (w: number, h: number, d: number) => new THREE.BoxGeometry(w, h, d);
-const GEO = {
-	leg: box(0.26, 0.9, 0.3).translate(0, -0.45, 0),
-	torso: box(0.72, 0.8, 0.42),
-	arm: box(0.22, 0.82, 0.24).translate(0, -0.4, 0),
-	head: box(0.44, 0.44, 0.44),
-	eye: box(0.1, 0.05, 0.03),
-	gun: box(0.12, 0.14, 0.8),
-	rib: box(0.74, 0.06, 0.44),
-};
 
 export class Enemy {
 	readonly kind: EnemyKind;
 	readonly spec: Spec;
-	readonly root = new THREE.Group();
-	readonly body = new THREE.Group();
+	readonly rig: RobotRig;
+	readonly root: THREE.Group;
 	readonly pos: THREE.Vector3;
+	readonly maxHp: number;
 	hp: number;
 	dead = false;
 	deadTime = 0;
 	alerted = false;
+	enraged = false;
 	facing = 0;
-	private legs: THREE.Object3D[] = [];
-	private arms: THREE.Object3D[] = [];
-	private skinMat: THREE.MeshStandardMaterial;
+	laser: THREE.Line | null = null;
 	private flash = 0;
 	private cooldown = rand(0.5, 1.5);
 	private windup = 0;
+	private aimT = 0;
+	private aimAt = new THREE.Vector3();
 	private stride = Math.random() * 10;
+	private lastStep = 0;
 	private losTimer = Math.random() * 0.5;
 	private hasLos = false;
 	private detour = 0;
 	private detourSign = 1;
 	private lastPos = new THREE.Vector3();
 	private stuckTimer = 0;
-	private groanTimer = rand(3, 9);
+	private servoTimer = rand(2, 6);
 	private strafe = Math.random() < 0.5 ? 1 : -1;
 	private volleyTimer = 5;
 	private summonTimer = 18;
+	private lungeT = 0;
+	private lungeCd = rand(2, 4);
 	private wander = new THREE.Vector3();
 	private wanderTimer = 0;
 	private knock = new THREE.Vector3();
+	private headYaw = 0;
+	private eyeGlow = 0.3;
+	private sparkT = 0;
+	private visible = true;
+	private shadowsOn = true;
+	private readonly phase = Math.random() * 10;
 
-	constructor(kind: EnemyKind, at: THREE.Vector3) {
+	constructor(kind: EnemyKind, at: THREE.Vector3, hpMult: number) {
 		this.kind = kind;
 		this.spec = SPEC[kind];
-		this.hp = this.spec.hp;
+		this.maxHp = this.spec.hp * hpMult;
+		this.hp = this.maxHp;
 		this.pos = at.clone();
 		this.lastPos.copy(at);
 		this.facing = Math.random() * Math.PI * 2;
-
-		const s = this.spec;
-		this.skinMat = new THREE.MeshStandardMaterial({ color: s.skin, roughness: 0.85, emissive: 0x000000 });
-		const cloth = new THREE.MeshStandardMaterial({ color: s.cloth, roughness: 1 });
-		const eye = new THREE.MeshBasicMaterial({ color: s.eye, toneMapped: false });
-		const mesh = (g: THREE.BufferGeometry, m: THREE.Material, x: number, y: number, z: number, parent: THREE.Object3D = this.body) => {
-			const o = new THREE.Mesh(g, m);
-			o.position.set(x, y, z);
-			o.castShadow = true;
-			parent.add(o);
-			return o;
-		};
-		for (const side of [-1, 1]) {
-			const hip = new THREE.Group();
-			hip.position.set(side * 0.18, 0.92, 0);
-			mesh(GEO.leg, cloth, 0, 0, 0, hip);
-			this.body.add(hip);
-			this.legs.push(hip);
-			const sh = new THREE.Group();
-			sh.position.set(side * 0.48, 1.64, 0);
-			mesh(GEO.arm, this.skinMat, 0, 0, 0, sh);
-			this.body.add(sh);
-			this.arms.push(sh);
-		}
-		mesh(GEO.torso, this.skinMat, 0, 1.32, 0);
-		mesh(GEO.rib, cloth, 0, 1.12, 0.01);
-		mesh(GEO.rib, cloth, 0, 1.45, 0.01).rotation.z = 0.15;
-		mesh(GEO.head, this.skinMat, 0, 1.98, 0.02);
-		mesh(GEO.eye, eye, -0.1, 2.02, 0.245);
-		mesh(GEO.eye, eye, 0.1, 2.02, 0.245);
-		if (kind === 'gunner') {
-			const gun = mesh(GEO.gun, cloth, 0, -0.75, 0.3, this.arms[1]);
-			gun.rotation.x = Math.PI / 2;
-		}
-		if (kind === 'warden') {
-			// armour plates and a glowing chest core
-			const plate = new THREE.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.4, metalness: 0.7 });
-			mesh(box(0.9, 0.3, 0.5), plate, 0, 1.75, 0);
-			mesh(box(0.3, 0.3, 0.3), plate, -0.55, 1.8, 0);
-			mesh(box(0.3, 0.3, 0.3), plate, 0.55, 1.8, 0);
-			mesh(box(0.2, 0.2, 0.05), eye, 0, 1.35, 0.23);
-		}
-		this.body.scale.setScalar(s.scale);
-		this.root.add(this.body);
+		this.rig = buildRobot(this.spec.palette, this.spec.scale);
+		this.root = this.rig.root;
 		this.root.position.copy(this.pos);
+		if (kind === 'gunner' || kind === 'warden') {
+			this.laser = new THREE.Line(
+				new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 0, 1)]),
+				new THREE.LineBasicMaterial({ color: 0xff2a1a, transparent: true, opacity: 0, toneMapped: false, blending: THREE.AdditiveBlending, depthWrite: false }),
+			);
+			this.laser.frustumCulled = false;
+		}
 	}
 
 	get headCenter(): THREE.Vector3 {
-		return new THREE.Vector3(this.pos.x, this.pos.y + 1.98 * this.spec.scale, this.pos.z);
+		return new THREE.Vector3(this.pos.x, this.pos.y + 1.74 * this.spec.scale + this.rig.body.position.y, this.pos.z);
 	}
 	get chest(): THREE.Vector3 {
-		return new THREE.Vector3(this.pos.x, this.pos.y + 1.3 * this.spec.scale, this.pos.z);
+		return new THREE.Vector3(this.pos.x, this.pos.y + 1.32 * this.spec.scale, this.pos.z);
 	}
 	bodyBox(): AABB {
-		const r = 0.42 * this.spec.scale;
-		return { minX: this.pos.x - r, maxX: this.pos.x + r, minZ: this.pos.z - r, maxZ: this.pos.z + r, h: this.pos.y + 1.75 * this.spec.scale };
+		const r = 0.3 * this.spec.scale;
+		return { minX: this.pos.x - r, maxX: this.pos.x + r, minZ: this.pos.z - r, maxZ: this.pos.z + r, h: this.pos.y + 1.6 * this.spec.scale };
+	}
+	get headRadius(): number {
+		return 0.17 * this.spec.scale;
 	}
 
+	/** Returns true if this hit destroyed the unit. */
 	hurt(amount: number, from: THREE.Vector3): boolean {
 		if (this.dead) return false;
 		this.hp -= amount;
-		this.flash = 0.08;
+		this.flash = 0.07;
 		this.alerted = true;
-		const push = new THREE.Vector3().subVectors(this.pos, from).setY(0).normalize();
-		this.knock.addScaledVector(push, this.kind === 'warden' ? 0.3 : 2.2);
+		const push = new THREE.Vector3().subVectors(this.pos, from).setY(0);
+		if (push.lengthSq() > 1e-6) push.normalize();
+		this.knock.addScaledVector(push, this.kind === 'warden' ? 0.25 : Math.min(3, 0.06 * amount));
 		if (this.hp <= 0) {
 			this.dead = true;
 			this.hp = 0;
+			if (this.laser) (this.laser.material as THREE.LineBasicMaterial).opacity = 0;
 			return true;
 		}
 		return false;
 	}
 
+	/** Knock parts off and start the collapse. */
+	shatter(debris: Debris, from: THREE.Vector3, headshot: boolean, explosive: boolean): void {
+		const away = new THREE.Vector3().subVectors(this.pos, from).setY(0).normalize();
+		const fling = (obj: THREE.Object3D, power: number, r: number) => {
+			const v = away.clone().multiplyScalar(power * rand(0.6, 1.2)).add(new THREE.Vector3(rand(-1.5, 1.5), rand(2, 5), rand(-1.5, 1.5)));
+			debris.detach(obj, v, r * this.spec.scale);
+		};
+		if (this.kind === 'warden') return; // the boss collapses whole
+		if (headshot || explosive || Math.random() < 0.25) fling(this.rig.head, explosive ? 9 : 5, 0.14);
+		if (explosive || Math.random() < 0.35) fling(this.rig.elbows[Math.random() < 0.5 ? 0 : 1], explosive ? 8 : 3, 0.06);
+		if (explosive && Math.random() < 0.6) fling(this.rig.knees[Math.random() < 0.5 ? 0 : 1], 6, 0.08);
+		this.rig.eyeMat.color.setHex(0x110000);
+	}
+
 	update(dt: number, host: EnemyHost, bolts: BoltSystem): void {
 		const s = this.spec;
+		const rig = this.rig;
 		this.flash = Math.max(0, this.flash - dt);
-		this.skinMat.emissive.setHex(this.flash > 0 ? 0xffffff : 0x000000);
-		this.skinMat.emissiveIntensity = this.flash > 0 ? 0.6 : 0;
+		rig.shellMat.emissive.setHex(this.flash > 0 ? 0xffffff : 0x000000);
+		rig.shellMat.emissiveIntensity = this.flash > 0 ? 0.5 : 0;
+
+		// cull: skip drawing far robots, and only cast shadows close to the player
+		const camD = this.pos.distanceTo(host.cameraPos);
+		const vis = camD < 170;
+		if (vis !== this.visible) {
+			this.visible = vis;
+			this.root.visible = vis;
+		}
+		const shadows = camD < 45;
+		if (shadows !== this.shadowsOn) {
+			this.shadowsOn = shadows;
+			for (const m of rig.meshes) m.castShadow = shadows;
+		}
 
 		if (this.dead) {
 			this.deadTime += dt;
-			this.body.rotation.x = damp(this.body.rotation.x, -Math.PI / 2, 6, dt);
-			this.body.position.y = damp(this.body.position.y, 0.25 * s.scale, 6, dt);
-			if (this.deadTime > 3) this.body.position.y -= dt * 0.5;
+			const t = Math.min(1, this.deadTime * 1.6);
+			rig.body.rotation.x = damp(rig.body.rotation.x, -Math.PI / 2, 5, dt);
+			for (let k = 0; k < 2; k++) {
+				// limbs knocked off are now debris; leave their rotation to the debris sim
+				if (rig.knees[k].parent === rig.hips[k]) rig.knees[k].rotation.x = t * 1.1;
+				rig.hips[k].rotation.x = -t * 0.6;
+			}
+			rig.body.position.y = damp(rig.body.position.y, 0.22 * s.scale, 5, dt);
+			if (this.deadTime > 3.5) rig.body.position.y -= dt * 0.4;
+			this.sparkT -= dt;
+			if (this.sparkT <= 0 && this.deadTime < 2.5 && camD < 60) {
+				this.sparkT = rand(0.08, 0.3);
+				host.sparks(this.chest.setY(this.pos.y + 0.35 * s.scale), Math.random() < 0.3 ? 0x7fd4ff : 0xffc860, 5, 3);
+			}
 			this.root.position.copy(this.pos);
+			if (this.laser) (this.laser.material as THREE.LineBasicMaterial).opacity = 0;
 			return;
 		}
 
@@ -180,18 +244,28 @@ export class Enemy {
 
 		this.losTimer -= dt;
 		if (this.losTimer <= 0) {
-			this.losTimer = 0.35;
+			this.losTimer = 0.3;
 			this.hasLos = dist < s.sight && host.world.hasLineOfSight(this.chest, host.playerEye);
-			if (this.hasLos && dist < s.sight * 0.8) this.alerted = true;
+			if (this.hasLos && dist < s.sight * 0.8) this.alert(host);
 		}
-		if (!host.playerAlive()) this.alerted = false;
+		if (!host.playerAlive()) {
+			this.alerted = false;
+			this.aimT = 0;
+			this.windup = 0;
+		}
+
+		if (this.kind === 'warden' && !this.enraged && this.hp < this.maxHp * 0.5) {
+			this.enraged = true;
+			host.onBossEnrage();
+		}
+		const speedMul = this.enraged ? 1.45 : 1;
 
 		let moveDir = new THREE.Vector3();
 		let speed = 0;
 		if (this.alerted) {
 			const want = toPlayer.clone().normalize();
 			if (this.kind === 'gunner') {
-				if (dist > 20 || !this.hasLos) {
+				if (dist > 22 || !this.hasLos) {
 					moveDir.copy(want);
 					speed = s.speed;
 				} else if (dist < 10) {
@@ -202,13 +276,24 @@ export class Enemy {
 					speed = s.speed * 0.6;
 					if (Math.random() < dt * 0.3) this.strafe *= -1;
 				}
+				if (this.aimT > 0) speed *= 0.15;
 			} else if (dist > s.reach * 0.8) {
 				moveDir.copy(want);
-				speed = s.speed * (this.windup > 0 ? 0.2 : 1);
+				speed = s.speed * speedMul * (this.windup > 0 ? 0.2 : 1);
+			}
+			if (this.kind === 'stalker') {
+				this.lungeCd -= dt;
+				if (this.lungeT > 0) {
+					this.lungeT -= dt;
+					speed = s.speed * 2.3;
+				} else if (this.lungeCd <= 0 && dist < 10 && dist > 3 && this.hasLos) {
+					this.lungeT = 0.45;
+					this.lungeCd = rand(3, 5);
+					host.sfx('lunge', this.pos);
+				}
 			}
 			this.attack(dt, dist, host, bolts);
 		} else {
-			// idle shamble
 			this.wanderTimer -= dt;
 			if (this.wanderTimer <= 0) {
 				this.wanderTimer = rand(3, 7);
@@ -221,7 +306,6 @@ export class Enemy {
 			}
 		}
 
-		// get unstuck from walls by sidestepping for a moment
 		if (this.detour > 0) {
 			this.detour -= dt;
 			const a = this.detourSign * 1.3;
@@ -235,7 +319,7 @@ export class Enemy {
 		this.pos.addScaledVector(moveDir, speed * dt);
 		this.pos.addScaledVector(this.knock, dt * 6);
 		this.knock.multiplyScalar(Math.exp(-8 * dt));
-		const r = 0.4 * s.scale;
+		const r = 0.36 * s.scale;
 		this.pos.y = host.world.groundAt(this.pos.x, this.pos.z);
 		host.world.resolve(this.pos, r);
 
@@ -250,78 +334,168 @@ export class Enemy {
 		} else this.stuckTimer = 0;
 		this.lastPos.copy(this.pos);
 
-		// face movement, or the player while attacking
-		const faceDir = this.alerted && (dist < 6 || this.kind === 'gunner') ? toPlayer : moveDir;
+		const faceDir = this.alerted && (dist < 7 || this.kind === 'gunner' || this.aimT > 0) ? toPlayer : moveDir;
 		if (faceDir.lengthSq() > 1e-4) {
 			const target = Math.atan2(faceDir.x, faceDir.z);
-			this.facing += wrapAngle(target - this.facing) * (1 - Math.exp(-8 * dt));
+			this.facing += wrapAngle(target - this.facing) * (1 - Math.exp(-(this.kind === 'stalker' ? 12 : 7) * dt));
 		}
 
-		// limbs
-		this.stride += dt * speed * 2.2;
-		const swing = Math.sin(this.stride) * Math.min(1, speed / 2) * 0.7;
-		this.legs[0].rotation.x = swing;
-		this.legs[1].rotation.x = -swing;
-		const reachPose = this.kind === 'husk' || this.kind === 'warden' ? -1.35 : this.kind === 'gunner' ? -1.5 : -0.4;
-		const attackPose = this.windup > 0 ? -2.4 : 0;
-		for (let k = 0; k < 2; k++) {
-			const base = this.alerted ? reachPose : -0.1;
-			const target = attackPose || base + (k ? -swing : swing) * 0.4;
-			this.arms[k].rotation.x = damp(this.arms[k].rotation.x, target, 12, dt);
+		// head tracks the player when alerted, scans lazily otherwise
+		const lookYaw = this.alerted ? wrapAngle(Math.atan2(toPlayer.x, toPlayer.z) - this.facing) : Math.sin(this.phase + performance.now() * 0.0006) * 0.6;
+		this.headYaw = damp(this.headYaw, Math.max(-1.1, Math.min(1.1, lookYaw)), 9, dt);
+		rig.head.rotation.y = this.headYaw;
+
+		// eyes: dim idle, hot and pulsing when hunting
+		const targetGlow = this.alerted ? 1 + Math.sin(performance.now() * 0.012 + this.phase) * 0.15 : 0.5 + Math.sin(performance.now() * 0.003 + this.phase) * 0.1;
+		this.eyeGlow = damp(this.eyeGlow, targetGlow * (this.enraged ? 1.4 : 1), 10, dt);
+		rig.eyeMat.color.setRGB(this.eyeGlow * 3.2, this.eyeGlow * 0.12, this.eyeGlow * 0.06);
+		if (rig.coreMat) rig.coreMat.color.copy(rig.eyeMat.color).multiplyScalar(1.4);
+
+		// gait: two-segment legs with knee flex, arms counter-swing
+		this.stride += dt * speed * (2.4 / s.scale);
+		const amt = Math.min(1, speed / 2.5);
+		const sw = Math.sin(this.stride);
+		rig.hips[0].rotation.x = sw * 0.6 * amt;
+		rig.hips[1].rotation.x = -sw * 0.6 * amt;
+		rig.knees[0].rotation.x = Math.max(0, -Math.cos(this.stride)) * 1.0 * amt + 0.05;
+		rig.knees[1].rotation.x = Math.max(0, Math.cos(this.stride)) * 1.0 * amt + 0.05;
+		rig.pelvis.position.y = 0.97 - Math.abs(Math.cos(this.stride)) * 0.03 * amt;
+		rig.spine.rotation.x = damp(rig.spine.rotation.x, this.alerted ? 0.12 + amt * 0.1 : 0.02, 6, dt);
+		rig.spine.rotation.y = -sw * 0.08 * amt;
+		const stepPhase = Math.floor(this.stride / Math.PI);
+		if (stepPhase !== this.lastStep) {
+			this.lastStep = stepPhase;
+			if (amt > 0.3 && camD < 22) host.sfx('step', this.pos);
 		}
-		this.body.rotation.z = Math.sin(this.stride * 0.5) * 0.06;
+
+		const aiming = this.aimT > 0 || (this.kind === 'gunner' && this.alerted && this.hasLos && dist < s.reach);
+		for (let k = 0; k < 2; k++) {
+			const isCannon = k === 1 && s.palette.cannon;
+			let shoulder = -sw * (k ? -1 : 1) * 0.45 * amt;
+			let elbow = -0.25 - amt * 0.35;
+			if (isCannon && aiming) {
+				shoulder = -Math.PI / 2 + 0.05;
+				elbow = 0;
+			}
+			if (this.windup > 0 && !isCannon) {
+				shoulder = k === 0 ? -2.3 : -0.4; // haymaker wind-up
+				elbow = -1.2;
+			}
+			rig.shoulders[k].rotation.x = damp(rig.shoulders[k].rotation.x, shoulder, 14, dt);
+			rig.elbows[k].rotation.x = damp(rig.elbows[k].rotation.x, elbow, 14, dt);
+		}
+		rig.body.rotation.z = Math.sin(this.stride * 0.5) * 0.03 * amt;
 
 		this.root.position.copy(this.pos);
 		this.root.rotation.y = this.facing;
 
-		this.groanTimer -= dt;
-		if (this.groanTimer <= 0) {
-			this.groanTimer = rand(5, 12);
-			if (dist < 25) host.sfx(this.kind === 'warden' ? 'roar' : 'groan', this.pos);
+		// telegraph laser from the arm cannon while aiming
+		if (this.laser) {
+			const mat = this.laser.material as THREE.LineBasicMaterial;
+			if (this.aimT > 0 && rig.muzzle) {
+				this.root.updateMatrixWorld();
+				const m = rig.muzzle.getWorldPosition(new THREE.Vector3());
+				const pos = this.laser.geometry.getAttribute('position') as THREE.BufferAttribute;
+				pos.setXYZ(0, m.x, m.y, m.z);
+				const dir = this.aimAt.clone().sub(m).normalize();
+				const len = host.world.raycast(m, dir, 80);
+				const end = m.clone().addScaledVector(dir, len);
+				pos.setXYZ(1, end.x, end.y, end.z);
+				pos.needsUpdate = true;
+				mat.opacity = 0.35 + (1 - this.aimT) * 0.6 * (Math.sin(performance.now() * 0.05) * 0.3 + 0.7);
+			} else mat.opacity = 0;
 		}
+
+		this.servoTimer -= dt;
+		if (this.servoTimer <= 0) {
+			this.servoTimer = rand(4, 10);
+			if (camD < 25) host.sfx(this.kind === 'warden' ? 'roar' : 'servo', this.pos);
+		}
+	}
+
+	private alert(host: EnemyHost): void {
+		if (this.alerted) return;
+		this.alerted = true;
+		host.sfx(this.kind === 'warden' ? 'roar' : 'alert', this.pos);
 	}
 
 	private attack(dt: number, dist: number, host: EnemyHost, bolts: BoltSystem): void {
 		const s = this.spec;
 		this.cooldown -= dt;
+		const dmg = s.damage * host.difficulty.damage;
+		const fire = (from: THREE.Vector3, at: THREE.Vector3, speed: number, damage: number, count = 1, spread = 0) => {
+			for (let k = 0; k < count; k++) {
+				const aim = at.clone();
+				if (count > 1) {
+					const side = new THREE.Vector3(-(aim.z - from.z), 0, aim.x - from.x).normalize();
+					aim.addScaledVector(side, (k - (count - 1) / 2) * spread);
+				}
+				bolts.fire(from, aim, speed, damage, 0xff2414);
+			}
+			host.sfx('bolt', from);
+		};
+		const muzzle = () => {
+			this.root.updateMatrixWorld();
+			return this.rig.muzzle ? this.rig.muzzle.getWorldPosition(new THREE.Vector3()) : this.chest;
+		};
+
 		if (this.kind === 'gunner') {
-			if (this.cooldown <= 0 && this.hasLos && dist < s.reach) {
-				this.cooldown = s.cooldown + rand(-0.4, 0.6);
-				const from = this.chest.add(new THREE.Vector3(Math.sin(this.facing) * 0.6, 0.2, Math.cos(this.facing) * 0.6));
-				bolts.fire(from, host.playerEye.clone().add(new THREE.Vector3(rand(-0.6, 0.6), -0.4, rand(-0.6, 0.6))), 28, s.damage, 0xff4a2a);
-				host.sfx('bolt', from);
+			if (this.aimT > 0) {
+				this.aimT -= dt;
+				// laser tracks with lag so strafing beats it
+				this.aimAt.lerp(host.playerEye.clone().add(new THREE.Vector3(0, -0.35, 0)), 1 - Math.exp(-3.5 * dt));
+				if (this.aimT <= 0) {
+					if (this.hasLos) fire(muzzle(), this.aimAt, 32, dmg);
+					this.cooldown = s.cooldown + rand(-0.4, 0.6);
+				}
+			} else if (this.cooldown <= 0 && this.hasLos && dist < s.reach) {
+				this.aimT = 0.75;
+				this.aimAt.copy(host.playerEye).add(new THREE.Vector3(rand(-1, 1), -0.3, rand(-1, 1)));
+				host.sfx('charge', this.pos);
 			}
 			return;
 		}
 		if (this.kind === 'warden') {
-			this.volleyTimer -= dt;
-			if (this.volleyTimer <= 0 && this.hasLos) {
+			this.volleyTimer -= dt * (this.enraged ? 1.6 : 1);
+			if (this.aimT > 0) {
+				this.aimT -= dt;
+				this.aimAt.lerp(host.playerEye, 1 - Math.exp(-4 * dt));
+				if (this.aimT <= 0) fire(muzzle(), this.aimAt, 26, 12 * host.difficulty.damage, this.enraged ? 7 : 5, 2.2);
+			} else if (this.volleyTimer <= 0 && this.hasLos && dist > 6) {
 				this.volleyTimer = rand(4, 6);
-				const from = this.chest.add(new THREE.Vector3(0, 1, 0));
-				for (let k = -2; k <= 2; k++) {
-					const aim = host.playerEye.clone();
-					const side = new THREE.Vector3(-(aim.z - from.z), 0, aim.x - from.x).normalize();
-					aim.addScaledVector(side, k * 2.2);
-					bolts.fire(from, aim, 24, 12, 0xff2a10);
-				}
-				host.sfx('bolt', from);
+				this.aimT = 0.9;
+				this.aimAt.copy(host.playerEye);
+				host.sfx('charge', this.pos);
 			}
 			this.summonTimer -= dt;
-			if (this.summonTimer <= 0) {
-				this.summonTimer = 20;
+			if (this.summonTimer <= 0 && dist < s.sight) {
+				this.summonTimer = this.enraged ? 14 : 20;
 				host.onBossSummon(this.pos);
 			}
 		}
 		if (this.windup > 0) {
 			this.windup -= dt;
 			if (this.windup <= 0) {
-				host.sfx('swipe', this.pos);
-				if (dist < s.reach + 0.6) host.damagePlayer(s.damage, this.pos);
-				if (this.kind === 'warden') host.sparks(this.pos.clone().setY(0.2), 0xffaa55, 30, 8);
+				host.sfx(this.kind === 'warden' ? 'slam' : 'swipe', this.pos);
+				if (this.kind === 'warden') {
+					host.shockwave(this.pos, 7);
+					if (dist < s.reach + 2.5) host.damagePlayer(dmg * (dist < s.reach + 0.6 ? 1 : 0.5), this.pos);
+				} else if (dist < s.reach + 0.6) host.damagePlayer(dmg, this.pos);
 			}
 		} else if (this.cooldown <= 0 && dist < s.reach) {
-			this.windup = this.kind === 'warden' ? 0.6 : 0.35;
-			this.cooldown = s.cooldown;
+			this.windup = this.kind === 'warden' ? 0.7 : 0.38;
+			this.cooldown = s.cooldown * (this.enraged ? 0.7 : 1);
+			host.sfx('servo', this.pos);
+		}
+	}
+
+	dispose(): void {
+		this.rig.shellMat.dispose();
+		this.rig.eyeMat.dispose();
+		this.rig.coreMat?.dispose();
+		if (this.laser) {
+			this.laser.geometry.dispose();
+			(this.laser.material as THREE.Material).dispose();
 		}
 	}
 }
@@ -333,17 +507,19 @@ interface Bolt {
 	damage: number;
 }
 
+/** Plasma bolts from Enforcers and the Warden: glowing, fast, dodgeable. */
 export class BoltSystem {
 	private readonly bolts: Bolt[] = [];
-	private readonly geo = new THREE.SphereGeometry(0.16, 8, 6);
+	private readonly geo = new THREE.CapsuleGeometry(0.07, 0.5, 4, 8).rotateX(Math.PI / 2);
+	private readonly mat = new THREE.MeshBasicMaterial({ color: 0xff3a22, toneMapped: false });
 	private readonly scene: THREE.Scene;
 	constructor(scene: THREE.Scene) {
 		this.scene = scene;
 	}
 
 	fire(from: THREE.Vector3, to: THREE.Vector3, speed: number, damage: number, color: number): void {
-		const mesh = new THREE.Mesh(this.geo, new THREE.MeshBasicMaterial({ color, toneMapped: false }));
-		mesh.scale.set(1, 1, 2.5);
+		this.mat.color.setHex(color).multiplyScalar(2.2);
+		const mesh = new THREE.Mesh(this.geo, this.mat);
 		mesh.position.copy(from);
 		const vel = new THREE.Vector3().subVectors(to, from).normalize().multiplyScalar(speed);
 		mesh.lookAt(from.clone().add(vel));
@@ -363,23 +539,24 @@ export class BoltSystem {
 			const eye = host.playerEye;
 			const dx = p.x - eye.x;
 			const dz = p.z - eye.z;
-			const dy = p.y - (eye.y - 0.5);
-			const hitPlayer = host.playerAlive() && dx * dx + dz * dz < 0.45 && Math.abs(dy) < 1.0;
+			const dy = p.y - (eye.y - 0.6);
+			const hitPlayer = host.playerAlive() && dx * dx + dz * dz < 0.3 && Math.abs(dy) < 1.0;
 			if (hitPlayer) host.damagePlayer(b.damage, p.clone().sub(b.vel));
 			if (hitWall || hitPlayer || b.life <= 0) {
-				host.sparks(p, 0xff5a2a, 8, 4);
+				host.sparks(p, 0xff5a2a, 10, 4);
 				this.scene.remove(b.mesh);
-				(b.mesh.material as THREE.Material).dispose();
 				this.bolts.splice(i, 1);
 			}
 		}
 	}
 
+	/** Positions of live bolts (for near-miss whizz audio). */
+	get live(): readonly { mesh: THREE.Mesh; vel: THREE.Vector3 }[] {
+		return this.bolts;
+	}
+
 	clear(): void {
-		for (const b of this.bolts) {
-			this.scene.remove(b.mesh);
-			(b.mesh.material as THREE.Material).dispose();
-		}
+		for (const b of this.bolts) this.scene.remove(b.mesh);
 		this.bolts.length = 0;
 	}
 }
@@ -393,16 +570,19 @@ export interface EnemyHit {
 export class EnemyManager {
 	readonly list: Enemy[] = [];
 	readonly bolts: BoltSystem;
+	readonly debris: Debris;
 	private readonly scene: THREE.Scene;
 	constructor(scene: THREE.Scene) {
 		this.scene = scene;
 		this.bolts = new BoltSystem(scene);
+		this.debris = new Debris(scene);
 	}
 
-	spawn(kind: EnemyKind, at: THREE.Vector3, alerted = false): Enemy {
-		const e = new Enemy(kind, at);
+	spawn(kind: EnemyKind, at: THREE.Vector3, hpMult: number, alerted = false): Enemy {
+		const e = new Enemy(kind, at, hpMult);
 		e.alerted = alerted;
 		this.scene.add(e.root);
+		if (e.laser) this.scene.add(e.laser);
 		this.list.push(e);
 		return e;
 	}
@@ -413,7 +593,6 @@ export class EnemyManager {
 
 	update(dt: number, host: EnemyHost): void {
 		for (const e of this.list) e.update(dt, host, this.bolts);
-		// separation so crowds don't stack into one blob
 		for (let i = 0; i < this.list.length; i++) {
 			const a = this.list[i];
 			if (a.dead) continue;
@@ -422,29 +601,36 @@ export class EnemyManager {
 				if (b.dead) continue;
 				const dx = b.pos.x - a.pos.x;
 				const dz = b.pos.z - a.pos.z;
-				const min = 0.45 * (a.spec.scale + b.spec.scale);
+				const min = 0.38 * (a.spec.scale + b.spec.scale);
 				const d2 = dx * dx + dz * dz;
 				if (d2 < min * min && d2 > 1e-6) {
 					const d = Math.sqrt(d2);
 					const push = (min - d) / 2;
-					a.pos.x -= (dx / d) * push;
-					a.pos.z -= (dz / d) * push;
-					b.pos.x += (dx / d) * push;
-					b.pos.z += (dz / d) * push;
+					const wa = b.kind === 'warden' ? 2 : 1;
+					const wb = a.kind === 'warden' ? 2 : 1;
+					a.pos.x -= (dx / d) * push * (wa / ((wa + wb) / 2));
+					a.pos.z -= (dz / d) * push * (wa / ((wa + wb) / 2));
+					b.pos.x += (dx / d) * push * (wb / ((wa + wb) / 2));
+					b.pos.z += (dz / d) * push * (wb / ((wa + wb) / 2));
 				}
 			}
 		}
 		for (let i = this.list.length - 1; i >= 0; i--) {
 			const e = this.list[i];
-			if (e.dead && e.deadTime > 6) {
-				this.scene.remove(e.root);
-				this.list.splice(i, 1);
-			}
+			if (e.dead && e.deadTime > 7) this.removeAt(i);
 		}
 		this.bolts.update(dt, host);
+		this.debris.update(dt);
 	}
 
-	/** Alert every enemy within `radius` — gunfire carries. */
+	private removeAt(i: number): void {
+		const e = this.list[i];
+		this.scene.remove(e.root);
+		if (e.laser) this.scene.remove(e.laser);
+		e.dispose();
+		this.list.splice(i, 1);
+	}
+
 	noise(at: THREE.Vector3, radius: number): void {
 		for (const e of this.list) if (!e.dead && e.pos.distanceToSquared(at) < radius * radius) e.alerted = true;
 	}
@@ -454,7 +640,7 @@ export class EnemyManager {
 		let bestDist = maxDist;
 		for (const e of this.list) {
 			if (e.dead) continue;
-			const th = raySphere(o, d, e.headCenter, 0.3 * e.spec.scale);
+			const th = raySphere(o, d, e.headCenter, e.headRadius);
 			if (th < bestDist) {
 				bestDist = th;
 				best = { enemy: e, dist: th, head: true };
@@ -469,8 +655,8 @@ export class EnemyManager {
 	}
 
 	clear(): void {
-		for (const e of this.list) this.scene.remove(e.root);
-		this.list.length = 0;
+		while (this.list.length) this.removeAt(this.list.length - 1);
 		this.bolts.clear();
+		this.debris.clear();
 	}
 }

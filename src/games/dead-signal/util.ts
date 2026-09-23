@@ -74,25 +74,56 @@ export interface AABB {
 	h: number;
 }
 
-/** Slab test: distance along a normalized ray to the box, or Infinity. */
+/** Slab test: distance along a normalized ray to the box, or Infinity. Allocation-free (hot path). */
 export function rayAABB(o: THREE.Vector3, d: THREE.Vector3, b: AABB, maxDist: number): number {
 	let tmin = 0;
 	let tmax = maxDist;
-	const axes: [number, number, number, number][] = [
-		[o.x, d.x, b.minX, b.maxX],
-		[o.y, d.y, 0, b.h],
-		[o.z, d.z, b.minZ, b.maxZ],
-	];
-	for (const [oo, dd, lo, hi] of axes) {
-		if (Math.abs(dd) < 1e-8) {
-			if (oo < lo || oo > hi) return Infinity;
-			continue;
+	// x
+	if (Math.abs(d.x) < 1e-8) {
+		if (o.x < b.minX || o.x > b.maxX) return Infinity;
+	} else {
+		const inv = 1 / d.x;
+		let t1 = (b.minX - o.x) * inv;
+		let t2 = (b.maxX - o.x) * inv;
+		if (t1 > t2) {
+			const tmp = t1;
+			t1 = t2;
+			t2 = tmp;
 		}
-		let t1 = (lo - oo) / dd;
-		let t2 = (hi - oo) / dd;
-		if (t1 > t2) [t1, t2] = [t2, t1];
-		tmin = Math.max(tmin, t1);
-		tmax = Math.min(tmax, t2);
+		if (t1 > tmin) tmin = t1;
+		if (t2 < tmax) tmax = t2;
+		if (tmin > tmax) return Infinity;
+	}
+	// y (boxes stand on the ground)
+	if (Math.abs(d.y) < 1e-8) {
+		if (o.y < 0 || o.y > b.h) return Infinity;
+	} else {
+		const inv = 1 / d.y;
+		let t1 = -o.y * inv;
+		let t2 = (b.h - o.y) * inv;
+		if (t1 > t2) {
+			const tmp = t1;
+			t1 = t2;
+			t2 = tmp;
+		}
+		if (t1 > tmin) tmin = t1;
+		if (t2 < tmax) tmax = t2;
+		if (tmin > tmax) return Infinity;
+	}
+	// z
+	if (Math.abs(d.z) < 1e-8) {
+		if (o.z < b.minZ || o.z > b.maxZ) return Infinity;
+	} else {
+		const inv = 1 / d.z;
+		let t1 = (b.minZ - o.z) * inv;
+		let t2 = (b.maxZ - o.z) * inv;
+		if (t1 > t2) {
+			const tmp = t1;
+			t1 = t2;
+			t2 = tmp;
+		}
+		if (t1 > tmin) tmin = t1;
+		if (t2 < tmax) tmax = t2;
 		if (tmin > tmax) return Infinity;
 	}
 	return tmin;

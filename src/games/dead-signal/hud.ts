@@ -101,6 +101,25 @@ export const CSS = /* css */ `
 .ds-touch-note{font-size:10px;letter-spacing:.14em;color:#ff8a5a;margin-top:14px}
 .ds-fullmap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,5,8,.82);pointer-events:none}
 .ds-fullmap canvas{width:min(80vh,80vw);height:min(80vh,80vw);border:1px solid rgba(220,230,240,.15)}
+.ds-seg{display:inline-flex;border:1px solid rgba(220,230,240,.14)}
+.ds-seg button{font:inherit;font-size:9px;letter-spacing:.2em;padding:6px 10px;background:transparent;color:#aab3bc;border:0;border-right:1px solid rgba(220,230,240,.1);cursor:pointer;text-transform:uppercase}
+.ds-seg button:last-child{border-right:0}
+.ds-seg button.on{background:#e3c15a;color:#0a0b0d;font-weight:700}
+.ds-seg-row{display:grid;grid-template-columns:120px auto;align-items:center;gap:10px;justify-content:center;margin:10px auto;font-size:10px;letter-spacing:.18em;color:#aab3bc;text-align:left}
+.ds-feed{position:absolute;right:18px;top:238px;text-align:right;font-size:10px;letter-spacing:.14em;line-height:1.9}
+.ds-feed div{transition:opacity .6s;color:#cfd5db}
+.ds-feed b{color:#ff5a3a;font-weight:600}
+.ds-feed i{font-style:normal;color:#e3c15a}
+.ds-fps{position:absolute;right:18px;bottom:92px;font-size:9px;letter-spacing:.2em;color:#6a737c}
+.ds-diff{display:flex;gap:8px;justify-content:center;margin:0 0 14px}
+.ds-diff .ds-btn{width:150px;margin:0}
+.ds-diff small{display:block;font-size:8px;letter-spacing:.14em;opacity:.7;margin-top:4px;text-transform:none}
+.ds-overlay.ds-title{justify-content:flex-start;background:linear-gradient(90deg,rgba(4,6,9,.92) 0%,rgba(4,6,9,.7) 38%,rgba(4,6,9,.08) 72%,rgba(4,6,9,0) 100%)}
+.ds-title .ds-menu{text-align:left;padding-left:clamp(20px,7vw,110px);max-width:560px}
+.ds-title .ds-menu p{margin-left:0}
+.ds-title .ds-btn{margin-left:0}
+.ds-title .ds-menu h1{font-size:clamp(48px,8vw,112px)}
+.ds-title .ds-tag{font-size:9px;letter-spacing:.4em;color:#ff4a3a;margin-bottom:10px}
 @media (max-width:760px){.ds-keys{display:none}.ds-mission{width:210px;transform:scale(.9);transform-origin:0 0}.ds-map canvas{width:110px;height:110px}.ds-banner .h{font-size:40px}}
 `;
 
@@ -157,6 +176,8 @@ export class Hud {
 	private dmgArcs: HTMLElement[] = [];
 	private toast: HTMLElement;
 	private markers: HTMLElement;
+	private feedBox: HTMLElement;
+	private fps: HTMLElement;
 	private hitT = 0;
 	private bannerT = 0;
 	private toastT = 0;
@@ -235,6 +256,8 @@ export class Hud {
 		const dmg = el('div', 'ds-dmg', hud);
 		for (let k = 0; k < 6; k++) this.dmgArcs.push(el('i', '', dmg));
 
+		this.feedBox = el('div', 'ds-feed', hud);
+		this.fps = el('div', 'ds-fps ds-hidden', hud);
 		this.fullMap = el('div', 'ds-fullmap ds-hidden', root);
 		this.fullCanvas = el('canvas', '', this.fullMap);
 		this.fullCanvas.width = this.fullCanvas.height = 900;
@@ -364,7 +387,12 @@ export class Hud {
 		this.threat.style.color = color;
 	}
 
+	private vitalsKey = '';
+
 	setVitals(hp: number, armor: number, salvage: number, plates: number, frags: number, gained: number): void {
+		const key = `${Math.ceil(hp)}|${Math.ceil(armor)}|${salvage}|${plates}|${frags}|${gained}`;
+		if (key === this.vitalsKey) return;
+		this.vitalsKey = key;
 		this.hp.style.width = `${Math.max(0, hp)}%`;
 		this.hp.style.background = hp < 35 ? '#ff5a4a' : '#e8edf2';
 		this.armor.style.width = `${armor}%`;
@@ -372,7 +400,12 @@ export class Hud {
 		this.kit.innerHTML = `<span><b>${plates}</b> PLATES [F]</span><span><b>${frags}</b> FRAG [G]</span>`;
 	}
 
+	private weaponKey = '';
+
 	setWeapon(name: string, ammo: number, mag: number, reserve: number, status: string): void {
+		const key = `${name}|${ammo}|${reserve}|${status}`;
+		if (key === this.weaponKey) return;
+		this.weaponKey = key;
 		this.wName.textContent = name;
 		this.wAmmo.innerHTML = `${ammo}<small> / ${reserve}</small>`;
 		this.wAmmo.classList.toggle('low', ammo <= Math.ceil(mag * 0.25));
@@ -406,6 +439,19 @@ export class Hud {
 	showBanner(kicker: string, head: string, sub = '', dur = 3): void {
 		this.banner.innerHTML = `<div class="k">${kicker}</div><div class="h">${head}</div><div class="s">${sub}</div>`;
 		this.bannerT = dur;
+	}
+
+	/** Kill feed line; fades out after a few seconds. */
+	feed(html: string): void {
+		const line = el('div', '', this.feedBox, html);
+		setTimeout(() => (line.style.opacity = '0'), 3200);
+		setTimeout(() => line.remove(), 4000);
+		while (this.feedBox.children.length > 5) this.feedBox.firstElementChild?.remove();
+	}
+
+	setFps(fps: number | null, scale: number): void {
+		this.fps.classList.toggle('ds-hidden', fps === null);
+		if (fps !== null) this.fps.textContent = `${fps} FPS · ${Math.round(scale * 100)}% RES`;
 	}
 
 	showToast(text: string): void {

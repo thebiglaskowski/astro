@@ -131,10 +131,21 @@ export default defineConfig({
     },
     vite: {
         build: {
-            // /games/dead-signal/ ships three.js (~600 kB minified on its own,
-            // ~170 kB gzipped) as one chunk that only that page loads. 700 kB
+            // /games/dead-signal/ ships three.js; its core alone is ~550 kB
+            // minified (~135 kB gzipped) and only that page loads it. 600 kB
             // clears it while still flagging anything else that balloons.
-            chunkSizeWarningLimit: 700,
+            chunkSizeWarningLimit: 600,
+            rollupOptions: {
+                output: {
+                    // Keep three's core and its add-ons (post-processing etc.)
+                    // in their own long-cached chunks, apart from game code.
+                    manualChunks(id) {
+                        if (id.includes('node_modules/three/examples/')) return 'three-addons';
+                        if (id.includes('node_modules/three/')) return 'three';
+                        return undefined;
+                    },
+                },
+            },
         },
     },
     integrations: [

@@ -32,6 +32,21 @@ export interface MapRect {
 	kind: 'building' | 'prop' | 'special';
 }
 
+export type LightKind = 'lamp' | 'flood' | 'fire' | 'police' | 'cyan';
+
+export interface LightSpot {
+	pos: THREE.Vector3;
+	color: number;
+	intensity: number;
+	kind: LightKind;
+	phase: number;
+}
+
+export interface RayHit {
+	dist: number;
+	normal: THREE.Vector3;
+}
+
 type BlockKind = 'city' | 'checkpoint' | 'relay' | 'reactor' | 'extraction' | 'park';
 
 const SPECIAL: Record<string, BlockKind> = {
@@ -183,6 +198,264 @@ function signTexture(text: string, color: string): THREE.CanvasTexture {
 	);
 }
 
+interface Shop {
+	x: number;
+	z: number;
+	w: number;
+	d: number;
+	side: number;
+	width: number;
+	along: number;
+	variant: number;
+}
+
+/** Additive gradient for lamp cones and searchlight beams: bright at the apex, fading out. */
+function beamMaterial(color: number, opacity: number, sky = false): THREE.MeshBasicMaterial {
+	const alpha = canvasTexture(
+		8,
+		128,
+		(g) => {
+			// canvas top = uv v=1 = cone apex
+			const grad = g.createLinearGradient(0, 0, 0, 128);
+			grad.addColorStop(0, '#fff');
+			grad.addColorStop(sky ? 0.55 : 0.35, '#555');
+			grad.addColorStop(1, '#000');
+			g.fillStyle = grad;
+			g.fillRect(0, 0, 8, 128);
+		},
+		{ repeat: false, srgb: false },
+	);
+	return new THREE.MeshBasicMaterial({
+		color,
+		alphaMap: alpha,
+		transparent: true,
+		opacity,
+		blending: THREE.AdditiveBlending,
+		depthWrite: false,
+		side: THREE.DoubleSide,
+		fog: !sky,
+		toneMapped: false,
+	});
+}
+
+/** Height-noise asphalt turned into a tangent-space normal map. */
+function asphaltNormal(): THREE.CanvasTexture {
+	const S = 256;
+	const h = new Float32Array(S * S);
+	const rng = mulberry32(7);
+	for (let i = 0; i < h.length; i++) h[i] = rng();
+	for (let pass = 0; pass < 2; pass++) {
+		const c = h.slice();
+		for (let y = 0; y < S; y++)
+			for (let x = 0; x < S; x++) {
+				let sum = 0;
+				for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) sum += c[((y + dy + S) % S) * S + ((x + dx + S) % S)];
+				h[y * S + x] = sum / 9;
+			}
+	}
+	// hairline cracks
+	for (let k = 0; k < 5; k++) {
+		let x = rng() * S;
+		let y = rng() * S;
+		for (let st = 0; st < 60; st++) {
+			x = (x + (rng() - 0.5) * 4 + S) % S;
+			y = (y + rng() * 2 + S) % S;
+			h[Math.floor(y) * S + Math.floor(x)] -= 0.6;
+		}
+	}
+	return canvasTexture(
+		S,
+		S,
+		(g) => {
+			const img = g.createImageData(S, S);
+			const n = new THREE.Vector3();
+			for (let y = 0; y < S; y++)
+				for (let x = 0; x < S; x++) {
+					const dx = h[y * S + ((x + 1) % S)] - h[y * S + ((x - 1 + S) % S)];
+					const dy = h[((y + 1) % S) * S + x] - h[((y - 1 + S) % S) * S + x];
+					n.set(-dx * 4, -dy * 4, 1).normalize();
+					const o = (y * S + x) * 4;
+					img.data[o] = (n.x * 0.5 + 0.5) * 255;
+					img.data[o + 1] = (n.y * 0.5 + 0.5) * 255;
+					img.data[o + 2] = (n.z * 0.5 + 0.5) * 255;
+					img.data[o + 3] = 255;
+				}
+			g.putImageData(img, 0, 0);
+		},
+		{ srgb: false },
+	);
+}
+
+/**
+ * Rain on asphalt: puddles (low roughness in the map) darken, turn mirror-glossy
+ * and pick up expanding ripple rings; the whole street gets a faint ripple sheen.
+ */
+function wetShader(mat: THREE.MeshStandardMaterial, time: { value: number }): void {
+	mat.onBeforeCompile = (shader) => {
+		shader.uniforms.uTime = time;
+		shader.vertexShader = shader.vertexShader
+			.replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
+			.replace('#include <project_vertex>', '#include <project_vertex>\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+		shader.fragmentShader = shader.fragmentShader
+			.replace(
+				'#include <common>',
+				`#include <common>
+				varying vec3 vWPos;
+				uniform float uTime;
+				vec2 dsHash(vec2 p) {
+					p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+					return fract(sin(p) * 43758.5453);
+				}
+				vec2 dsRipple(vec2 p, float t) {
+					vec2 acc = vec2(0.0);
+					vec2 cell = floor(p);
+					vec2 f = fract(p);
+					for (int j = -1; j <= 1; j++) {
+						for (int i = -1; i <= 1; i++) {
+							vec2 o = vec2(float(i), float(j));
+							vec2 h = dsHash(cell + o);
+							float ph = fract(t * (0.7 + h.y * 0.6) + h.x);
+							vec2 d = f - (o + h);
+							float r = length(d);
+							float w = r - ph * 0.8;
+							float ring = sin(w * 42.0) * exp(-w * w * 240.0) * (1.0 - ph) * (1.0 - ph);
+							acc += (r > 1e-4 ? d / r : vec2(0.0)) * ring;
+						}
+					}
+					return acc;
+				}`,
+			)
+			.replace(
+				'#include <roughnessmap_fragment>',
+				`#include <roughnessmap_fragment>
+				float dsWet = 1.0 - smoothstep(0.15, 0.5, roughnessFactor);
+				diffuseColor.rgb *= mix(0.85, 0.35, dsWet);
+				roughnessFactor = mix(roughnessFactor * 0.8, 0.03, dsWet);`,
+			)
+			.replace(
+				'#include <normal_fragment_maps>',
+				`#include <normal_fragment_maps>
+				{
+					float fade = 1.0 - smoothstep(12.0, 40.0, length(vWPos - cameraPosition));
+					if (fade > 0.0) {
+						vec2 rp = dsRipple(vWPos.xz * 2.4, uTime) + dsRipple(vWPos.xz * 3.3 + 17.0, uTime * 1.13);
+						vec3 rN = vec3(rp.x, 0.0, rp.y) * 0.3 * (0.15 + dsWet * 0.85) * fade;
+						normal = normalize(normal + (viewMatrix * vec4(rN, 0.0)).xyz);
+					}
+				}`,
+			);
+	};
+	mat.customProgramCacheKey = () => 'ds-wet-asphalt';
+}
+
+/** Four ground-floor shop variants in a 2×2 atlas: lit store, shutter, dark wreck, neon bar. */
+function storefrontAtlas(): { map: THREE.CanvasTexture; emissive: THREE.CanvasTexture } {
+	const draw = (g: CanvasRenderingContext2D, emissive: boolean) => {
+		const rng = mulberry32(404);
+		for (let v = 0; v < 4; v++) {
+			const x0 = (v % 2) * 512;
+			const y0 = v < 2 ? 0 : 256; // canvas top half = uv top half after flipY
+			g.save();
+			g.translate(x0, y0);
+			g.beginPath();
+			g.rect(0, 0, 512, 256);
+			g.clip();
+			const fill = (c: string) => {
+				g.fillStyle = c;
+				g.fillRect(0, 0, 512, 256);
+			};
+			if (v === 0) {
+				// lit convenience store
+				if (emissive) {
+					fill('#000');
+					const grad = g.createLinearGradient(0, 30, 0, 230);
+					grad.addColorStop(0, '#fff2d0');
+					grad.addColorStop(1, '#c98a40');
+					g.fillStyle = grad;
+					g.fillRect(24, 34, 464, 200);
+					g.fillStyle = 'rgba(0,0,0,0.75)';
+					for (let k = 0; k < 4; k++) g.fillRect(40 + k * 115, 90, 90, 12);
+					for (let k = 0; k < 14; k++) g.fillRect(40 + rng() * 420, 150 + rng() * 70, 14 + rng() * 20, 30 + rng() * 40);
+					g.fillStyle = '#ff3a3a';
+					g.fillRect(24, 8, 464, 20);
+				} else {
+					fill('#1a1b1e');
+					g.fillStyle = '#e8d8b0';
+					g.fillRect(24, 34, 464, 200);
+					g.fillStyle = '#7a1a14';
+					g.fillRect(24, 8, 464, 20);
+					for (let k = 0; k < 18; k++) rng();
+				}
+				g.fillStyle = '#0d0e10';
+				for (let k = 0; k <= 4; k++) g.fillRect(20 + k * 116, 30, 8, 210);
+				g.fillRect(20, 124, 472, 6);
+			} else if (v === 1) {
+				// rolling shutter + graffiti
+				fill(emissive ? '#000' : '#4a4c50');
+				if (!emissive) {
+					for (let y = 10; y < 256; y += 9) {
+						g.fillStyle = y % 18 ? '#55585c' : '#3a3c40';
+						g.fillRect(16, y, 480, 5);
+					}
+					const tags = ['#e0403a', '#3ac0e0', '#e0c03a', '#e8e8e8'];
+					g.lineWidth = 9;
+					g.lineCap = 'round';
+					for (let k = 0; k < 5; k++) {
+						g.strokeStyle = tags[k % tags.length];
+						g.beginPath();
+						let x = 60 + rng() * 380;
+						let y = 60 + rng() * 140;
+						g.moveTo(x, y);
+						for (let st = 0; st < 6; st++) {
+							x += (rng() - 0.3) * 60;
+							y += (rng() - 0.5) * 60;
+							g.lineTo(x, y);
+						}
+						g.stroke();
+					}
+				}
+			} else if (v === 2) {
+				// dead store: cracked glass, one monitor still glowing
+				fill(emissive ? '#000' : '#0b0d10');
+				if (!emissive) {
+					g.strokeStyle = 'rgba(200,220,255,0.25)';
+					g.lineWidth = 2;
+					for (let k = 0; k < 12; k++) {
+						g.beginPath();
+						g.moveTo(180, 110);
+						g.lineTo(180 + (rng() - 0.5) * 400, 110 + (rng() - 0.5) * 250);
+						g.stroke();
+					}
+				}
+				g.fillStyle = emissive ? '#3a78ff' : '#9ab8ff';
+				g.fillRect(300, 130, 60, 40);
+			} else {
+				// neon bar front
+				fill(emissive ? '#000' : '#120d14');
+				g.strokeStyle = '#ff2f8a';
+				g.lineWidth = 7;
+				g.shadowColor = '#ff2f8a';
+				g.shadowBlur = emissive ? 20 : 0;
+				g.strokeRect(30, 30, 452, 200);
+				g.font = 'bold 64px "Arial Narrow", Arial, sans-serif';
+				g.textAlign = 'center';
+				g.fillStyle = '#39e8ff';
+				g.shadowColor = '#39e8ff';
+				g.fillText('OPEN', 256, 150);
+				if (emissive) {
+					g.fillStyle = 'rgba(160,60,200,0.35)';
+					g.fillRect(40, 40, 432, 180);
+				}
+			}
+			g.restore();
+		}
+	};
+	return {
+		map: canvasTexture(1024, 512, (g) => draw(g, false), { repeat: false }),
+		emissive: canvasTexture(1024, 512, (g) => draw(g, true), { repeat: false }),
+	};
+}
+
 export class World {
 	readonly group = new THREE.Group();
 	readonly boxes: AABB[] = [];
@@ -197,9 +470,20 @@ export class World {
 	readonly streetNodes: THREE.Vector3[] = [];
 
 	private readonly hash = new Map<number, number[]>();
-	private readonly lamps: THREE.Vector3[] = [];
+	readonly lights: LightSpot[] = [];
+	/** Burning barrels; the game emits flame particles from these. */
+	readonly fires: THREE.Vector3[] = [];
 	private readonly lightPool: THREE.PointLight[] = [];
+	private readonly assigned: (LightSpot | null)[] = [];
+	private lightBudget = 10;
 	private lightTimer = 0;
+	private readonly groundTime = { value: 0 };
+	private cones: THREE.InstancedMesh | null = null;
+	private readonly policeRed = new THREE.MeshBasicMaterial({ color: 0xff1a1a, toneMapped: false });
+	private readonly policeBlue = new THREE.MeshBasicMaterial({ color: 0x1a4dff, toneMapped: false });
+	private readonly trafficMat = new THREE.MeshBasicMaterial({ color: 0xffa21a, toneMapped: false });
+	private readonly searchlights: THREE.Object3D[] = [];
+	private carGeo: THREE.BufferGeometry | null = null;
 	private readonly blinkMat: THREE.MeshBasicMaterial;
 	private readonly beaconMat: THREE.MeshBasicMaterial;
 	private readonly reactorMat: THREE.MeshStandardMaterial;
@@ -223,10 +507,10 @@ export class World {
 
 		this.buildGround();
 		const facades = [
-			facadeTextures(11, '#3b3a3c', '#0d1219', 0.2),
-			facadeTextures(23, '#40302b', '#10141a', 0.16),
-			facadeTextures(37, '#2a3038', '#0c1522', 0.24),
-			facadeTextures(51, '#4a4843', '#0e1116', 0.14),
+			facadeTextures(11, '#55535a', '#0d1219', 0.2),
+			facadeTextures(23, '#5c4238', '#10141a', 0.16),
+			facadeTextures(37, '#3c4552', '#0c1522', 0.24),
+			facadeTextures(51, '#66625a', '#0e1116', 0.14),
 		];
 		const facadeMats = facades.map(
 			(f) =>
@@ -235,13 +519,15 @@ export class World {
 					emissiveMap: f.emissive,
 					emissive: 0xffffff,
 					emissiveIntensity: 0.9,
-					roughness: 0.9,
+					roughness: 0.82,
+					envMapIntensity: 0.6,
 				}),
 		);
 		const bins = facadeMats.map(() => new GeoBin());
 		const roofBin = new GeoBin();
 		const antennaLights: THREE.Vector3[] = [];
 		const signs: { pos: THREE.Vector3; rot: number; text: string; color: string }[] = [];
+		const shops: Shop[] = [];
 
 		for (let i = -GRID; i <= GRID; i++) {
 			for (let j = -GRID; j <= GRID; j++) {
@@ -266,6 +552,15 @@ export class World {
 					bins[v].geos.push(this.buildingGeo(x, z, w, h, d, rng));
 					this.addBox(x - w / 2, x + w / 2, z - d / 2, z + d / 2, h);
 					this.rects.push({ x, z, w, d, kind: 'building' });
+					for (let side = 0; side < 4; side++) {
+						if (rng() > 0.5) continue;
+						const faceW = side < 2 ? d : w;
+						const sw = Math.min(faceW - 2, 5 + rng() * 6);
+						if (sw < 3) continue;
+						const along = (rng() - 0.5) * (faceW - sw - 1);
+						const variant = Math.floor(rng() * 4);
+						shops.push({ x, z, w, d, side, width: sw, along, variant });
+					}
 					// roof clutter
 					roofBin.add(new THREE.BoxGeometry(w + 0.4, 0.8, d + 0.4), x, h + 0.4, z);
 					const units = 1 + Math.floor(rng() * 3);
@@ -303,7 +598,7 @@ export class World {
 			const m = b.mesh(facadeMats[i]);
 			if (m) this.group.add(m);
 		});
-		const roof = roofBin.mesh(new THREE.MeshStandardMaterial({ color: 0x1b1c20, roughness: 0.95 }));
+		const roof = roofBin.mesh(new THREE.MeshStandardMaterial({ color: 0x1b1c20, roughness: 0.95, envMapIntensity: 0.2 }));
 		if (roof) this.group.add(roof);
 
 		for (const p of antennaLights) {
@@ -322,6 +617,7 @@ export class World {
 			this.group.add(m);
 		}
 
+		this.buildStorefronts(shops);
 		this.buildSkyline(facadeMats[0], rng);
 		this.buildStreets(rng);
 		this.buildCheckpoint();
@@ -330,12 +626,17 @@ export class World {
 		this.buildExtraction();
 		this.buildPark(rng);
 		this.buildPerimeter();
+		this.buildPolice();
+		this.buildFires();
+		this.buildSearchlights();
 
 		this.relayDish = this.group.getObjectByName('relay-dish') ?? new THREE.Object3D();
 
-		for (let k = 0; k < 10; k++) {
-			const l = new THREE.PointLight(0xffc27a, 0, 22, 1.6);
+		for (let k = 0; k < 16; k++) {
+			const l = new THREE.PointLight(0xffc27a, 0, 24, 1.6);
+			l.visible = k < this.lightBudget;
 			this.lightPool.push(l);
+			this.assigned.push(null);
 			this.group.add(l);
 		}
 	}
@@ -451,10 +752,19 @@ export class World {
 		);
 		asphalt.repeat.set(60, 60);
 		rough.repeat.set(60, 60);
-		const ground = new THREE.Mesh(
-			new THREE.PlaneGeometry(900, 900),
-			new THREE.MeshStandardMaterial({ map: asphalt, roughnessMap: rough, roughness: 1, metalness: 0.15 }),
-		);
+		const normal = asphaltNormal();
+		normal.repeat.set(60, 60);
+		const groundMat = new THREE.MeshStandardMaterial({
+			map: asphalt,
+			roughnessMap: rough,
+			roughness: 1,
+			metalness: 0.2,
+			normalMap: normal,
+			normalScale: new THREE.Vector2(0.35, 0.35),
+			envMapIntensity: 1.25,
+		});
+		wetShader(groundMat, this.groundTime);
+		const ground = new THREE.Mesh(new THREE.PlaneGeometry(900, 900), groundMat);
 		ground.rotation.x = -Math.PI / 2;
 		ground.receiveShadow = true;
 		this.group.add(ground);
@@ -486,7 +796,7 @@ export class World {
 				bin.add(geo, i * PITCH, SIDEWALK_H / 2, j * PITCH);
 			}
 		}
-		const walks = bin.mesh(new THREE.MeshStandardMaterial({ map: tile, roughness: 0.8 }), false);
+		const walks = bin.mesh(new THREE.MeshStandardMaterial({ map: tile, roughness: 0.55, envMapIntensity: 0.6 }), false);
 		if (walks) this.group.add(walks);
 	}
 
@@ -566,6 +876,7 @@ export class World {
 		poles.castShadow = arms.castShadow = true;
 		const glowPos: number[] = [];
 		const poolMats: THREE.Matrix4[] = [];
+		const coneMats: THREE.Matrix4[] = [];
 		lampSpots.forEach((l, i) => {
 			const rot = Math.atan2(l.ax, l.az);
 			const r = new THREE.Quaternion().setFromAxisAngle(up, rot);
@@ -580,7 +891,8 @@ export class World {
 			if (!broken) {
 				glowPos.push(hx, 7.05, hz);
 				poolMats.push(m4.clone().compose(new THREE.Vector3(hx, 0.17, hz), q.identity(), new THREE.Vector3(1, 1, 1)));
-				this.lamps.push(new THREE.Vector3(hx, 6.8, hz));
+				this.addLight(new THREE.Vector3(hx, 6.8, hz));
+				coneMats.push(m4.clone().compose(new THREE.Vector3(hx, 3.6, hz), q.identity(), new THREE.Vector3(1, 1, 1)));
 			}
 		});
 		this.group.add(poles, arms, heads);
@@ -619,6 +931,16 @@ export class World {
 		poolMats.forEach((m, i) => pools.setMatrixAt(i, m));
 		this.group.add(pools);
 
+		// Volumetric-looking light cones: additive, fading from the lamp head down.
+		const coneGeo = new THREE.ConeGeometry(3.4, 7.2, 28, 1, true);
+		const cones = new THREE.InstancedMesh(coneGeo, beamMaterial(0xffc98a, 0.055), coneMats.length);
+		coneMats.forEach((m, i) => cones.setMatrixAt(i, m));
+		cones.frustumCulled = false;
+		this.cones = cones;
+		this.group.add(cones);
+
+		this.buildTrafficLights(lines, rng);
+
 		this.buildCars(lines, rng);
 		this.buildClutter(rng);
 	}
@@ -648,6 +970,7 @@ export class World {
 		parts.push(tail);
 		const geo = mergeGeometries(parts, false);
 		if (!geo) return;
+		this.carGeo = geo;
 		const colors = [0x2b3240, 0x5a1d1d, 0x6b6b6b, 0x9b9b95, 0x1f3b2c, 0x2a2a2a, 0x4a3b22];
 		const spots: THREE.Matrix4[] = [];
 		const tints: THREE.Color[] = [];
@@ -679,7 +1002,7 @@ export class World {
 		}
 		const mesh = new THREE.InstancedMesh(
 			geo,
-			new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.35, metalness: 0.5 }),
+			new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.28, metalness: 0.55, envMapIntensity: 1.2 }),
 			spots.length,
 		);
 		spots.forEach((m, i) => {
@@ -798,7 +1121,7 @@ export class World {
 			const head = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.8, 0.4), new THREE.MeshBasicMaterial({ color: 0xe9f3ff }));
 			head.position.set(cx + x, 9, cz - 14);
 			this.group.add(head);
-			this.lamps.push(new THREE.Vector3(cx + x, 8.5, cz - 15));
+			this.addLight(new THREE.Vector3(cx + x, 8.5, cz - 15), 0xdfe9ff, 90, 'flood');
 		}
 		const sign = new THREE.Mesh(
 			new THREE.PlaneGeometry(8, 2),
@@ -885,7 +1208,7 @@ export class World {
 		this.group.add(tower);
 		this.addBox(cx - 1.2, cx + 1.2, cz - 1.2, cz + 1.2, 16);
 		this.addBox(cx - 0.7, cx + 0.7, cz + 1.8, cz + 2.6, 1.3);
-		this.lamps.push(new THREE.Vector3(cx, 6, cz + 4));
+		this.addLight(new THREE.Vector3(cx, 6, cz + 4), 0xffd2a0, 45);
 		this.supplyCrate(cx + 6, cz - 14);
 	}
 
@@ -905,7 +1228,7 @@ export class World {
 			this.group.add(ring);
 		}
 		this.circles.push({ x: cx + 5, z: cz + 5, r: 9.6, h: 25 });
-		this.boxes.push({ minX: cx - 1.8, maxX: cx + 11.8, minZ: cz - 1.8, maxZ: cz + 11.8, h: 25 }); // bullet blocker
+		this.addBox(cx - 1.8, cx + 11.8, cz - 1.8, cz + 11.8, 25); // bullet blocker (inside the collision circle)
 		// cooling tower (hyperboloid)
 		const pts: THREE.Vector2[] = [];
 		for (let i = 0; i <= 12; i++) {
@@ -921,14 +1244,14 @@ export class World {
 		tower.castShadow = true;
 		this.group.add(tower);
 		this.circles.push({ x: cx - 8, z: cz - 8, r: 7.4, h: 26 });
-		this.boxes.push({ minX: cx - 12.5, maxX: cx - 3.5, minZ: cz - 12.5, maxZ: cz - 3.5, h: 26 });
+		this.addBox(cx - 12.5, cx - 3.5, cz - 12.5, cz - 3.5, 26);
 		const sign = new THREE.Mesh(
 			new THREE.PlaneGeometry(9, 2.2),
 			new THREE.MeshBasicMaterial({ map: signTexture('HALCYON', '#36e0ff'), toneMapped: false }),
 		);
 		sign.position.set(cx + 5, 3.2, cz + 16.3);
 		this.group.add(sign);
-		this.lamps.push(new THREE.Vector3(cx + 5, 4, cz + 17));
+		this.addLight(new THREE.Vector3(cx + 5, 4, cz + 17), 0x5fe8ff, 60, 'cyan');
 		this.supplyCrate(cx + 13, cz - 12, 0.8);
 	}
 
@@ -984,7 +1307,7 @@ export class World {
 			this.group.add(pole);
 			this.addBox(cx + x - 0.2, cx + x + 0.2, cz + z - 0.2, cz + z + 0.2, 6);
 		}
-		this.lamps.push(new THREE.Vector3(cx, 7, cz));
+		this.addLight(new THREE.Vector3(cx, 7, cz), 0xe6eeff, 60, 'flood');
 	}
 
 	private buildPark(rng: () => number): void {
@@ -1056,6 +1379,15 @@ export class World {
 		const idx = this.boxes.length;
 		this.boxes.push({ minX, maxX, minZ, maxZ, h });
 		if (!blocksBullets) this.thin.add(idx);
+		if (idx >= this.rayMark.length) {
+			const mark = new Int32Array(Math.max(64, idx * 2));
+			mark.set(this.rayMark);
+			this.rayMark = mark;
+			const thin = new Uint8Array(mark.length);
+			thin.set(this.thinFlag);
+			this.thinFlag = thin;
+		}
+		this.thinFlag[idx] = blocksBullets ? 0 : 1;
 		for (let i = Math.floor(minX / 20); i <= Math.floor(maxX / 20); i++) {
 			for (let j = Math.floor(minZ / 20); j <= Math.floor(maxZ / 20); j++) {
 				const key = i * 1000 + j;
@@ -1119,15 +1451,84 @@ export class World {
 
 	/** Distance along a normalized ray to the first solid surface (ground included). */
 	raycast(o: THREE.Vector3, d: THREE.Vector3, maxDist: number): number {
+		return this.trace(o, d, maxDist);
+	}
+
+	/** Like raycast, plus the surface normal at the hit (for impact decals). */
+	raycastHit(o: THREE.Vector3, d: THREE.Vector3, maxDist: number): RayHit {
+		const dist = this.trace(o, d, maxDist);
+		const normal = new THREE.Vector3(0, 1, 0);
+		const b = this.lastHit;
+		if (b) {
+			const px = o.x + d.x * dist;
+			const py = o.y + d.y * dist;
+			const pz = o.z + d.z * dist;
+			let best = Math.abs(py - b.h);
+			const cand: [number, number, number, number][] = [
+				[Math.abs(px - b.minX), -1, 0, 0],
+				[Math.abs(px - b.maxX), 1, 0, 0],
+				[Math.abs(pz - b.minZ), 0, 0, -1],
+				[Math.abs(pz - b.maxZ), 0, 0, 1],
+			];
+			for (const [e, nx, ny, nz] of cand) {
+				if (e < best) {
+					best = e;
+					normal.set(nx, ny, nz);
+				}
+			}
+		}
+		return { dist, normal };
+	}
+
+	/**
+	 * Walk the 20 m collision grid along the ray (2D DDA) and slab-test only the
+	 * boxes in the cells it crosses. Records the box it hit in `lastHit`.
+	 */
+	private trace(o: THREE.Vector3, d: THREE.Vector3, maxDist: number): number {
 		let best = maxDist;
-		if (d.y < 0) best = Math.min(best, -o.y / d.y);
-		for (let i = 0; i < this.boxes.length; i++) {
-			if (this.thin.has(i)) continue;
-			const t = rayAABB(o, d, this.boxes[i], best);
-			if (t < best) best = t;
+		this.lastHit = null;
+		if (d.y < 0 && -o.y / d.y < best) best = -o.y / d.y;
+		const stamp = ++this.rayStamp;
+		const C = 20;
+		let cx = Math.floor(o.x / C);
+		let cz = Math.floor(o.z / C);
+		const stepX = d.x > 0 ? 1 : -1;
+		const stepZ = d.z > 0 ? 1 : -1;
+		const tDeltaX = Math.abs(d.x) > 1e-9 ? C / Math.abs(d.x) : Infinity;
+		const tDeltaZ = Math.abs(d.z) > 1e-9 ? C / Math.abs(d.z) : Infinity;
+		let tMaxX = Math.abs(d.x) > 1e-9 ? ((d.x > 0 ? cx + 1 : cx) * C - o.x) / d.x : Infinity;
+		let tMaxZ = Math.abs(d.z) > 1e-9 ? ((d.z > 0 ? cz + 1 : cz) * C - o.z) / d.z : Infinity;
+		let tEnter = 0;
+		for (let guard = 0; guard < 256 && tEnter <= best; guard++) {
+			const list = this.hash.get(cx * 1000 + cz);
+			if (list) {
+				for (const idx of list) {
+					if (this.rayMark[idx] === stamp || this.thinFlag[idx]) continue;
+					this.rayMark[idx] = stamp;
+					const b = this.boxes[idx];
+					const t = rayAABB(o, d, b, best);
+					if (t < best) {
+						best = t;
+						this.lastHit = b;
+					}
+				}
+			}
+			if (tMaxX < tMaxZ) {
+				tEnter = tMaxX;
+				tMaxX += tDeltaX;
+				cx += stepX;
+			} else {
+				tEnter = tMaxZ;
+				tMaxZ += tDeltaZ;
+				cz += stepZ;
+			}
 		}
 		return best;
 	}
+	private lastHit: AABB | null = null;
+	private rayStamp = 0;
+	private rayMark = new Int32Array(0);
+	private thinFlag = new Uint8Array(0);
 
 	hasLineOfSight(a: THREE.Vector3, b: THREE.Vector3): boolean {
 		const d = new THREE.Vector3().subVectors(b, a);
@@ -1167,22 +1568,210 @@ export class World {
 		const chase = (Math.floor(t * 12) % 16) / 16;
 		this.padLightMat.color.setHex(this.extractionLive ? (chase < 0.5 ? 0xff4a2a : 0x4a0a05) : 0x331111);
 
+		this.groundTime.value = t;
+		this.trafficMat.color.setHex(Math.sin(t * 3.4) > 0 ? 0xffa21a : 0x2a1a05);
+		const strobe = Math.floor(t * 5) % 2 === 0;
+		this.policeRed.color.setHex(strobe ? 0xff1a1a : 0x220404);
+		this.policeBlue.color.setHex(strobe ? 0x060a22 : 0x2a5dff);
+		this.searchlights.forEach((s, i) => {
+			s.rotation.z = Math.sin(t * 0.23 + i * 2.1) * 0.5;
+			s.rotation.x = Math.cos(t * 0.17 + i * 1.3) * 0.35 - 0.1;
+		});
+
+		// Hand the pooled point lights to the nearest sources.
 		this.lightTimer -= dt;
 		if (this.lightTimer <= 0) {
-			this.lightTimer = 0.4;
-			const near = this.lamps
-				.map((l) => ({ l, d: l.distanceToSquared(player) }))
+			this.lightTimer = 0.35;
+			const near = this.lights
+				.map((l) => ({ l, d: l.pos.distanceToSquared(player) }))
 				.sort((a, b) => a.d - b.d)
-				.slice(0, this.lightPool.length);
+				.slice(0, this.lightBudget);
 			this.lightPool.forEach((light, i) => {
-				const n = near[i];
-				if (!n) {
-					light.intensity = 0;
-					return;
+				const n = i < this.lightBudget ? near[i] : undefined;
+				this.assigned[i] = n ? n.l : null;
+				if (n) {
+					light.position.copy(n.l.pos);
+					light.color.setHex(n.l.color);
 				}
-				light.position.copy(n.l);
-				light.intensity = 38;
 			});
+		}
+		this.lightPool.forEach((light, i) => {
+			const s = this.assigned[i];
+			if (!s) {
+				light.intensity = 0;
+				return;
+			}
+			let k = 1;
+			if (s.kind === 'fire') k = 0.7 + 0.2 * Math.sin(t * 13 + s.phase) * Math.sin(t * 7.3 + s.phase * 2) + Math.random() * 0.15;
+			else if (s.kind === 'police') light.color.setHex(Math.floor(t * 5 + s.phase) % 2 === 0 ? 0xff1a1a : 0x2a5dff);
+			else if (s.kind === 'lamp' && s.phase < 0.6) k = Math.sin(t * 23 + s.phase * 40) > -0.6 ? 1 : 0.15; // failing ballast
+			light.intensity = s.intensity * k;
+		});
+	}
+
+	/** Quality knobs that can change at runtime. */
+	setQuality(lights: number, cones: boolean): void {
+		this.lightBudget = Math.min(lights, this.lightPool.length);
+		this.lightPool.forEach((l, i) => (l.visible = i < this.lightBudget));
+		this.lightTimer = 0;
+		if (this.cones) this.cones.visible = cones;
+		for (const s of this.searchlights) s.visible = cones;
+	}
+
+	private addLight(pos: THREE.Vector3, color = 0xffc27a, intensity = 38, kind: LightKind = 'lamp'): void {
+		this.lights.push({ pos, color, intensity, kind, phase: Math.random() * 10 });
+	}
+
+	// ── set dressing ────────────────────────────────────────────────────────
+
+	private buildStorefronts(shops: Shop[]): void {
+		const { map, emissive } = storefrontAtlas();
+		const geos: THREE.BufferGeometry[] = [];
+		const awnings: THREE.BufferGeometry[] = [];
+		for (const sh of shops) {
+			const g = new THREE.PlaneGeometry(sh.width, 3.3);
+			const uv = g.getAttribute('uv') as THREE.BufferAttribute;
+			const ox = (sh.variant % 2) * 0.5;
+			const oy = sh.variant < 2 ? 0.5 : 0;
+			for (let i = 0; i < uv.count; i++) uv.setXY(i, ox + uv.getX(i) * 0.5, oy + uv.getY(i) * 0.5);
+			const rot = sh.side === 0 ? Math.PI / 2 : sh.side === 1 ? -Math.PI / 2 : sh.side === 2 ? 0 : Math.PI;
+			const off = 0.06;
+			const px = sh.side === 0 ? sh.x + sh.w / 2 + off : sh.side === 1 ? sh.x - sh.w / 2 - off : sh.x + sh.along;
+			const pz = sh.side === 2 ? sh.z + sh.d / 2 + off : sh.side === 3 ? sh.z - sh.d / 2 - off : sh.z + sh.along;
+			g.rotateY(rot);
+			g.translate(px, 1.85, pz);
+			geos.push(g);
+			if (sh.variant === 0 || sh.variant === 3) {
+				const a = new THREE.BoxGeometry(sh.width + 0.4, 0.12, 1.3);
+				a.rotateX(0.25);
+				a.rotateY(rot);
+				const n = new THREE.Vector3(Math.sin(rot), 0, Math.cos(rot));
+				a.translate(px + n.x * 0.6, 3.75, pz + n.z * 0.6);
+				awnings.push(paint(a, sh.variant === 0 ? 0x5a1a14 : 0x1a2a3a));
+			}
+		}
+		const merged = geos.length ? mergeGeometries(geos, false) : null;
+		if (merged) {
+			const m = new THREE.Mesh(
+				merged,
+				new THREE.MeshStandardMaterial({
+					map,
+					emissiveMap: emissive,
+					emissive: 0xffffff,
+					emissiveIntensity: 1.1,
+					roughness: 0.25,
+					metalness: 0.1,
+					envMapIntensity: 0.8,
+				}),
+			);
+			m.receiveShadow = true;
+			this.group.add(m);
+		}
+		const aw = awnings.length ? mergeGeometries(awnings, false) : null;
+		if (aw) {
+			const m = new THREE.Mesh(aw, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 }));
+			m.castShadow = true;
+			this.group.add(m);
+		}
+	}
+
+	private buildTrafficLights(lines: number[], rng: () => number): void {
+		const spots: [number, number][] = [];
+		for (const sx of lines)
+			for (const sz of lines) if (Math.abs(sx) < BOUND - 20 && Math.abs(sz) < BOUND - 20 && rng() < 0.55) spots.push([sx + 8.8, sz + 8.8]);
+		const pole = new THREE.InstancedMesh(
+			new THREE.CylinderGeometry(0.09, 0.12, 5.6, 6),
+			new THREE.MeshStandardMaterial({ color: 0x25272b, metalness: 0.5, roughness: 0.5 }),
+			spots.length,
+		);
+		const head = new THREE.InstancedMesh(new THREE.BoxGeometry(0.36, 1.0, 0.36), new THREE.MeshStandardMaterial({ color: 0x141517, roughness: 0.6 }), spots.length);
+		const lamp = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), this.trafficMat, spots.length * 4);
+		const m = new THREE.Matrix4();
+		spots.forEach(([x, z], i) => {
+			pole.setMatrixAt(i, m.makeTranslation(x, 2.8, z));
+			head.setMatrixAt(i, m.makeTranslation(x, 5.2, z));
+			// one amber lens facing each approach
+			lamp.setMatrixAt(i * 4, m.makeTranslation(x + 0.1, 5.2, z));
+			lamp.setMatrixAt(i * 4 + 1, m.makeTranslation(x - 0.1, 5.2, z));
+			lamp.setMatrixAt(i * 4 + 2, m.makeTranslation(x, 5.2, z + 0.1));
+			lamp.setMatrixAt(i * 4 + 3, m.makeTranslation(x, 5.2, z - 0.1));
+			this.addBox(x - 0.15, x + 0.15, z - 0.15, z + 0.15, 5.6, false);
+		});
+		pole.castShadow = true;
+		this.group.add(pole, head, lamp);
+	}
+
+	private buildPolice(): void {
+		if (!this.carGeo) return;
+		const mat = new THREE.MeshStandardMaterial({ vertexColors: true, color: 0x9ea3ab, roughness: 0.25, metalness: 0.6, envMapIntensity: 1.2 });
+		const barMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+		const lensGeo = new THREE.BoxGeometry(0.5, 0.14, 0.26);
+		const spots: [number, number, number][] = [
+			[-12, 171, 0.35],
+			[11, 168, -0.5],
+			[150, -71, 1.4],
+			[21, 22, 0.2],
+			[-150, -71, -1.2],
+		];
+		for (const [x, z, rot] of spots) {
+			const car = new THREE.Group();
+			const body = new THREE.Mesh(this.carGeo, mat);
+			body.castShadow = true;
+			const bar = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.12, 0.3), barMat);
+			bar.position.set(0, 1.68, -0.2);
+			const red = new THREE.Mesh(lensGeo, this.policeRed);
+			red.position.set(-0.32, 1.72, -0.2);
+			const blue = new THREE.Mesh(lensGeo, this.policeBlue);
+			blue.position.set(0.32, 1.72, -0.2);
+			car.add(body, bar, red, blue);
+			car.position.set(x, 0, z);
+			car.rotation.y = rot;
+			this.group.add(car);
+			this.addBox(x - 1.6, x + 1.6, z - 1.6, z + 1.6, 1.6);
+			this.rects.push({ x, z, w: 3.2, d: 3.2, kind: 'prop' });
+			this.addLight(new THREE.Vector3(x, 2.2, z), 0xff1a1a, 55, 'police');
+		}
+	}
+
+	private buildFires(): void {
+		const rust = new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: 0.9, metalness: 0.4, side: THREE.DoubleSide });
+		const embers = new THREE.MeshBasicMaterial({ color: 0xff7a2a, toneMapped: false });
+		const barrel = new THREE.CylinderGeometry(0.32, 0.3, 0.95, 14, 1, true);
+		const coals = new THREE.CircleGeometry(0.3, 14).rotateX(-Math.PI / 2);
+		const spots: [number, number][] = [
+			[-13, 193],
+			[13, 190],
+			[139, -91],
+			[-5, 13],
+			[75, 42],
+			[-75, -18],
+			[26, -142],
+			[-122, 58],
+			[-138, -86],
+			[8, -186],
+		];
+		for (const [x, z] of spots) {
+			const b = new THREE.Mesh(barrel, rust);
+			b.position.set(x, 0.62, z);
+			b.castShadow = true;
+			const glow = new THREE.Mesh(coals, embers);
+			glow.position.set(x, 1.0, z);
+			this.group.add(b, glow);
+			this.circles.push({ x, z, r: 0.35, h: 1.1 });
+			this.fires.push(new THREE.Vector3(x, 1.05, z));
+			this.addLight(new THREE.Vector3(x, 1.8, z), 0xff8a3a, 32, 'fire');
+		}
+	}
+
+	private buildSearchlights(): void {
+		const geo = new THREE.ConeGeometry(7, 170, 24, 1, true).translate(0, -85, 0).rotateX(Math.PI);
+		const mat = beamMaterial(0xcfe0ff, 0.028, true);
+		for (const x of [-14, 14]) {
+			const beam = new THREE.Mesh(geo, mat);
+			beam.position.set(x, 9.3, 4 * PITCH - 14);
+			beam.frustumCulled = false;
+			this.group.add(beam);
+			this.searchlights.push(beam);
 		}
 	}
 }
