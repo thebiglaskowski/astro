@@ -472,6 +472,66 @@ export class Sound {
 		this.noise(d, { dur: 4.5, vol: 1.1 * v, f0: 700, f1: 60, buf: 'brown', attack: 0.15 });
 		this.noise(d, { dur: 3.5, vol: 0.6 * v, f0: 300, f1: 40, buf: 'brown', delay: 0.6, attack: 0.3 });
 	}
+	/** Looping rotor chop for the extraction gunship; position it every frame. */
+	heliLoop(): { set(at: Pos, level: number): void; stop(): void } | null {
+		const ctx = this.ctx;
+		if (!ctx || !this.sfx || !this.brown || !this.reverbIn) return null;
+		const src = ctx.createBufferSource();
+		src.buffer = this.brown;
+		src.loop = true;
+		const lp = ctx.createBiquadFilter();
+		lp.type = 'lowpass';
+		lp.frequency.value = 520;
+		const am = ctx.createGain();
+		am.gain.value = 0.55;
+		const lfo = ctx.createOscillator();
+		lfo.type = 'sawtooth';
+		lfo.frequency.value = 10.5;
+		const depth = ctx.createGain();
+		depth.gain.value = 0.45;
+		lfo.connect(depth).connect(am.gain);
+		const whine = ctx.createOscillator();
+		whine.type = 'sawtooth';
+		whine.frequency.value = 142;
+		const whineGain = ctx.createGain();
+		whineGain.gain.value = 0.015;
+		const level = ctx.createGain();
+		level.gain.value = 0;
+		const p = ctx.createPanner();
+		p.panningModel = 'HRTF';
+		p.distanceModel = 'inverse';
+		p.refDistance = 18;
+		p.rolloffFactor = 1;
+		src.connect(lp).connect(am).connect(level);
+		whine.connect(whineGain).connect(level);
+		level.connect(p).connect(this.sfx);
+		const send = ctx.createGain();
+		send.gain.value = 0.4;
+		p.connect(send).connect(this.reverbIn);
+		src.start();
+		lfo.start();
+		whine.start();
+		return {
+			set: (at: Pos, lvl: number) => {
+				const t = ctx.currentTime;
+				if (p.positionX) {
+					p.positionX.setTargetAtTime(at.x, t, 0.05);
+					p.positionY.setTargetAtTime(at.y, t, 0.05);
+					p.positionZ.setTargetAtTime(at.z, t, 0.05);
+				} else (p as unknown as LegacySpatial).setPosition(at.x, at.y, at.z);
+				level.gain.setTargetAtTime(lvl * 1.4, t, 0.3);
+			},
+			stop: () => {
+				const t = ctx.currentTime;
+				level.gain.setTargetAtTime(0, t, 0.2);
+				src.stop(t + 1);
+				lfo.stop(t + 1);
+				whine.stop(t + 1);
+				setTimeout(() => p.disconnect(), 1200);
+			},
+		};
+	}
+
 	heartbeat(dt: number, health: number): void {
 		if (health > 35 || health <= 0) return;
 		this.heartTimer -= dt;

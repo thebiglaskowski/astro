@@ -10,6 +10,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { Sound } from './audio';
 import { type Enemy, type EnemyHost, type EnemyKind, EnemyManager, type RobotSfx } from './enemies';
 import { Decals, PointFX, Streaks, smokeTexture, sparkTexture } from './fx';
+import { Helicopter } from './heli';
 import { Hud, type MapMarker, type ObjectiveView } from './hud';
 import { GradeShader } from './post';
 import { clamp, damp, formatClock, pick, rand, wrapAngle } from './util';
@@ -305,6 +306,9 @@ class Game implements EnemyHost {
 	private readonly tmpV = new THREE.Vector3();
 	private readonly tmpV2 = new THREE.Vector3();
 	private readonly tmpC = new THREE.Color();
+	private heli: Helicopter;
+	private heliSound: { set(at: THREE.Vector3, level: number): void; stop(): void } | null = null;
+	private timeScale = 1;
 	private lightningT = rand(12, 25);
 	private lightningSeq: number[] = [];
 	private flashAmt = 0;
@@ -361,6 +365,7 @@ class Game implements EnemyHost {
 		this.smoke = new PointFX(this.scene, 900, false, smokeTexture());
 		this.chips = new Chips(this.scene);
 		this.decals = new Decals(this.scene);
+		this.heli = new Helicopter(this.scene, this.world.extractionPos);
 		this.streaks = new Streaks(this.scene);
 
 		// rain (allocated for the highest quality; draw range trims it)
@@ -951,6 +956,10 @@ class Game implements EnemyHost {
 
 	private clearMission(): void {
 		this.missionId++;
+		this.heli.stop();
+		this.heliSound?.stop();
+		this.heliSound = null;
+		this.timeScale = 1;
 		this.enemies.clear();
 		for (const g of this.grenades) this.scene.remove(g.mesh);
 		for (const p of this.pickups) this.scene.remove(p.mesh);
@@ -1091,6 +1100,7 @@ class Game implements EnemyHost {
 		if (e.kind === 'warden') {
 			this.huntDone = true;
 			this.hud.showBanner('CONTRACT COMPLETE', 'WARDEN-9 DOWN', '+500 SALVAGE', 4);
+			this.timeScale = 0.2; // hit-stop: let the kill breathe
 			this.sound.objective(true);
 			this.explode(e.chest, false);
 			for (let k = 0; k < 4; k++) this.dropPickup(pick<PickupKind>(['ammo', 'plate', 'frag', 'med']), e.pos);
@@ -1351,7 +1361,7 @@ class Game implements EnemyHost {
 			this.world.setExtractionLive(true);
 			const id = this.missionId;
 			setTimeout(() => {
-				if (this.phase === 'playing' && id === this.missionId) this.hud.showBanner('ALL CONTRACTS COMPLETE', 'EXTRACTION UNLOCKED', 'REACH THE NORTHGATE HELIPAD', 4);
+				if (this.phase === 'playing' && id === this.missionId && this.extractState === 'open') this.hud.showBanner('ALL CONTRACTS COMPLETE', 'EXTRACTION UNLOCKED', 'REACH THE NORTHGATE HELIPAD', 4);
 			}, 2500);
 		}
 	}
@@ -1465,6 +1475,8 @@ class Game implements EnemyHost {
 			this.extractState = 'holding';
 			this.hud.showBanner('EXTRACTION', 'HOLD THE LZ', 'DUSTOFF INBOUND · 40 SECONDS', 3.5);
 			this.sound.alarm();
+			this.heli.start();
+			this.heliSound = this.sound.heliLoop();
 			this.waveT = 1;
 		}
 		if (this.extractState === 'holding') {
@@ -1712,6 +1724,12 @@ class Game implements EnemyHost {
 		for (const s of this.world.supplies) mapMarkers.push({ x: s.pos.x, z: s.pos.z, color: s.used ? '#6a6040' : '#7dff9a', label: 'SUPPLY' });
 		this.hud.drawMap(this.playerPos, this.yaw, dots, mapMarkers, BOUND);
 
+		const heading = ((-this.yaw % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+		this.hud.setCompass(
+			heading,
+			markers.map((m) => ({ bearing: Math.atan2(m.world.x - this.playerPos.x, -(m.world.z - this.playerPos.z)), color: m.color })),
+		);
+
 		const w = window.innerWidth;
 		const h = window.innerHeight;
 		this.hud.setMarkers(
@@ -1776,7 +1794,8 @@ class Game implements EnemyHost {
 	private frame = (now: number): void => {
 		requestAnimationFrame(this.frame);
 		const raw = (now - this.last) / 1000;
-		const dt = Math.min(0.05, raw);
+		this.timeScale = damp(this.timeScale, 1, 1.4, Math.min(0.05, raw));
+		const dt = Math.min(0.05, raw) * this.timeScale;
 		this.last = now;
 		const paused = this.phase === 'paused';
 		if (!paused) this.time += dt;
@@ -1850,6 +1869,23 @@ class Game implements EnemyHost {
 		this.moon.position.set(this.camera.position.x - 40, 90, this.camera.position.z - 60);
 		this.moon.target.position.set(this.camera.position.x, 0, this.camera.position.z);
 		this.world.update(this.time, dt, this.camera.position);
+		if (this.heli.flying) {
+			this.heli.update(dt, this.time, this.extractProgress);
+			this.heliSound?.set(this.heli.pos, 1);
+			// rotor wash kicks up spray once it's low
+			const h = this.heli.pos.y;
+			if (h < 16) {
+				const p = this.tmpV;
+				const v = this.tmpV2;
+				for (let k = 0; k < 3; k++) {
+					const a = Math.random() * Math.PI * 2;
+					const r = rand(1, 6);
+					p.set(this.heli.pos.x + Math.cos(a) * r, 0.3, this.heli.pos.z + Math.sin(a) * r);
+					v.set(Math.cos(a) * rand(4, 9), rand(0.3, 1.2), Math.sin(a) * rand(4, 9));
+					this.smoke.emit(p, v, rand(0.8, 1.5), 0.7, this.tmpC.setHex(0x3a3f48), { grow: 2, alpha: 0.35 * (1 - h / 16), drag: 1.2 });
+				}
+			}
+		}
 		this.updateLightning(dt);
 		this.updateAmbient();
 		this.glow.update(dt);
@@ -1867,6 +1903,7 @@ class Game implements EnemyHost {
 		u.uTime.value = this.time;
 		u.uHurt.value = Math.min(1, this.hurtFlash + (this.phase === 'playing' && this.hp < 35 ? 0.4 : 0));
 		u.uFlash.value = this.flashAmt * 0.25;
+		u.uRain.value = this.phase === 'menu' ? 0.35 : clamp(0.15 + this.pitch * 0.9, 0, 0.8);
 		this.vmPass.enabled = (this.phase === 'playing' || this.phase === 'paused') && this.hp > 0;
 		this.composer.render(dt);
 	};

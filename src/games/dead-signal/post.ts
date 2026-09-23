@@ -14,6 +14,7 @@ export const GradeShader = {
 		uGrain: { value: 0.045 },
 		uVignette: { value: 0.42 },
 		uFlash: { value: 0 },
+		uRain: { value: 0 },
 		uResolution: { value: new THREE.Vector2(1, 1) },
 	},
 	vertexShader: /* glsl */ `
@@ -30,6 +31,7 @@ export const GradeShader = {
 		uniform float uGrain;
 		uniform float uVignette;
 		uniform float uFlash;
+		uniform float uRain;
 		uniform vec2 uResolution;
 		varying vec2 vUv;
 
@@ -39,14 +41,35 @@ export const GradeShader = {
 			return fract(p.x * p.y);
 		}
 
+		// rain beading on the lens: sparse drops that refract and slowly slide
+		vec2 lensDrops(vec2 uv, float t) {
+			vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
+			vec2 offs = vec2(0.0);
+			for (int layer = 0; layer < 2; layer++) {
+				float sc = layer == 0 ? 5.0 : 9.0;
+				vec2 p = uv * aspect * sc + float(layer) * 13.1;
+				vec2 id = floor(p);
+				vec2 f = fract(p) - 0.5;
+				float h = hash(id);
+				float life = fract(t * (0.08 + 0.05 * h) + h * 7.0);
+				vec2 ctr = vec2(hash(id + 3.1) - 0.5, (hash(id + 7.7) - 0.5) + 0.35 - life * 0.7) * 0.6;
+				float r = (layer == 0 ? 0.16 : 0.1) * (0.6 + 0.4 * hash(id + 1.3));
+				vec2 d = f - ctr;
+				float m = smoothstep(r, r * 0.55, length(d)) * step(0.6, h) * smoothstep(1.0, 0.6, life);
+				offs += d * m * 0.9 / sc;
+			}
+			return offs;
+		}
+
 		void main() {
-			vec2 c = vUv - 0.5;
+			vec2 uv = vUv + lensDrops(vUv, uTime) * uRain;
+			vec2 c = uv - 0.5;
 			float r2 = dot(c, c);
 			float ab = uAberration * (1.0 + uHurt * 4.0) * r2 * 4.0;
 			vec3 col;
-			col.r = texture2D(tDiffuse, vUv + c * ab).r;
-			col.g = texture2D(tDiffuse, vUv).g;
-			col.b = texture2D(tDiffuse, vUv - c * ab).b;
+			col.r = texture2D(tDiffuse, uv + c * ab).r;
+			col.g = texture2D(tDiffuse, uv).g;
+			col.b = texture2D(tDiffuse, uv - c * ab).b;
 
 			// split toning: cool shadows, warm highlights
 			float l = dot(col, vec3(0.2126, 0.7152, 0.0722));

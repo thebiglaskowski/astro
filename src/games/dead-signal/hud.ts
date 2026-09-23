@@ -120,6 +120,14 @@ export const CSS = /* css */ `
 .ds-title .ds-btn{margin-left:0}
 .ds-title .ds-menu h1{font-size:clamp(48px,8vw,112px)}
 .ds-title .ds-tag{font-size:9px;letter-spacing:.4em;color:#ff4a3a;margin-bottom:10px}
+.ds-compass{position:absolute;left:50%;top:10px;transform:translateX(-50%);width:440px;max-width:44vw;height:22px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
+.ds-compass span{position:absolute;top:3px;transform:translateX(-50%);font-size:10px;letter-spacing:.1em;color:#aab3bc}
+.ds-compass span.major{color:#eef1f4;font-weight:600}
+.ds-compass span.tick{top:6px;width:1px;height:6px;background:rgba(220,230,240,.3);font-size:0}
+.ds-compass span.obj{top:0;width:8px;height:8px;border:2px solid currentColor;transform:translateX(-50%) rotate(45deg)}
+.ds-compass:after{content:"";position:absolute;left:50%;top:15px;width:0;height:0;border:4px solid transparent;border-bottom-color:#e3c15a;transform:translateX(-50%)}
+.ds-boss{top:40px!important}
 @media (max-width:760px){.ds-keys{display:none}.ds-mission{width:210px;transform:scale(.9);transform-origin:0 0}.ds-map canvas{width:110px;height:110px}.ds-banner .h{font-size:40px}}
 `;
 
@@ -177,6 +185,7 @@ export class Hud {
 	private toast: HTMLElement;
 	private markers: HTMLElement;
 	private feedBox: HTMLElement;
+	private compass: HTMLElement;
 	private fps: HTMLElement;
 	private hitT = 0;
 	private bannerT = 0;
@@ -257,6 +266,7 @@ export class Hud {
 		for (let k = 0; k < 6; k++) this.dmgArcs.push(el('i', '', dmg));
 
 		this.feedBox = el('div', 'ds-feed', hud);
+		this.compass = el('div', 'ds-compass', hud);
 		this.fps = el('div', 'ds-fps ds-hidden', hud);
 		this.fullMap = el('div', 'ds-fullmap ds-hidden', root);
 		this.fullCanvas = el('canvas', '', this.fullMap);
@@ -439,6 +449,37 @@ export class Hud {
 	showBanner(kicker: string, head: string, sub = '', dur = 3): void {
 		this.banner.innerHTML = `<div class="k">${kicker}</div><div class="h">${head}</div><div class="s">${sub}</div>`;
 		this.bannerT = dur;
+	}
+
+	/**
+	 * Heading strip. `heading` is the camera yaw converted to a compass bearing
+	 * (0 = north/−z, clockwise); markers are world bearings of objectives.
+	 */
+	setCompass(heading: number, markers: { bearing: number; color: string }[]): void {
+		const W = this.compass.clientWidth || 440;
+		const span = Math.PI * 0.75; // visible arc
+		const parts: string[] = [];
+		const names = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+		const place = (b: number): number | null => {
+			let d = b - heading;
+			d = Math.atan2(Math.sin(d), Math.cos(d));
+			if (Math.abs(d) > span / 2) return null;
+			return W / 2 + (d / span) * W;
+		};
+		for (let k = 0; k < 24; k++) {
+			const b = (k / 24) * Math.PI * 2;
+			const x = place(b);
+			if (x === null) continue;
+			if (k % 3 === 0) {
+				const n = names[k / 3];
+				parts.push(`<span class="${n.length === 1 ? 'major' : ''}" style="left:${x.toFixed(1)}px">${n}</span>`);
+			} else parts.push(`<span class="tick" style="left:${x.toFixed(1)}px"></span>`);
+		}
+		for (const m of markers) {
+			const x = place(m.bearing);
+			if (x !== null) parts.push(`<span class="obj" style="left:${x.toFixed(1)}px;color:${m.color}"></span>`);
+		}
+		this.compass.innerHTML = parts.join('');
 	}
 
 	/** Kill feed line; fades out after a few seconds. */
