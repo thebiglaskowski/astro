@@ -129,6 +129,14 @@ export default defineConfig({
     build: {
         inlineStylesheets: 'always',
     },
+    vite: {
+        build: {
+            // /games/dead-signal/ ships three.js (~600 kB minified on its own,
+            // ~170 kB gzipped) as one chunk that only that page loads. 700 kB
+            // clears it while still flagging anything else that balloons.
+            chunkSizeWarningLimit: 700,
+        },
+    },
     integrations: [
         mdx(),
         sitemap(),
