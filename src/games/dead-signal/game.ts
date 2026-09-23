@@ -1077,6 +1077,7 @@ class Game implements EnemyHost {
 		this.sound.hurt();
 		if (this.hp <= 0) {
 			this.hp = 0;
+			this.timeScale = 0.3; // the world slows as you go down
 			this.endScreen('dead');
 		}
 	}
