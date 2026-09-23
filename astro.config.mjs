@@ -123,11 +123,30 @@ function rehypeExternalLinksNewTab() {
 export default defineConfig({
     site: SITE,
     trailingSlash: 'always',
+    // Astro 7 defaults to JSX whitespace rules ('jsx'), which drop the space
+    // where prose wraps onto a new line before an inline element — "it is\n
+    // <strong>X</strong>" renders as "it isX". The pages here are prose-heavy
+    // templates, so keep the HTML-aware compression Astro 6 used.
+    compressHTML: true,
     markdown: {
         processor: unified({ rehypePlugins: [rehypeFramePostImages, rehypeExternalLinksNewTab] }),
     },
     build: {
         inlineStylesheets: 'always',
+    },
+    vite: {
+        build: {
+            rolldownOptions: {
+                // Astro 7 emits a `"use astro:head-inject"` marker at the top of
+                // the propagated-assets module it generates for each MDX post.
+                // Nothing reads it back, so Rolldown dropping it is harmless —
+                // silence only that exact directive, not directive warnings at large.
+                onLog(level, log, handler) {
+                    if (log.code === 'MODULE_LEVEL_DIRECTIVE' && log.message.includes('use astro:head-inject')) return;
+                    handler(level, log);
+                },
+            },
+        },
     },
     integrations: [
         mdx(),
