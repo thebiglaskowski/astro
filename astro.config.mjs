@@ -166,7 +166,8 @@ export default defineConfig({
     },
     integrations: [
         mdx(),
-        sitemap(),
+        // /games/ is personal and unlinked — keep it out of search results.
+        sitemap({ filter: (page) => !page.includes('/games/') }),
         partytown({
             config: {
                 forward: ['dataLayer.push'],
