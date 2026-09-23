@@ -128,6 +128,8 @@ export const CSS = /* css */ `
 .ds-compass span.obj{top:0;width:8px;height:8px;border:2px solid currentColor;transform:translateX(-50%) rotate(45deg)}
 .ds-compass:after{content:"";position:absolute;left:50%;top:15px;width:0;height:0;border:4px solid transparent;border-bottom-color:#e3c15a;transform:translateX(-50%)}
 .ds-boss{top:40px!important}
+.ds-padfocus{outline:2px solid #e3c15a!important;outline-offset:2px}
+.ds-set.ds-padfocus{outline-offset:6px}
 @media (max-width:760px){.ds-keys{display:none}.ds-mission{width:210px;transform:scale(.9);transform-origin:0 0}.ds-map canvas{width:110px;height:110px}.ds-banner .h{font-size:40px}}
 `;
 
@@ -185,6 +187,8 @@ export class Hud {
 	private toast: HTMLElement;
 	private markers: HTMLElement;
 	private feedBox: HTMLElement;
+	private keysEl: HTMLElement;
+	private hintsPad: boolean | null = null;
 	private compass: HTMLElement;
 	private fps: HTMLElement;
 	private hitT = 0;
@@ -230,28 +234,8 @@ export class Hud {
 		this.wAmmo = el('div', 'a', wep);
 		this.wName = el('div', 'n', wep);
 
-		el(
-			'div',
-			'ds-keys ds-panel',
-			hud,
-			[
-				['WASD', 'move'],
-				['SHIFT', 'sprint'],
-				['C', 'crouch'],
-				['SPACE', 'jump'],
-				['LMB', 'fire'],
-				['RMB', 'aim'],
-				['R', 'reload'],
-				['1/2', 'switch'],
-				['E', 'interact'],
-				['G', 'grenade'],
-				['F', 'plate'],
-				['M', 'map'],
-				['ESC', 'pause'],
-			]
-				.map(([k, v]) => `<span><kbd>${k}</kbd>${v}</span>`)
-				.join(''),
-		);
+		this.keysEl = el('div', 'ds-keys ds-panel', hud);
+		this.setInputHints(false);
 
 		this.cross = el('div', 'ds-cross', hud, '<i></i><i></i><i></i><i></i><b></b>');
 		this.hit = el('div', 'ds-hit', hud);
@@ -407,7 +391,8 @@ export class Hud {
 		this.hp.style.background = hp < 35 ? '#ff5a4a' : '#e8edf2';
 		this.armor.style.width = `${armor}%`;
 		this.salvage.innerHTML = `◆ ${salvage}${gained ? `<small>+${gained}</small>` : ''}`;
-		this.kit.innerHTML = `<span><b>${plates}</b> PLATES [F]</span><span><b>${frags}</b> FRAG [G]</span>`;
+		const [pk, gk] = this.hintsPad ? ['↑', 'LB'] : ['F', 'G'];
+		this.kit.innerHTML = `<span><b>${plates}</b> PLATES [${pk}]</span><span><b>${frags}</b> FRAG [${gk}]</span>`;
 	}
 
 	private weaponKey = '';
@@ -482,6 +467,47 @@ export class Hud {
 		this.compass.innerHTML = parts.join('');
 	}
 
+	/** Swap the bottom control strip between keyboard and controller glyphs. */
+	setInputHints(pad: boolean): void {
+		if (pad === this.hintsPad) return;
+		this.hintsPad = pad;
+		this.vitalsKey = ''; // re-render the kit line with the right glyphs
+		const rows = pad
+			? [
+					['LS', 'move'],
+					['L3', 'sprint'],
+					['B', 'crouch'],
+					['A', 'jump'],
+					['RT', 'fire'],
+					['LT', 'aim'],
+					['X', 'reload / use'],
+					['Y', 'switch'],
+					['RB', 'melee'],
+					['LB', 'grenade'],
+					['↑', 'plate'],
+					['↓', 'light'],
+					['VIEW', 'map'],
+					['MENU', 'pause'],
+				]
+			: [
+					['WASD', 'move'],
+					['SHIFT', 'sprint'],
+					['C', 'crouch'],
+					['SPACE', 'jump'],
+					['LMB', 'fire'],
+					['RMB', 'aim'],
+					['R', 'reload'],
+					['1/2', 'switch'],
+					['V', 'melee'],
+					['E', 'interact'],
+					['G', 'grenade'],
+					['F', 'plate'],
+					['M', 'map'],
+					['ESC', 'pause'],
+				];
+		this.keysEl.innerHTML = rows.map(([k, v]) => `<span><kbd>${k}</kbd>${v}</span>`).join('');
+	}
+
 	/** Kill feed line; fades out after a few seconds. */
 	feed(html: string): void {
 		const line = el('div', '', this.feedBox, html);
@@ -493,6 +519,11 @@ export class Hud {
 	setFps(fps: number | null, scale: number): void {
 		this.fps.classList.toggle('ds-hidden', fps === null);
 		if (fps !== null) this.fps.textContent = `${fps} FPS · ${Math.round(scale * 100)}% RES`;
+	}
+
+	clearBanner(): void {
+		this.bannerT = 0;
+		this.banner.style.opacity = '0';
 	}
 
 	showToast(text: string): void {

@@ -123,6 +123,9 @@ export class Enemy {
 	private lungeT = 0;
 	private lungeCd = rand(2, 4);
 	private wander = new THREE.Vector3();
+	/** Optional leash: idle wandering stays within `homeRadius` of this point. */
+	home: THREE.Vector3 | null = null;
+	homeRadius = 12;
 	private wanderTimer = 0;
 	private knock = new THREE.Vector3();
 	private headYaw = 0;
@@ -193,7 +196,12 @@ export class Enemy {
 		};
 		if (this.kind === 'warden') return; // the boss collapses whole
 		if (headshot || explosive || Math.random() < 0.25) fling(this.rig.head, explosive ? 9 : 5, 0.14);
-		if (explosive || Math.random() < 0.35) fling(this.rig.elbows[Math.random() < 0.5 ? 0 : 1], explosive ? 8 : 3, 0.06);
+		if (explosive || Math.random() < 0.35) {
+			const k = Math.random() < 0.5 ? 0 : 1;
+			// the cannon arm is one rigid piece hung off the shoulder, not the elbow
+			const limb = k === 1 && this.spec.palette.cannon ? this.rig.shoulders[1] : this.rig.elbows[k];
+			fling(limb, explosive ? 8 : 3, 0.06);
+		}
 		if (explosive && Math.random() < 0.6) fling(this.rig.knees[Math.random() < 0.5 ? 0 : 1], 6, 0.08);
 		this.rig.eyeMat.color.setHex(0x110000);
 	}
@@ -245,7 +253,7 @@ export class Enemy {
 		this.losTimer -= dt;
 		if (this.losTimer <= 0) {
 			this.losTimer = 0.3;
-			this.hasLos = dist < s.sight && host.world.hasLineOfSight(this.chest, host.playerEye);
+			this.hasLos = host.playerAlive() && dist < s.sight && host.world.hasLineOfSight(this.chest, host.playerEye);
 			if (this.hasLos && dist < s.sight * 0.8) this.alert(host);
 		}
 		if (!host.playerAlive()) {
@@ -297,7 +305,9 @@ export class Enemy {
 			this.wanderTimer -= dt;
 			if (this.wanderTimer <= 0) {
 				this.wanderTimer = rand(3, 7);
-				this.wander.set(this.pos.x + rand(-12, 12), 0, this.pos.z + rand(-12, 12));
+				const c = this.home ?? this.pos;
+				const r = this.home ? this.homeRadius : 12;
+				this.wander.set(c.x + rand(-r, r), 0, c.z + rand(-r, r));
 			}
 			const w = new THREE.Vector3().subVectors(this.wander, this.pos).setY(0);
 			if (w.length() > 1) {

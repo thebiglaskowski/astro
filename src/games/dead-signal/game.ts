@@ -12,6 +12,7 @@ import { type Enemy, type EnemyHost, type EnemyKind, EnemyManager, type RobotSfx
 import { Decals, PointFX, Streaks, smokeTexture, sparkTexture } from './fx';
 import { Helicopter } from './heli';
 import { Hud, type MapMarker, type ObjectiveView } from './hud';
+import { BTN, Pad } from './pad';
 import { GradeShader } from './post';
 import { clamp, damp, formatClock, pick, rand, wrapAngle } from './util';
 import { WEAPONS, type WeaponId, Viewmodel } from './weapons';
@@ -306,6 +307,12 @@ class Game implements EnemyHost {
 	private readonly tmpV = new THREE.Vector3();
 	private readonly tmpV2 = new THREE.Vector3();
 	private readonly tmpC = new THREE.Color();
+	private readonly pad = new Pad();
+	private padCrouch = false;
+	private padSprint = false;
+	private padTrigger = false;
+	private padFocus = 0;
+	private padOverlay: Element | null = null;
 	private heli: Helicopter;
 	private heliSound: { set(at: THREE.Vector3, level: number): void; stop(): void } | null = null;
 	private timeScale = 1;
@@ -570,6 +577,7 @@ class Game implements EnemyHost {
 	private bindInput(root: HTMLElement): void {
 		const canvas = this.renderer.domElement;
 		document.addEventListener('keydown', (e) => {
+			this.pad.active = false;
 			if (this.phase !== 'playing') return;
 			if (['Space', 'Tab', 'KeyF'].includes(e.code)) e.preventDefault();
 			if (e.code === 'Escape') {
@@ -612,7 +620,10 @@ class Game implements EnemyHost {
 			{ passive: false },
 		);
 		root.addEventListener('contextmenu', (e) => e.preventDefault());
+		document.addEventListener('mousedown', () => (this.pad.active = false));
+		window.addEventListener('gamepadconnected', () => this.hud.showToast('CONTROLLER CONNECTED'));
 		document.addEventListener('mousemove', (e) => {
+			if (Math.abs(e.movementX) + Math.abs(e.movementY) > 3) this.pad.active = false;
 			if (this.phase !== 'playing') return;
 			if (!this.locked && !this.lockFailed) return;
 			// Chrome can report one huge bogus delta right after pointer lock engages.
@@ -634,6 +645,7 @@ class Game implements EnemyHost {
 		document.addEventListener('pointerlockerror', () => {
 			// Chrome refuses a re-lock within ~1s of the user pressing Esc; that is
 			// not a real failure, so only fall back to free-look after repeats.
+			if (this.pad.active) return; // controller players don't need the mouse captured
 			this.lockErrors++;
 			if (this.lockErrors >= 3) this.lockFailed = true;
 			else if (this.phase === 'playing') this.pause();
@@ -738,6 +750,8 @@ class Game implements EnemyHost {
 		for (const [k, x, z] of spots) {
 			const e = this.enemies.spawn(k, new THREE.Vector3(x, 0, z), 1);
 			e.facing = rand(-0.4, 0.4);
+			e.home = new THREE.Vector3(x, 0, z);
+			e.homeRadius = 1.5;
 		}
 	}
 
@@ -796,25 +810,28 @@ class Game implements EnemyHost {
 
 	private showControls(): void {
 		const rows = [
-			['WASD', 'Move'],
-			['Mouse', 'Look'],
-			['Shift', 'Sprint'],
-			['C / Ctrl', 'Crouch (hold)'],
-			['Space', 'Jump'],
-			['LMB / RMB', 'Fire / Aim down sights'],
-			['R', 'Reload'],
-			['1 · 2 · Q · Wheel', 'Rifle · Pistol · Swap'],
-			['V / Mouse 3', 'Melee strike'],
-			['T', 'Flashlight'],
-			['E', 'Interact / Resupply'],
-			['G', 'Frag grenade'],
-			['F', 'Apply armor plate'],
-			['M', 'Tactical map (hold)'],
-			['Esc', 'Pause'],
+			['Move', 'WASD', 'Left stick'],
+			['Look', 'Mouse', 'Right stick'],
+			['Sprint', 'Shift', 'L3 (click)'],
+			['Crouch', 'C / Ctrl (hold)', 'B (toggle)'],
+			['Jump', 'Space', 'A'],
+			['Fire / Aim', 'LMB / RMB', 'RT / LT'],
+			['Reload', 'R', 'X'],
+			['Swap weapon', '1 · 2 · Q · Wheel', 'Y / D-pad ← →'],
+			['Melee strike', 'V / Mouse 3', 'RB / R3'],
+			['Flashlight', 'T', 'D-pad ↓'],
+			['Interact / Resupply', 'E', 'X'],
+			['Frag grenade', 'G', 'LB'],
+			['Armor plate', 'F', 'D-pad ↑'],
+			['Tactical map', 'M (hold)', 'View (hold)'],
+			['Pause', 'Esc', 'Menu'],
 		];
 		const o = this.hud.overlay(`
 			<h3>CONTROLS</h3>
-			<div class="ds-stats">${rows.map(([k, v]) => `<span>${v}</span><b>${k}</b>`).join('')}</div>
+			<div class="ds-stats" style="grid-template-columns:auto auto auto">
+				<span></span><b style="color:#8a939d">KEYBOARD / MOUSE</b><b style="color:#8a939d">CONTROLLER</b>
+				${rows.map(([a, k, g]) => `<span>${a}</span><b>${k}</b><b>${g}</b>`).join('')}
+			</div>
 			<button class="ds-btn" data-act="back">Back</button>`);
 		this.bindButtons(o, { back: () => this.showMenu() });
 	}
@@ -878,6 +895,7 @@ class Game implements EnemyHost {
 		this.keys.clear();
 		this.mouseDown = this.rightDown = false;
 		this.setMap(false);
+		this.hud.clearBanner();
 		if (document.pointerLockElement) document.exitPointerLock();
 		this.showPause();
 	}
@@ -905,7 +923,7 @@ class Game implements EnemyHost {
 		this.hud.clearOverlay();
 		this.phase = 'playing';
 		this.last = performance.now();
-		this.requestLock();
+		if (!this.pad.active) this.requestLock();
 	}
 
 	private endScreen(kind: 'dead' | 'won' | 'failed'): void {
@@ -1031,7 +1049,7 @@ class Game implements EnemyHost {
 		this.phase = 'playing';
 		this.last = performance.now();
 		this.hud.showBanner('OPERATION NIGHTFALL', 'DEPLOYED', `CHECKPOINT 3 · ${this.difficulty.label.toUpperCase()}`, 3.5);
-		this.requestLock();
+		if (!this.pad.active) this.requestLock();
 	}
 
 	private spawnEnemy(kind: EnemyKind, at: THREE.Vector3, alerted = false): Enemy {
@@ -1075,6 +1093,7 @@ class Game implements EnemyHost {
 		const fwd = Math.atan2(-Math.sin(this.yaw), -Math.cos(this.yaw));
 		this.hud.damageFrom(-wrapAngle(bearing - fwd));
 		this.sound.hurt();
+		this.pad.rumble(0.7, 0.5, 200);
 		if (this.hp <= 0) {
 			this.hp = 0;
 			this.timeScale = 0.3; // the world slows as you go down
@@ -1159,6 +1178,7 @@ class Game implements EnemyHost {
 		this.stats.shots++;
 		if (spec.id === 'rifle') this.sound.rifle();
 		else this.sound.pistol();
+		this.pad.rumble(spec.id === 'rifle' ? 0.12 : 0.25, 0.4, 70);
 		if (Math.random() < 0.35) this.sound.casing();
 		this.enemies.noise(this.playerPos, 70);
 
@@ -1258,6 +1278,7 @@ class Game implements EnemyHost {
 		this.flashLight.intensity = 600;
 		const d = at.distanceTo(this.playerPos);
 		this.sound.explosion(at);
+		this.pad.rumble(Math.max(0, 1.2 - d / 30), Math.max(0, 1 - d / 40), 450);
 		this.shake = Math.min(1.6, this.shake + Math.max(0, 1.3 - d / 25));
 		if (!damages) return;
 		this.enemies.noise(at, 90);
@@ -1367,8 +1388,100 @@ class Game implements EnemyHost {
 		}
 	}
 
+	private get aiming(): boolean {
+		return this.rightDown || this.pad.lt > 0.35;
+	}
+
+	private get triggerHeld(): boolean {
+		return this.mouseDown || this.padTrigger;
+	}
+
 	private isSprinting(): boolean {
-		return this.keys.has('ShiftLeft') && this.keys.has('KeyW') && !this.rightDown && !this.mouseDown && this.crouchT < 0.5 && !this.vm.busy;
+		const wants = (this.keys.has('ShiftLeft') && this.keys.has('KeyW')) || (this.padSprint && this.pad.moveY < -0.4);
+		return wants && !this.aiming && !this.triggerHeld && this.crouchT < 0.5 && !this.vm.busy;
+	}
+
+	/** Controller: gameplay bindings while playing, focus navigation on menus. */
+	private handlePad(dt: number): void {
+		const p = this.pad;
+		this.hud.setInputHints(p.active && p.connected);
+		if (!p.connected) {
+			this.padTrigger = false;
+			return;
+		}
+		if (this.phase === 'playing') {
+			// look: expo curve for fine aim, slower while aiming, gentle slowdown over targets
+			const curve = (v: number) => Math.sign(v) * Math.pow(Math.abs(v), 1.8);
+			const rx = curve(p.lookX);
+			const ry = curve(p.lookY);
+			if (rx || ry) {
+				let assist = 1;
+				const hit = this.enemies.raycast(this.camera.position, this.forward(this.tmpV), 70);
+				if (hit) assist = 0.5;
+				const rate = 3.4 * this.settings.sensitivity * (1 - this.vm.adsT * 0.5) * assist;
+				this.yaw -= rx * rate * dt;
+				this.pitch = clamp(this.pitch - ry * rate * 0.72 * dt, -1.5, 1.5);
+				this.lookDX += rx * dt * 700;
+				this.lookDY += ry * dt * 500;
+			}
+			const trig = p.rt > 0.35;
+			if (trig && !this.padTrigger) this.firePressed = true;
+			this.padTrigger = trig;
+			if (p.pressed(BTN.L3)) this.padSprint = !this.padSprint;
+			if (this.padSprint && p.moveY > -0.2) this.padSprint = false;
+			if (p.pressed(BTN.B)) this.padCrouch = !this.padCrouch;
+			if (p.pressed(BTN.A)) this.onKey('Space');
+			if (p.pressed(BTN.X)) this.onKey(this.interactable() ? 'KeyE' : 'KeyR');
+			if (p.pressed(BTN.Y) || p.pressed(BTN.LEFT) || p.pressed(BTN.RIGHT)) this.onKey('KeyQ');
+			if (p.pressed(BTN.RB) || p.pressed(BTN.R3)) this.doMelee();
+			if (p.pressed(BTN.LB)) this.onKey('KeyG');
+			if (p.pressed(BTN.UP)) this.onKey('KeyF');
+			if (p.pressed(BTN.DOWN)) this.onKey('KeyT');
+			if (p.pressed(BTN.VIEW)) this.setMap(true);
+			if (p.released(BTN.VIEW)) this.setMap(false);
+			if (p.pressed(BTN.MENU)) this.pause();
+			return;
+		}
+		this.padTrigger = false;
+		const overlay = this.hud.root.querySelector('[data-overlay]');
+		if (!overlay) return;
+		const items = Array.from(overlay.querySelectorAll<HTMLElement>('button.ds-btn, .ds-seg, label.ds-set'));
+		if (!items.length) return;
+		if (overlay !== this.padOverlay) {
+			this.padOverlay = overlay;
+			const primary = items.findIndex((el) => el.classList.contains('primary'));
+			this.padFocus = Math.max(0, primary);
+		}
+		const ny = p.navY();
+		if (ny) {
+			this.padFocus = (this.padFocus + ny + items.length) % items.length;
+			this.sound.ui();
+		}
+		const cur = items[Math.min(this.padFocus, items.length - 1)];
+		items.forEach((el) => el.classList.toggle('ds-padfocus', el === cur && p.active));
+		const nx = p.navX();
+		if (nx) {
+			const range = cur.querySelector<HTMLInputElement>('input[type=range]');
+			if (range) {
+				const step = Number(range.step) || 0.05;
+				const span = Number(range.max) - Number(range.min);
+				range.value = String(clamp(Number(range.value) + nx * Math.max(step, span / 20), Number(range.min), Number(range.max)));
+				range.dispatchEvent(new Event('input'));
+			} else if (cur.classList.contains('ds-seg')) {
+				const opts = Array.from(cur.querySelectorAll<HTMLButtonElement>('button'));
+				const on = opts.findIndex((b) => b.classList.contains('on'));
+				opts[clamp(on + nx, 0, opts.length - 1)]?.click();
+			}
+		}
+		if (p.pressed(BTN.A) && cur instanceof HTMLButtonElement) cur.click();
+		if (p.pressed(BTN.B) || (p.pressed(BTN.MENU) && this.phase === 'paused')) {
+			overlay.querySelector<HTMLButtonElement>('[data-act=back], [data-act=resume]')?.click();
+		}
+	}
+
+	/** Something within reach that X/E would use (so X can double as reload). */
+	private interactable(): boolean {
+		return (this.relayState === 'idle' && this.playerPos.distanceTo(this.world.relayPos) < 5) || this.nearestSupply() !== null;
 	}
 
 	private spawnNear(center: THREE.Vector3, minD: number, maxD: number, count: number, gunnerBias: number): void {
@@ -1382,15 +1495,17 @@ class Game implements EnemyHost {
 
 	private updatePlayer(dt: number): void {
 		const k = this.keys;
-		const crouch = k.has('KeyC') || k.has('ControlLeft');
+		const crouch = k.has('KeyC') || k.has('ControlLeft') || this.padCrouch;
 		this.crouchT = damp(this.crouchT, crouch ? 1 : 0, 12, dt);
 		const sprint = this.isSprinting();
-		const speed = crouch ? 2.4 : sprint ? 7.8 : this.rightDown ? 3.2 : 4.8;
-		const fx = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0);
-		const fz = (k.has('KeyS') ? 1 : 0) - (k.has('KeyW') ? 1 : 0);
+		const speed = crouch ? 2.4 : sprint ? 7.8 : this.aiming ? 3.2 : 4.8;
+		const fx = clamp((k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.pad.moveX, -1, 1);
+		const fz = clamp((k.has('KeyS') ? 1 : 0) - (k.has('KeyW') ? 1 : 0) + this.pad.moveY, -1, 1);
 		this.strafe = damp(this.strafe, fx, 10, dt);
 		const wish = new THREE.Vector3(fx, 0, fz);
-		if (wish.lengthSq() > 0) wish.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw).multiplyScalar(speed);
+		// analog sticks walk slower at partial tilt; keys are always full speed
+		const mag = Math.min(1, wish.length());
+		if (mag > 0) wish.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw).multiplyScalar(speed * mag);
 		const accel = this.onGround ? 12 : 2;
 		this.vel.x = damp(this.vel.x, wish.x, accel, dt);
 		this.vel.z = damp(this.vel.z, wish.z, accel, dt);
@@ -1756,8 +1871,9 @@ class Game implements EnemyHost {
 		let prompt: string | null = null;
 		let prog = 0;
 		const supply = this.nearestSupply();
-		if (this.relayState === 'idle' && this.playerPos.distanceTo(this.world.relayPos) < 5) prompt = '<kbd>E</kbd>ACTIVATE UPLINK RELAY';
-		else if (supply) prompt = supply.used ? `<kbd>E</kbd>RESUPPLY · ◆ ${RESUPPLY_COST}` : '<kbd>E</kbd>RESUPPLY · FREE';
+		const use = this.pad.active ? 'X' : 'E';
+		if (this.relayState === 'idle' && this.playerPos.distanceTo(this.world.relayPos) < 5) prompt = `<kbd>${use}</kbd>ACTIVATE UPLINK RELAY`;
+		else if (supply) prompt = supply.used ? `<kbd>${use}</kbd>RESUPPLY · ◆ ${RESUPPLY_COST}` : `<kbd>${use}</kbd>RESUPPLY · FREE`;
 		else if (this.platingT > 0) {
 			prompt = 'APPLYING PLATE';
 			prog = 1 - this.platingT / 1.1;
@@ -1794,17 +1910,22 @@ class Game implements EnemyHost {
 
 	private frame = (now: number): void => {
 		requestAnimationFrame(this.frame);
-		const raw = (now - this.last) / 1000;
-		this.timeScale = damp(this.timeScale, 1, 1.4, Math.min(0.05, raw));
-		const dt = Math.min(0.05, raw) * this.timeScale;
+		// rAF timestamps can predate a `last` set inside an input handler: never step backwards
+		const raw = Math.max(0, (now - this.last) / 1000);
 		this.last = now;
 		const paused = this.phase === 'paused';
+		if (!paused) this.timeScale = damp(this.timeScale, 1, 1.4, Math.min(0.05, raw));
+		const dt = Math.min(0.05, raw) * this.timeScale;
+		/** Simulation step: zero while paused so effects, the gunship and HUD timers freeze. */
+		const simDt = paused ? 0 : dt;
 		if (!paused) this.time += dt;
 		this.updatePerf(Math.min(0.25, raw));
+		this.pad.poll(Math.min(0.05, raw));
+		this.handlePad(Math.min(0.05, raw));
 
 		if (this.phase === 'playing') {
 			this.updatePlayer(dt);
-			if (this.vm.gun.spec.auto ? this.mouseDown : this.firePressed) this.fire();
+			if (this.vm.gun.spec.auto ? this.triggerHeld : this.firePressed) this.fire();
 			this.firePressed = false;
 			this.enemies.update(dt, this);
 			// the player can die mid-frame; don't let a win/fail overwrite it
@@ -1849,7 +1970,7 @@ class Game implements EnemyHost {
 		this.cameraPos.copy(this.camera.position);
 
 		if (!paused) this.vm.update(dt, {
-			ads: this.rightDown && this.phase === 'playing',
+			ads: this.aiming && this.phase === 'playing',
 			sprint: this.isSprinting(),
 			speed: Math.hypot(this.vel.x, this.vel.z),
 			strafe: this.strafe,
@@ -1869,8 +1990,8 @@ class Game implements EnemyHost {
 
 		this.moon.position.set(this.camera.position.x - 40, 90, this.camera.position.z - 60);
 		this.moon.target.position.set(this.camera.position.x, 0, this.camera.position.z);
-		this.world.update(this.time, dt, this.camera.position);
-		if (this.heli.flying) {
+		this.world.update(this.time, simDt, this.camera.position);
+		if (this.heli.flying && !paused) {
 			this.heli.update(dt, this.time, this.extractProgress);
 			this.heliSound?.set(this.heli.pos, 1);
 			// rotor wash kicks up spray once it's low
@@ -1887,14 +2008,14 @@ class Game implements EnemyHost {
 				}
 			}
 		}
-		this.updateLightning(dt);
-		this.updateAmbient();
-		this.glow.update(dt);
-		this.smoke.update(dt);
-		this.chips.update(dt);
-		this.streaks.update(dt);
-		this.updateRain(dt);
-		if (this.phase === 'playing' || this.phase === 'paused') this.updateHud(dt);
+		this.updateLightning(simDt);
+		if (!paused) this.updateAmbient();
+		this.glow.update(simDt);
+		this.smoke.update(simDt);
+		this.chips.update(simDt);
+		this.streaks.update(simDt);
+		this.updateRain(simDt);
+		if (this.phase === 'playing' || this.phase === 'paused') this.updateHud(simDt);
 		this.sound.setListener(this.camera.position, this.forward());
 		this.sound.setHealth(this.phase === 'playing' ? this.hp : 100);
 		this.sound.tickMusic();
