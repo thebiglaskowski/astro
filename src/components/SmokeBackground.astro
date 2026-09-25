@@ -200,7 +200,12 @@
 
 	function start(canvas: HTMLCanvasElement) {
 		const gl = canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false });
-		if (!gl || !gl.getExtension('EXT_color_buffer_float')) return; // no renderable float textures: skip quietly
+		if (!gl) return off('WebGL2 is unavailable (hardware acceleration off or GPU blocklisted)');
+		// Either extension makes RGBA16F renderable; some Linux/Mesa drivers
+		// only expose the half-float one.
+		if (!gl.getExtension('EXT_color_buffer_float') && !gl.getExtension('EXT_color_buffer_half_float')) {
+			return off('the GPU cannot render to half-float textures');
+		}
 		gl.clearColor(0, 0, 0, 0);
 
 		const compile = (type: number, source: string) => {
@@ -488,18 +493,27 @@
 
 		resizeCanvas();
 		allocate();
+		console.info('[smoke] on — move the mouse');
+	}
+
+	// Say why the effect is off instead of failing silently; one line, once.
+	function off(reason: string) {
+		console.info(`[smoke] off: ${reason}`);
 	}
 
 	const canvas = document.getElementById('smoke');
-	const wanted =
-		matchMedia('(pointer: fine)').matches &&
-		!matchMedia('(prefers-reduced-motion: reduce)').matches;
-	if (canvas instanceof HTMLCanvasElement && wanted) {
+	if (!(canvas instanceof HTMLCanvasElement)) {
+		off('no #smoke canvas on this page');
+	} else if (!matchMedia('(pointer: fine)').matches) {
+		off('no fine pointer (touch device)');
+	} else if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		off('prefers-reduced-motion is set');
+	} else {
 		try {
 			start(canvas);
 		} catch (err) {
 			// A decorative background must never break the page.
-			console.error(err);
+			console.error('[smoke] off:', err);
 			canvas.remove();
 		}
 	}
