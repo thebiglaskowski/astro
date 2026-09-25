@@ -14,19 +14,19 @@
 | Component | Props | Purpose |
 |-----------|-------|---------|
 | `BaseHead` | `title`, `description`, `image?` | `<head>` setup: meta tags, OG, font preload |
-| `Header` | none | Glassmorphic sticky nav, social links (GitHub, X, LinkedIn, YouTube) |
+| `Header` | none | **Unused** — `BaseLayout.astro` inlines the nav; Header/Footer/HeaderLink/SocialIcon are orphaned |
 | `Footer` | none | Copyright year, about/blog/contact links, hairline top border |
 | `HeaderLink` | `href` + standard `<a>` attrs | Nav link with automatic `.active` class detection, oxblood active underline |
 | `FormattedDate` | `date: Date` | Renders `<time>` with `en-us` short month format |
 | `Gallery` | `images: string[]`, `columns?: number`, `title?`, `alts?: string[]` | GLightbox gallery grid with dark overlay |
-| `AutoGallery` | `postSlug`, `galleryName?`, `columns?`, `title?` | Wraps Gallery, auto-discovers images from `public/images/posts/{slug}/{galleryName}/` |
+| `AutoGallery` | `postSlug`, `galleryName?`, `columns?`, `title?` | Wraps Gallery, auto-discovers images from `src/assets/images/posts/{YYYY-MM-DD}/{galleryName}/` |
 | `ShareLinks` | `url`, `title` | Social share row (X, LinkedIn, Facebook) with inline SVG icons; opens in new tab |
 
 ## Gallery System
 
 - `Gallery.astro` initializes GLightbox per gallery instance with unique random IDs
 - No client-side dimension resolution needed (GLightbox handles this)
-- `AutoGallery.astro` reads the filesystem at build time using `fs.readdirSync` — only works during SSG build
+- `AutoGallery.astro` discovers images at build time via `import.meta.glob` over `src/assets/images/posts/**/gallery*/`, so they get Astro image optimization
 - Supported image formats: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`
 - Default grid: 3 columns, responsive to 2 columns at 768px, 1 column at 480px
 - Gallery items have a subtle scale + drop-shadow hover, with a `--steel` border accent
