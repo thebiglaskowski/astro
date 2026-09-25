@@ -1,6 +1,6 @@
 ---
 /**
- * Cursor-driven smoke behind every page: a small GPU fluid simulation
+ * Cursor-driven smoke behind the homepage feed: a small GPU fluid simulation
  * (stable fluids — advect, curl/vorticity, pressure projection) whose dye is
  * tinted paper-grey and brass and drawn onto a transparent canvas that sits
  * under the page content.
@@ -198,13 +198,21 @@
 		uniforms: Record<string, WebGLUniformLocation | null>;
 	}
 
-	function start(canvas: HTMLCanvasElement) {
+	interface Smoke {
+		setActive(on: boolean): void;
+	}
+
+	function start(canvas: HTMLCanvasElement): Smoke | undefined {
 		const gl = canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false });
-		if (!gl) return off('WebGL2 is unavailable (hardware acceleration off or GPU blocklisted)');
+		if (!gl) {
+			off('WebGL2 is unavailable (hardware acceleration off or GPU blocklisted)');
+			return undefined;
+		}
 		// Either extension makes RGBA16F renderable; some Linux/Mesa drivers
 		// only expose the half-float one.
 		if (!gl.getExtension('EXT_color_buffer_float') && !gl.getExtension('EXT_color_buffer_half_float')) {
-			return off('the GPU cannot render to half-float textures');
+			off('the GPU cannot render to half-float textures');
+			return undefined;
 		}
 		gl.clearColor(0, 0, 0, 0);
 
@@ -431,6 +439,7 @@
 
 		// ---- Loop ------------------------------------------------------------
 		let raf = 0;
+		let active = true;
 		let last = performance.now();
 
 		const frame = (now: number) => {
@@ -449,7 +458,7 @@
 			step(dt);
 			render();
 
-			if (performance.now() - lastMove < IDLE_MS && !document.hidden) {
+			if (active && performance.now() - lastMove < IDLE_MS && !document.hidden) {
 				raf = requestAnimationFrame(frame);
 			} else {
 				gl.clear(gl.COLOR_BUFFER_BIT); // idle: leave a clean, empty canvas
@@ -457,13 +466,13 @@
 		};
 
 		const wake = () => {
-			if (raf || document.hidden) return;
+			if (raf || !active || document.hidden) return;
 			last = performance.now();
 			raf = requestAnimationFrame(frame);
 		};
 
 		window.addEventListener('pointermove', (e) => {
-			if (e.pointerType !== 'mouse') return;
+			if (!active || e.pointerType !== 'mouse') return;
 			const x = e.clientX / window.innerWidth;
 			const y = 1 - e.clientY / window.innerHeight;
 			if (pointer.seen) {
@@ -494,6 +503,26 @@
 		resizeCanvas();
 		allocate();
 		console.info('[smoke] on — move the mouse');
+
+		return {
+			setActive(on: boolean) {
+				if (on === active) return;
+				active = on;
+				if (on) return;
+				// Leaving the homepage: stop drawing and wipe the fluid so it
+				// doesn't reappear half-faded on the way back.
+				if (raf) cancelAnimationFrame(raf);
+				raf = 0;
+				pointer.moved = false;
+				pointer.seen = false;
+				for (const f of [dye.read, dye.write, velocity.read, velocity.write, pressure.read, pressure.write]) {
+					gl.bindFramebuffer(gl.FRAMEBUFFER, f.fbo);
+					gl.clear(gl.COLOR_BUFFER_BIT);
+				}
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+				gl.clear(gl.COLOR_BUFFER_BIT);
+			},
+		};
 	}
 
 	// Say why the effect is off instead of failing silently; one line, once.
@@ -501,20 +530,41 @@
 		console.info(`[smoke] off: ${reason}`);
 	}
 
+	// Homepage feed only (/, /2/, /3/ …): on posts and other pages the smoke
+	// competes with reading. The canvas persists across ClientRouter swaps and
+	// this module runs once, so it is switched on and off per navigation; the
+	// GL context is only created on the first homepage visit.
+	const isFeed = (path: string) => path === '/' || (/^\/\d+\/$/.test(path) && path !== '/404/');
+
 	const canvas = document.getElementById('smoke');
+	let smoke: Smoke | undefined;
+	let usable = true;
+
 	if (!(canvas instanceof HTMLCanvasElement)) {
+		usable = false;
 		off('no #smoke canvas on this page');
 	} else if (!matchMedia('(pointer: fine)').matches) {
+		usable = false;
 		off('no fine pointer (touch device)');
 	} else if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		usable = false;
 		off('prefers-reduced-motion is set');
-	} else {
-		try {
-			start(canvas);
-		} catch (err) {
-			// A decorative background must never break the page.
-			console.error('[smoke] off:', err);
-			canvas.remove();
-		}
 	}
+
+	document.addEventListener('astro:page-load', () => {
+		if (!usable || !(canvas instanceof HTMLCanvasElement)) return;
+		const onFeed = isFeed(location.pathname);
+		if (onFeed && !smoke) {
+			try {
+				smoke = start(canvas);
+				if (!smoke) usable = false; // start() already logged why
+			} catch (err) {
+				// A decorative background must never break the page.
+				console.error('[smoke] off:', err);
+				canvas.remove();
+				usable = false;
+			}
+		}
+		smoke?.setActive(onFeed);
+	});
 </script>
