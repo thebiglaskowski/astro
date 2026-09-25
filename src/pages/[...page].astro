@@ -65,6 +65,29 @@ const websiteJsonLd = isFirstPage ? {
 
 const frameWidths = (w: number) => [480, 800, 1200].filter((x) => x < w).concat(Math.min(w, 1200));
 
+// Torn-paper edge for each homepage image: a clip-path polygon whose points
+// wander a little inside the frame. Seeded from the post id, so every post
+// gets its own tear and it stays identical from build to build.
+function tornEdge(seed: string): string {
+	let h = 2166136261;
+	for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+	const rand = () => {
+		h = Math.imul(h ^ (h >>> 15), 2246822507);
+		h = Math.imul(h ^ (h >>> 13), 3266489909);
+		return ((h ^= h >>> 16) >>> 0) / 4294967296;
+	};
+	const across = 36; // points along top/bottom
+	const down = 18;   // points along the sides
+	const depthY = 3.4; // max tear depth, % of height
+	const depthX = 1.8; // max tear depth, % of width
+	const pts: string[] = [];
+	for (let i = 0; i <= across; i++) pts.push(`${(i * 100 / across).toFixed(2)}% ${(rand() * depthY).toFixed(2)}%`);
+	for (let i = 1; i < down; i++) pts.push(`${(100 - rand() * depthX).toFixed(2)}% ${(i * 100 / down).toFixed(2)}%`);
+	for (let i = across; i >= 0; i--) pts.push(`${(i * 100 / across).toFixed(2)}% ${(100 - rand() * depthY).toFixed(2)}%`);
+	for (let i = down - 1; i > 0; i--) pts.push(`${(rand() * depthX).toFixed(2)}% ${(i * 100 / down).toFixed(2)}%`);
+	return `polygon(${pts.join(', ')})`;
+}
+
 // Site banner behind the page-1 hero. Same params feed the <Image> and the
 // preload, so the browser preloads exactly the variant it will display.
 const bannerWidths = [768, 1280, 1920, banner.width];
@@ -135,7 +158,7 @@ const bannerPreload = isFirstPage
 					</div>
 					<div class="chapter-body">
 						{it.post.data.heroImage && (
-							<a class="frame parallax frame-in" href={`/blog/${it.post.id}/`} tabindex="-1" aria-hidden="true">
+							<a class="frame parallax frame-in torn" href={`/blog/${it.post.id}/`} tabindex="-1" aria-hidden="true" style={`clip-path: ${tornEdge(it.post.id)}`}>
 								<Image
 									src={it.post.data.heroImage}
 									alt=""
@@ -290,6 +313,13 @@ const bannerPreload = isFirstPage
 		object-position: 38% 20%;
 		opacity: .85;
 	}
+	/* Fade the hero's image layers out at the bottom instead of ending on solid
+	   ink: the smoke canvas behind the page then continues under the hero with
+	   no seam where the hero stops. */
+	.home-hero :global(.hero-backdrop), .hero-shade {
+		-webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent);
+		mask-image: linear-gradient(to bottom, #000 78%, transparent);
+	}
 	.hero-shade {
 		position: absolute;
 		inset: 0;
@@ -402,6 +432,9 @@ const bannerPreload = isFirstPage
 	.chapter-date { display: flex; flex-direction: column; font-size: 13.5px; line-height: 1.7; color: var(--muted); }
 	.chapter-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 	.chapter-body { grid-column: 4 / span 9; display: flex; flex-direction: column; gap: 26px; }
+	/* Torn edge: the ragged outline comes from the inline clip-path (see
+	   tornEdge above). No corner radius or backdrop — the tear is the edge. */
+	.torn { border-radius: 0; background: transparent; }
 	.chapter-title { font-size: clamp(26px, 3.1vw, 44px); line-height: 1.1; }
 	.chapter-title a:hover { color: var(--text-bright); }
 	.chapter-desc {
@@ -519,13 +552,14 @@ const bannerPreload = isFirstPage
 				from { opacity: 0; transform: translateX(var(--slide)); }
 				to   { opacity: 1; transform: none; }
 			}
-			/* The image slides in from the right while it unveils (global keyframes) */
+			/* The image slides in from the right. No unveil here: it animates
+			   clip-path, which would overwrite the torn edge. */
 			.frame-in {
-				animation-name: slide-r, unveil;
-				animation-timing-function: cubic-bezier(.3, .6, .35, 1), linear;
-				animation-fill-mode: both, both;
-				animation-timeline: view(), view();
-				animation-range: entry 0% cover 45%, entry 0% cover 45%;
+				animation-name: slide-r;
+				animation-timing-function: cubic-bezier(.3, .6, .35, 1);
+				animation-fill-mode: both;
+				animation-timeline: view();
+				animation-range: entry 0% cover 45%;
 			}
 		}
 	}
