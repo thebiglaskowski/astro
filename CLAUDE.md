@@ -16,11 +16,13 @@
 
 | Technology | Purpose |
 |-----------|---------|
-| Astro 5 | Static site framework (SSG) |
+| Astro 7 | Static site framework (SSG), `ClientRouter` view transitions |
 | MDX | Blog posts with embedded components |
 | TypeScript (strict) | Type-safe frontmatter, component props |
 | GLightbox 3 | Lightbox gallery for image posts |
-| @fontsource-variable/inter | Self-hosted Inter variable font |
+| @fontsource-variable/newsreader + ibm-plex-sans | Self-hosted serif display + sans body |
+| Pagefind | Static search index, built after `astro build` |
+| three.js | Dead Signal browser game (`src/games/dead-signal/`) |
 | @astrojs/sitemap | Auto-generated sitemap |
 | @astrojs/rss | RSS feed generation |
 
@@ -30,32 +32,36 @@
 src/
 ├── components/       # Reusable Astro components
 │   ├── BaseHead.astro      # <head> meta, fonts, OG tags
-│   ├── Header.astro        # Sticky nav, social links (dark-only theme)
-│   ├── Footer.astro        # Footer with copyright + links
-│   ├── HeaderLink.astro    # Nav link with active state detection
 │   ├── FormattedDate.astro # Date formatting helper
-│   ├── SocialIcon.astro    # SVG social media icons
+│   ├── ShareLinks.astro    # Social share row on post pages
 │   ├── Gallery.astro       # GLightbox image gallery grid
-│   └── AutoGallery.astro   # Auto-discovers images from src/assets/ directory
+│   ├── AutoGallery.astro   # Auto-discovers images from src/assets/ directory
+│   └── Header / Footer / HeaderLink / SocialIcon .astro  # UNUSED — BaseLayout inlines chrome
 ├── content/
 │   └── blog/         # Markdown/MDX blog posts
+├── games/
+│   └── dead-signal/        # three.js game modules (rendered by pages/games/dead-signal.astro)
 ├── layouts/
-│   └── BlogPost.astro      # Blog post layout with hero image + prose
+│   ├── BaseLayout.astro    # Page chrome: running head, masthead, nav, Pagefind search, footer
+│   └── BlogPost.astro      # Blog post layout with hero plate + prose
 ├── lib/
-│   └── blog.ts             # Shared blog query utility (draft filter, sorting)
+│   └── blog.ts             # Blog queries (draft filter, sorting, tags, reading time, related)
 ├── pages/
-│   ├── index.astro         # Blog listing (homepage)
+│   ├── [...page].astro     # Homepage (lead story + TOC rail) and paginated archive
 │   ├── about.astro         # About page with profile + bio
+│   ├── resume.astro        # Resume
 │   ├── contact.astro       # Contact form (Formspree-backed)
 │   ├── 404.astro           # Custom 404 error page
 │   ├── rss.xml.ts          # RSS feed endpoint
+│   ├── games/
+│   │   └── dead-signal.astro # Full-viewport game page (skips BaseLayout)
 │   ├── tags/
 │   │   ├── index.astro     # Tag cloud / all tags
 │   │   └── [tag].astro     # Posts filtered by tag slug
 │   └── blog/
 │       └── [...slug].astro # Dynamic blog post routes
 ├── styles/
-│   └── global.css          # Electric Dark theme, CSS custom properties, base styles
+│   └── global.css          # Noir editorial theme, CSS custom properties, base styles
 ├── consts.ts               # SITE_TITLE, SITE_DESCRIPTION
 └── content.config.ts       # Blog collection schema (Zod)
 public/
@@ -120,35 +126,38 @@ cache entry (purge it) or genuinely absent (redeploy).
 - All source files are TypeScript (no `.js` files)
 
 ### Styling
-- **Electric Dark theme** (dark-only, no light mode) via CSS custom properties
-- Accent colors: `--accent-pink`, `--accent-green`, `--accent-blue`, `--accent-purple`, `--accent-yellow`, `--accent-orange`
-- Design tokens defined in `global.css` `:root`: spacing scale (`--space-*`), border radius (`--radius-*`), transitions (`--transition-*`)
+- **Noir editorial theme** (dark-only, no light mode): ink, paper, oxblood, steel — a printed-journal look with film grain + vignette overlays
+- Tokens in `global.css` `:root`: `--ink`, `--paper`, `--paper-bright`, `--paper-dim`, `--mute`, `--rule`, `--rule-dim`, `--oxblood` (Prussian blue, active/emphasis), `--steel` (links/hover), `--font-serif`, `--font-sans`, `--gutter`, `--content-max`
+- The old Electric Dark tokens (`--accent-*`, `--space-*`, `--radius-*`, `.card`, `.container`) no longer exist
+- Fonts: Newsreader Variable (serif display) + IBM Plex Sans Variable (body)
+- Flat, not glassmorphic: hairline rules, bordered `figure.plate` images, no glow
 - All component styles are **scoped** (`<style>` blocks in `.astro` files)
 - Global styles only in `src/styles/global.css`
-- Responsive breakpoints: `768px` (mobile), `480px` (small mobile)
-- `.container` max-width: `800px`
-- `.card` base class for glassmorphic bordered content blocks
+- Responsive breakpoints: `900px` (homepage columns stack), `720px` (mobile gutter)
+- Content widths: `.post-page` max `980px`, prose max `--content-max` (72ch)
+- `prefers-reduced-motion` is honored in `global.css`
 
 ### Content
 - Blog posts live in `src/content/blog/` as `.md` or `.mdx`
-- Frontmatter schema (Zod-validated, see `src/content.config.ts`): `title` (required), `description` (required), `pubDate` (required), `updatedDate?`, `heroImage?`, `tags?: string[]`, `draft?: boolean`
+- Frontmatter schema (Zod-validated, see `src/content.config.ts`): `title` (required), `description` (required), `pubDate` (required), `updatedDate?`, `heroImage?`, `tags?: string[]`, `draft?: boolean`, plus optional homepage-lead enrichments `tag?`, `read?`, `excerpt?`, `pullquote?`
 - Drafts filtered via shared `draftFilter()` from `src/lib/blog.ts`
 - Post images go in `src/assets/images/posts/{YYYY-MM-DD}/`
 - Gallery images auto-discovered from `src/assets/images/posts/{YYYY-MM-DD}/gallery*/` (pass the date folder as `postSlug` to `<AutoGallery>`)
 - Tags are free-form strings; URLs are generated via `slugifyTag()` in `src/lib/blog.ts` (e.g. `"Face Swap"` → `/tags/face-swap/`)
 
 ### Routing
-- Blog listing serves as homepage at `/`
+- Blog listing serves as homepage at `/` via `[...page].astro` (paginated, 10 per page: `/`, `/2/`, …)
 - Blog posts use `[...slug].astro` with `post.id` as the slug
 - Blog URLs: `/blog/{post-id}/`
 
 ## Key Patterns
 
-- **Page structure**: Every page uses `BaseHead` + `Header` + `<main>` + `Footer` (via `BaseLayout.astro`)
+- **Page structure**: Every page (except the Dead Signal game) uses `BaseLayout.astro`, which renders `BaseHead` and inlines the running head, masthead, nav, search panel and footer — `Header.astro`/`Footer.astro` are not used
 - **Blog queries**: Use `getPublishedPosts()`, `getAllTags()`, `getPostsByTag()`, or `draftFilter()` from `src/lib/blog.ts` — never duplicate query logic
 - **Gallery system**: `Gallery.astro` (manual image list) and `AutoGallery.astro` (auto-discovers from `src/assets/images/posts/{YYYY-MM-DD}/{galleryName}/`)
-- **Active nav links**: `HeaderLink.astro` compares `Astro.url.pathname` against `href` prop; the `/` link also matches `/blog/*` routes
-- **Blog listing**: Posts sorted by `pubDate` descending, first post gets `.featured` class, tag pills shown outside the card anchor so clicks route to the tag
-- **Tag pills**: `.tag-pill` utility in `global.css` — reused on homepage cards, post pages, and tag index
+- **Active nav links**: `isActive()` in `BaseLayout.astro` sets `aria-current="page"`; the `/` link also matches `/blog/*` routes
+- **Blog listing**: Posts sorted by `pubDate` descending; page 1 shows the newest post as the lead story with the rest as a numbered table-of-contents rail, later pages are a plain archive list
+- **Search**: Pagefind UI, lazy-loaded from `/pagefind/` when the search toggle is first opened
+- **Tag pills**: `.tag-pill` utility in `global.css` — reused on post pages and the tag index
 - **Analytics**: GA loads only in production and only when `PUBLIC_GA_ID` is set; honors `navigator.doNotTrack`
 - **RSS/Sitemap/robots**: Auto-generated (`rss.xml`, `sitemap-index.xml`); `public/robots.txt` points crawlers at the sitemap. Site URL: `https://thebiglaskowski.com`
