@@ -18,6 +18,7 @@
 | `Gallery` | `images: string[]`, `columns?: number`, `title?`, `alts?: string[]` | GLightbox gallery grid with dark overlay |
 | `AutoGallery` | `postSlug`, `galleryName?`, `columns?`, `title?` | Wraps Gallery, auto-discovers images from `src/assets/images/posts/{YYYY-MM-DD}/{galleryName}/` |
 | `ShareLinks` | `url`, `title` | Social share row (X, LinkedIn, Facebook) with inline SVG icons; opens in new tab |
+| `SmokeBackground` | none | Cursor-driven WebGL2 fluid smoke on a fixed canvas behind every page (`z-index: -1`, `transition:persist`). Runs only for a fine pointer, no reduced-motion, and WebGL2 + `EXT_color_buffer_float`; pauses on hidden tabs and stops drawing ~9s after the mouse goes still. Tuning constants sit at the top of its script |
 
 ## Gallery System
 

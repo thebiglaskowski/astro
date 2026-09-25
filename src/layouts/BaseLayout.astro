@@ -1,5 +1,6 @@
 ---
 import BaseHead from '../components/BaseHead.astro';
+import SmokeBackground from '../components/SmokeBackground.astro';
 import { ClientRouter } from 'astro:transitions';
 import { getImage } from 'astro:assets';
 import defaultOgImage from '../assets/images/joe_laskowski.webp';
@@ -50,6 +51,7 @@ const isActive = (href: string) =>
 	</head>
 	<body>
 		<a href="#main-content" class="skip-link">Skip to content</a>
+		<SmokeBackground />
 
 		<header class="site-header">
 			<a class="logo" href="/"><span class="it">{SITE_TITLE}</span></a>

@@ -34,6 +34,7 @@ src/
 │   ├── BaseHead.astro      # <head> meta, fonts, OG tags
 │   ├── FormattedDate.astro # Date formatting helper
 │   ├── ShareLinks.astro    # Social share row on post pages
+│   ├── SmokeBackground.astro # Cursor-driven WebGL fluid smoke behind every page
 │   ├── Gallery.astro       # GLightbox image gallery grid
 │   └── AutoGallery.astro   # Auto-discovers images from src/assets/ directory
 ├── content/
