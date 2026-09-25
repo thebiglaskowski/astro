@@ -1,10 +1,11 @@
 ---
 import type { GetStaticPathsOptions, Page } from 'astro';
 import type { CollectionEntry } from 'astro:content';
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 import { getPublishedPosts, readingTimeMinutes } from '../lib/blog';
+import banner from '../assets/images/tbl-banner.webp';
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
 	const posts = await getPublishedPosts();
@@ -63,26 +64,32 @@ const websiteJsonLd = isFirstPage ? {
 } : null;
 
 const frameWidths = (w: number) => [480, 800, 1200].filter((x) => x < w).concat(Math.min(w, 1200));
+
+// Site banner behind the page-1 hero. Same params feed the <Image> and the
+// preload, so the browser preloads exactly the variant it will display.
+const bannerWidths = [768, 1280, 1920, banner.width];
+const bannerPreload = isFirstPage
+	? await getImage({ src: banner, widths: bannerWidths, format: 'webp' })
+	: undefined;
 ---
 
-<BaseLayout title={pageTitle} description={SITE_DESCRIPTION}>
+<BaseLayout title={pageTitle} description={SITE_DESCRIPTION} preloadImageSrcset={bannerPreload?.srcSet.attribute} preloadImageSizes="100vw">
 	{websiteJsonLd && (
 		<script is:inline type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
 	)}
 
 	{isFirstPage ? (
 		<section class="home-hero">
-			{newest?.data.heroImage && (
-				<Image
-					class="hero-backdrop"
-					src={newest.data.heroImage}
-					alt=""
-					widths={[768, 1280, 1920].filter((x) => x < newest.data.heroImage!.width).concat(Math.min(newest.data.heroImage.width, 1920))}
-					sizes="100vw"
-					loading="eager"
-					fetchpriority="high"
-				/>
-			)}
+			<Image
+				class="hero-backdrop"
+				src={banner}
+				alt=""
+				widths={bannerWidths}
+				sizes="100vw"
+				format="webp"
+				loading="eager"
+				fetchpriority="high"
+			/>
 			<div class="hero-shade"></div>
 			<div class="hero-copy">
 				<div class="hero-text">
@@ -279,13 +286,15 @@ const frameWidths = (w: number) => [480, 800, 1200].filter((x) => x < w).concat(
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		opacity: .55;
+		/* The face sits left of centre; keep it in frame as narrow screens crop the sides */
+		object-position: 38% 20%;
+		opacity: .85;
 	}
 	.hero-shade {
 		position: absolute;
 		inset: 0;
 		background:
-			linear-gradient(to right, rgba(13, 15, 19, .7), transparent 65%),
+			linear-gradient(to right, rgba(13, 15, 19, .45), transparent 55%),
 			linear-gradient(to top, var(--bg) 8%, rgba(13, 15, 19, .55) 55%, rgba(13, 15, 19, .25));
 	}
 	.hero-copy {
@@ -491,7 +500,10 @@ const frameWidths = (w: number) => [480, 800, 1200].filter((x) => x < w).concat(
 		.rail { display: none; }
 	}
 	@media (max-width: 900px) {
-		.hero-copy { padding: 0 var(--gutter) 56px; }
+		/* A shorter hero on phones: the wide banner crops less and the face stays whole */
+		.home-hero { height: calc(72svh - var(--header-h)); min-height: 480px; }
+		.home-hero :global(.hero-backdrop) { object-position: 34% 25%; }
+		.hero-copy { padding: 0 var(--gutter) 40px; }
 		.scroll-cue { display: none; }
 		.hero-sub { font-size: 17px; }
 		.archive-head, .feed, .feed-more { padding-left: var(--gutter); padding-right: var(--gutter); }
