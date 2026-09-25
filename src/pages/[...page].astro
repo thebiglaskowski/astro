@@ -117,11 +117,11 @@ const bannerPreload = isFirstPage
 				{it.showYear && (
 					<div class="year-divider" data-year={it.year}>
 						<div class="year-num it">{it.year}</div>
-						<div class="year-label">{it.yearLabel}</div>
+						<div class="year-label slide-r">{it.yearLabel}</div>
 					</div>
 				)}
 				<article class="chapter hover-root" data-year={it.year}>
-					<div class="chapter-meta">
+					<div class="chapter-meta slide-l">
 						<div class="chapter-num it">{it.num}</div>
 						<div class="chapter-date">
 							<time datetime={it.post.data.pubDate.toISOString()}>{longDate(it.post.data.pubDate)}</time>
@@ -135,7 +135,7 @@ const bannerPreload = isFirstPage
 					</div>
 					<div class="chapter-body">
 						{it.post.data.heroImage && (
-							<a class="frame parallax unveil" href={`/blog/${it.post.id}/`} tabindex="-1" aria-hidden="true">
+							<a class="frame parallax frame-in" href={`/blog/${it.post.id}/`} tabindex="-1" aria-hidden="true">
 								<Image
 									src={it.post.data.heroImage}
 									alt=""
@@ -145,9 +145,9 @@ const bannerPreload = isFirstPage
 								/>
 							</a>
 						)}
-						<h2 class="chapter-title rise"><a href={`/blog/${it.post.id}/`}><span class="ul">{it.post.data.title}</span></a></h2>
-						<p class="chapter-desc rise">{it.post.data.description}</p>
-						<div class="rise">
+						<h2 class="chapter-title slide-r"><a href={`/blog/${it.post.id}/`}><span class="ul">{it.post.data.title}</span></a></h2>
+						<p class="chapter-desc slide-r">{it.post.data.description}</p>
+						<div class="slide-r">
 							<a class="readlink" href={`/blog/${it.post.id}/`}>
 								Read the dispatch
 								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
@@ -350,6 +350,9 @@ const bannerPreload = isFirstPage
 
 	/* ---- Feed ---- */
 	.feed, .feed-more { padding: 0 96px; }
+	/* Slide-ins start off to the side; clip (not hidden) keeps them from
+	   widening the page without breaking the sticky chapter meta. */
+	.feed { overflow-x: clip; --slide: 140px; }
 	.year-divider {
 		display: flex;
 		align-items: flex-end;
@@ -490,8 +493,36 @@ const bannerPreload = isFirstPage
 				animation-range: entry 0% cover 45%;
 			}
 			@keyframes year-in {
-				from { opacity: 0; transform: scale(.82); letter-spacing: .1em; }
+				from { opacity: 0; transform: translateX(calc(-1 * var(--slide))) scale(.82); letter-spacing: .1em; }
 				to   { opacity: 1; transform: none; letter-spacing: -0.05em; }
+			}
+
+			/* Scroll reveal: the meta column slides in from the left, the image
+			   and copy from the right, and the eased timing makes each settle
+			   rather than stop dead. Longhands only — see global.css. */
+			.slide-l, .slide-r {
+				animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+				animation-fill-mode: both;
+				animation-timeline: view();
+				animation-range: entry 5% cover 30%;
+			}
+			.slide-l { animation-name: slide-l; }
+			.slide-r { animation-name: slide-r; }
+			@keyframes slide-l {
+				from { opacity: 0; transform: translateX(calc(-1 * var(--slide))); }
+				to   { opacity: 1; transform: none; }
+			}
+			@keyframes slide-r {
+				from { opacity: 0; transform: translateX(var(--slide)); }
+				to   { opacity: 1; transform: none; }
+			}
+			/* The image slides in from the right while it unveils (global keyframes) */
+			.frame-in {
+				animation-name: slide-r, unveil;
+				animation-timing-function: cubic-bezier(.2, .8, .2, 1), linear;
+				animation-fill-mode: both, both;
+				animation-timeline: view(), view();
+				animation-range: entry 0% cover 30%, entry 0% cover 40%;
 			}
 		}
 	}
@@ -510,6 +541,7 @@ const bannerPreload = isFirstPage
 		.archive-head { padding-top: 48px; }
 		.year-divider { padding-top: 88px; flex-direction: column; align-items: flex-start; gap: 12px; }
 		.year-label { padding-bottom: 0; }
+		.feed { --slide: 56px; }
 		.chapter { grid-template-columns: 1fr; gap: 20px; padding: 56px 0; }
 		.chapter-meta {
 			grid-column: 1;
