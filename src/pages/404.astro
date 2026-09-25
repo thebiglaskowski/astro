@@ -4,59 +4,24 @@ import { SITE_TITLE } from '../consts';
 ---
 
 <BaseLayout title={`Page Not Found | ${SITE_TITLE}`} description="The page you're looking for doesn't exist.">
-	<div class="not-found-wrap">
-		<section class="not-found">
-			<h1>404</h1>
-			<p>The page you're looking for doesn't exist.</p>
-			<a href="/" class="back-link">Back to Blog</a>
-		</section>
-	</div>
+	<section class="page-shell not-found">
+		<div class="eyebrow">Error 404</div>
+		<h1><span class="prompt">$</span> cd ./this-page</h1>
+		<p class="err">No such file or directory — the page you're looking for doesn't exist.</p>
+		<a href="/" class="btn">Back to the journal</a>
+	</section>
 
 	<style>
-		.not-found-wrap {
-			padding: 28px var(--gutter) 0;
-		}
-
 		.not-found {
-			text-align: center;
-			padding: 6rem 0;
+			min-height: 60vh;
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			justify-content: center;
+			gap: 24px;
 		}
-
-		.not-found h1 {
-			font-family: var(--font-serif);
-			font-size: 8rem;
-			font-weight: 400;
-			color: var(--paper-bright);
-			letter-spacing: -0.04em;
-			margin-bottom: 1rem;
-			line-height: 1;
-		}
-
-		.not-found p {
-			font-family: var(--font-serif);
-			font-style: italic;
-			font-size: 1.15rem;
-			color: var(--paper-dim);
-			margin-bottom: 2.5rem;
-		}
-
-		.back-link {
-			display: inline-block;
-			color: var(--paper-bright);
-			font-family: var(--font-sans);
-			font-size: 11px;
-			font-weight: 600;
-			letter-spacing: .22em;
-			text-transform: uppercase;
-			padding: 0.6rem 2rem;
-			border: 1px solid var(--oxblood);
-			transition: background .15s, color .15s;
-		}
-
-		.back-link:hover {
-			background: var(--oxblood);
-			color: var(--ink);
-			text-decoration: none;
-		}
+		.not-found h1 { font-size: clamp(28px, 5vw, 56px); line-height: 1.1; word-break: break-all; }
+		.prompt { color: var(--accent); }
+		.err { margin: 0; font-family: var(--font-text); font-size: 20px; color: var(--muted); }
 	</style>
 </BaseLayout>

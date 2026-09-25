@@ -4,9 +4,10 @@ import { SITE_TITLE } from '../consts';
 ---
 
 <BaseLayout title={`Contact | ${SITE_TITLE}`} description="Contact Joe Laskowski — tech questions, collaboration, or any nerdy argument you want to have.">
-	<div class="contact-wrap">
-		<section class="contact-header">
-			<h1>Get in Touch</h1>
+	<div class="page-shell contact-wrap">
+		<section class="page-head">
+			<div class="eyebrow">Contact</div>
+			<h1>Get in touch</h1>
 			<p>Got a question, want to collaborate, or just want to argue about something nerdy? Drop me a note.</p>
 		</section>
 
@@ -26,120 +27,42 @@ import { SITE_TITLE } from '../consts';
 				<textarea id="message" name="message" rows="6" required></textarea>
 			</div>
 
-			<button type="submit" class="submit-btn">Send Message</button>
+			<button type="submit" class="btn submit-btn">Send message</button>
 		</form>
 	</div>
 
 	<style>
-		.contact-wrap {
-			padding: 28px var(--gutter) 0;
-			max-width: 680px;
-			margin: 0 auto;
-		}
-
-		.contact-header {
-			text-align: center;
-			margin-bottom: 2rem;
-			padding-bottom: 1.5rem;
-			border-bottom: 1px double var(--rule);
-		}
-
-		.contact-header h1 {
-			font-family: var(--font-serif);
-			font-size: clamp(32px, 5vw, 52px);
-			font-weight: 500;
-			color: var(--paper-bright);
-			letter-spacing: -0.02em;
-			margin-bottom: 0.75rem;
-		}
-
-		.contact-header p {
-			font-family: var(--font-serif);
-			font-style: italic;
-			font-size: 1rem;
-			color: var(--mute);
-			max-width: 500px;
-			margin: 0 auto;
-		}
-
-		.contact-form {
-			border: 1px solid var(--rule);
-			background: rgba(255,255,255,0.02);
-			padding: 2rem;
-			position: relative;
-		}
-
-		.form-group {
-			margin-bottom: 1.5rem;
-		}
-
+		.contact-wrap { max-width: 720px; }
+		.contact-form { display: flex; flex-direction: column; gap: 24px; }
+		.form-group { display: flex; flex-direction: column; gap: 10px; }
 		label {
-			display: block;
-			font-family: var(--font-sans);
-			font-size: 10.5px;
-			letter-spacing: .22em;
+			font-size: 12px;
+			font-weight: 600;
+			letter-spacing: .2em;
 			text-transform: uppercase;
-			color: var(--mute);
-			margin-bottom: 0.5rem;
+			color: var(--muted);
 		}
-
 		input,
 		textarea {
 			width: 100%;
-			padding: 0.65rem 0.85rem;
-			background: #0d0c0e;
+			padding: 14px 16px;
+			background: var(--surface);
 			border: 1px solid var(--rule);
-			color: var(--paper);
-			font-family: var(--font-serif);
-			font-size: 1rem;
+			border-radius: 8px;
+			color: var(--text-bright);
+			font-family: var(--font-text);
+			font-size: 18px;
 			line-height: 1.5;
-			transition: border-color .15s;
-			border-radius: 0;
+			transition: border-color .2s, box-shadow .2s;
 			-webkit-appearance: none;
 		}
-
-		input::placeholder,
-		textarea::placeholder {
-			color: var(--mute);
-			font-style: italic;
-		}
-
 		input:focus,
 		textarea:focus {
 			outline: none;
-			border-color: var(--oxblood);
-			box-shadow: 0 0 0 2px rgba(74,143,232,0.15);
+			border-color: var(--accent);
+			box-shadow: 0 0 0 3px rgba(212, 180, 131, .18);
 		}
-
-		textarea {
-			resize: vertical;
-			min-height: 140px;
-		}
-
-		.submit-btn {
-			display: inline-block;
-			background: transparent;
-			color: var(--paper-bright);
-			padding: 0.6rem 2rem;
-			border: 1px solid var(--oxblood);
-			font-family: var(--font-sans);
-			font-size: 11px;
-			font-weight: 600;
-			letter-spacing: .22em;
-			text-transform: uppercase;
-			cursor: pointer;
-			transition: background .15s, color .15s;
-		}
-
-		.submit-btn:hover {
-			background: var(--oxblood);
-			color: var(--ink);
-		}
-
-		@media (max-width: 720px) {
-			.contact-form {
-				padding: 1.5rem;
-			}
-		}
+		textarea { resize: vertical; min-height: 160px; }
+		.submit-btn { align-self: flex-start; }
 	</style>
 </BaseLayout>

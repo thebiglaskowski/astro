@@ -10,8 +10,9 @@ const tags = await getAllTags();
 	title={`Tags | ${SITE_TITLE}`}
 	description="Browse blog posts by topic."
 >
-	<div class="tags-wrap">
-		<section class="tags-header">
+	<div class="page-shell">
+		<section class="page-head">
+			<div class="eyebrow">Index</div>
 			<h1>Tags</h1>
 			<p>Browse posts by topic.</p>
 		</section>
@@ -33,51 +34,15 @@ const tags = await getAllTags();
 	</div>
 
 	<style>
-		.tags-wrap {
-			padding: 28px var(--gutter) 0;
-			max-width: 800px;
-			margin: 0 auto;
-		}
-
-		.tags-header {
-			text-align: center;
-			margin-bottom: 2rem;
-			padding-bottom: 1.5rem;
-			border-bottom: 1px double var(--rule);
-		}
-
-		.tags-header h1 {
-			font-family: var(--font-serif);
-			font-size: clamp(32px, 5vw, 52px);
-			font-weight: 500;
-			color: var(--paper-bright);
-			letter-spacing: -0.02em;
-			margin-bottom: 0.5rem;
-		}
-
-		.tags-header p {
-			font-family: var(--font-serif);
-			font-style: italic;
-			font-size: 1rem;
-			color: var(--mute);
-		}
-
 		.tag-cloud {
 			display: flex;
 			flex-wrap: wrap;
-			gap: 0.75rem;
+			gap: 10px;
 			padding: 0;
-			margin: 2rem 0;
+			margin: 0;
 			list-style: none;
-			justify-content: center;
 		}
-
-		.empty {
-			text-align: center;
-			color: var(--mute);
-			margin: 2rem 0;
-			font-family: var(--font-serif);
-			font-style: italic;
-		}
+		.tag-cloud :global(.tag-pill) { min-height: 44px; padding: 0 18px; font-size: 14px; }
+		.empty { color: var(--muted); font-family: var(--font-text); }
 	</style>
 </BaseLayout>

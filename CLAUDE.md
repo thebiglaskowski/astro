@@ -20,7 +20,7 @@
 | MDX | Blog posts with embedded components |
 | TypeScript (strict) | Type-safe frontmatter, component props |
 | GLightbox 3 | Lightbox gallery for image posts |
-| @fontsource-variable/newsreader + ibm-plex-sans | Self-hosted serif display + sans body |
+| @fontsource-variable/jetbrains-mono + source-serif-4 | Self-hosted mono display/UI + serif reading face |
 | Pagefind | Static search index, built after `astro build` |
 | three.js | Dead Signal browser game (`src/games/dead-signal/`) |
 | @astrojs/sitemap | Auto-generated sitemap |
@@ -35,19 +35,18 @@ src/
 │   ├── FormattedDate.astro # Date formatting helper
 │   ├── ShareLinks.astro    # Social share row on post pages
 │   ├── Gallery.astro       # GLightbox image gallery grid
-│   ├── AutoGallery.astro   # Auto-discovers images from src/assets/ directory
-│   └── Header / Footer / HeaderLink / SocialIcon .astro  # UNUSED — BaseLayout inlines chrome
+│   └── AutoGallery.astro   # Auto-discovers images from src/assets/ directory
 ├── content/
 │   └── blog/         # Markdown/MDX blog posts
 ├── games/
 │   └── dead-signal/        # three.js game modules (rendered by pages/games/dead-signal.astro)
 ├── layouts/
-│   ├── BaseLayout.astro    # Page chrome: running head, masthead, nav, Pagefind search, footer
-│   └── BlogPost.astro      # Blog post layout with hero plate + prose
+│   ├── BaseLayout.astro    # Page chrome: sticky header + scroll progress, Pagefind search, footer
+│   └── BlogPost.astro      # Post: full-bleed hero, contents rail, prose, up-next, on-demand comments
 ├── lib/
-│   └── blog.ts             # Blog queries (draft filter, sorting, tags, reading time, related)
+│   └── blog.ts             # Blog queries (draft filter, sorting, tags, reading time)
 ├── pages/
-│   ├── [...page].astro     # Homepage (lead story + TOC rail) and paginated archive
+│   ├── [...page].astro     # Homepage hero + scroll-and-load feed; /2/, /3/ … archive pages
 │   ├── about.astro         # About page with profile + bio
 │   ├── resume.astro        # Resume
 │   ├── contact.astro       # Contact form (Formspree-backed)
@@ -61,7 +60,7 @@ src/
 │   └── blog/
 │       └── [...slug].astro # Dynamic blog post routes
 ├── styles/
-│   └── global.css          # Noir editorial theme, CSS custom properties, base styles
+│   └── global.css          # Longform theme, CSS custom properties, base styles
 ├── consts.ts               # SITE_TITLE, SITE_DESCRIPTION
 └── content.config.ts       # Blog collection schema (Zod)
 public/
@@ -97,10 +96,11 @@ git config core.hooksPath .githooks
 
 What the audit enforces:
 
-- **Hero images are 16:9** (within 2%). Heroes render inside `figure.plate`,
-  which crops to 16:9 — a non-16:9 source is silently sliced. Pad the source
-  rather than loosening the check: replicate the edge row/column when the edge
-  is flat (screenshots), or letterbox in the plate mat `#0d0c0e` when it isn't
+- **Hero images are 16:9** (within 2%). Heroes render in 16:9 `.frame` boxes
+  (homepage feed, up-next card, the phone post hero) with `object-fit: cover`
+  — a non-16:9 source is silently sliced. Pad the source rather than loosening
+  the check: replicate the edge row/column when the edge is flat
+  (screenshots), or letterbox in the page ink `#0d0f13` when it isn't
   (photographic images streak under replication).
 - **Every referenced build asset exists**, including `srcset`-only variants.
 - **External links carry `target="_blank"` + `rel="noopener"`.** `glightbox`
@@ -126,37 +126,38 @@ cache entry (purge it) or genuinely absent (redeploy).
 - All source files are TypeScript (no `.js` files)
 
 ### Styling
-- **Noir editorial theme** (dark-only, no light mode): ink, paper, oxblood, steel — a printed-journal look with film grain + vignette overlays
-- Tokens in `global.css` `:root`: `--ink`, `--paper`, `--paper-bright`, `--paper-dim`, `--mute`, `--rule`, `--rule-dim`, `--oxblood` (Prussian blue, active/emphasis), `--steel` (links/hover), `--font-serif`, `--font-sans`, `--gutter`, `--content-max`
-- The old Electric Dark tokens (`--accent-*`, `--space-*`, `--radius-*`, `.card`, `.container`) no longer exist
-- Fonts: Newsreader Variable (serif display) + IBM Plex Sans Variable (body)
-- Flat, not glassmorphic: hairline rules, bordered `figure.plate` images, no glow
+- **Longform theme** (dark-only, no light mode): ink, paper, brass — cinematic full-bleed heroes and scroll-driven motion
+- Tokens in `global.css` `:root`: `--bg`, `--surface`, `--surface-2`, `--text-bright`, `--text`, `--text-dim`, `--muted`, `--faint`, `--rule`, `--rule-faint`, `--accent` (brass), `--accent-bright`, `--font-display`, `--font-ui`, `--font-text`, `--gutter`, `--header-h`, `--content-max`
+- The Noir tokens (`--ink`, `--paper*`, `--oxblood`, `--steel`, `--font-serif`, `--font-sans`) no longer exist
+- Fonts: JetBrains Mono Variable (headings + UI, ligatures off in code) + Source Serif 4 Variable (reading text)
+- **Scroll-driven motion** (`animation-timeline: scroll()` / `view()`) sits behind `@supports` + `prefers-reduced-motion: no-preference`, so other browsers get the static page. Always write these as longhands (`animation-name`, `-timing-function`, `-fill-mode`, `-timeline`): Vite's lightningcss minifier folds a shorthand + timeline into `animation: … scroll(root)`, which Chromium rejects, and the effect silently disappears in the build
+- Shared helpers in `global.css`: `.eyebrow`, `.btn`, `.tag-pill`, `.readlink`, `.ul` (hover underline), `.frame` (16:9 image), `.sk` (skeleton shimmer), `.rise` / `.unveil` / `.parallax` (scroll motion), `.prose`, `.drop-cap`, `.page-shell` + `.page-head` (simple pages)
 - All component styles are **scoped** (`<style>` blocks in `.astro` files)
 - Global styles only in `src/styles/global.css`
-- Responsive breakpoints: `900px` (homepage columns stack), `720px` (mobile gutter)
-- Content widths: `.post-page` max `980px`, prose max `--content-max` (72ch)
-- `prefers-reduced-motion` is honored in `global.css`
+- Responsive breakpoints: `1240px` (timeline rail / figure break-outs drop), `1000px` (post contents rail → `<details>`), `900px` (feed chapters stack), `820px` (two-row header, stacked post hero)
+- Post dates are UTC midnight — format with `timeZone: 'UTC'` (see `FormattedDate.astro`) or they print a day early west of UTC
 
 ### Content
 - Blog posts live in `src/content/blog/` as `.md` or `.mdx`
-- Frontmatter schema (Zod-validated, see `src/content.config.ts`): `title` (required), `description` (required), `pubDate` (required), `updatedDate?`, `heroImage?`, `tags?: string[]`, `draft?: boolean`, plus optional homepage-lead enrichments `tag?`, `read?`, `excerpt?`, `pullquote?`
+- Frontmatter schema (Zod-validated, see `src/content.config.ts`): `title` (required), `description` (required), `pubDate` (required), `updatedDate?`, `heroImage?`, `tags?: string[]`, `draft?: boolean`
 - Drafts filtered via shared `draftFilter()` from `src/lib/blog.ts`
 - Post images go in `src/assets/images/posts/{YYYY-MM-DD}/`
 - Gallery images auto-discovered from `src/assets/images/posts/{YYYY-MM-DD}/gallery*/` (pass the date folder as `postSlug` to `<AutoGallery>`)
 - Tags are free-form strings; URLs are generated via `slugifyTag()` in `src/lib/blog.ts` (e.g. `"Face Swap"` → `/tags/face-swap/`)
 
 ### Routing
-- Blog listing serves as homepage at `/` via `[...page].astro` (paginated, 10 per page: `/`, `/2/`, …)
+- Blog listing serves as homepage at `/` via `[...page].astro` (paginated, 3 per page: `/`, `/2/`, …)
 - Blog posts use `[...slug].astro` with `post.id` as the slug
 - Blog URLs: `/blog/{post-id}/`
 
 ## Key Patterns
 
-- **Page structure**: Every page (except the Dead Signal game) uses `BaseLayout.astro`, which renders `BaseHead` and inlines the running head, masthead, nav, search panel and footer — `Header.astro`/`Footer.astro` are not used
+- **Page structure**: Every page (except the Dead Signal game) uses `BaseLayout.astro`, which renders `BaseHead`, the sticky header (with a `header-meta` named slot the post page fills with its title + reading ring), search panel and footer
 - **Blog queries**: Use `getPublishedPosts()`, `getAllTags()`, `getPostsByTag()`, or `draftFilter()` from `src/lib/blog.ts` — never duplicate query logic
 - **Gallery system**: `Gallery.astro` (manual image list) and `AutoGallery.astro` (auto-discovers from `src/assets/images/posts/{YYYY-MM-DD}/{galleryName}/`)
-- **Active nav links**: `isActive()` in `BaseLayout.astro` sets `aria-current="page"`; the `/` link also matches `/blog/*` routes
-- **Blog listing**: Posts sorted by `pubDate` descending; page 1 shows the newest post as the lead story with the rest as a numbered table-of-contents rail, later pages are a plain archive list
+- **Active nav links**: `isActive()` in `BaseLayout.astro` sets `aria-current="page"`; the `/` link also matches `/blog/*` and archive pages (`/2/`…, but not `/404/`)
+- **Blog listing (scroll and load)**: posts sorted by `pubDate` descending. Every page renders its chapters into `.feed` plus a `.feed-more` block carrying `data-next`; the homepage script fetches the next page's HTML when `.feed-more` nears the viewport, appends its `.feed` children (dropping a duplicate year divider), and swaps in the fetched `.feed-more`. Without JS the "Load older" link is ordinary pagination
+- **Post page**: `[...slug].astro` passes `headings` from `render()`; `BlogPost.astro` builds the contents rail from the `h2`s, picks up-next as the next-older post (the oldest wraps to the newest), and mounts giscus only when the reader presses "Load the conversation" — the custom `public/giscus/longform.css` theme applies on the live domain only, `transparent_dark` elsewhere
 - **Search**: Pagefind UI, lazy-loaded from `/pagefind/` when the search toggle is first opened
 - **Tag pills**: `.tag-pill` utility in `global.css` — reused on post pages and the tag index
 - **Analytics**: GA loads only in production and only when `PUBLIC_GA_ID` is set; honors `navigator.doNotTrack`

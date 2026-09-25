@@ -8,10 +8,13 @@ const { date } = Astro.props;
 
 <time datetime={date.toISOString()}>
 	{
+		// Frontmatter dates parse as UTC midnight; formatting in the build
+		// machine's local zone would print the previous day west of UTC.
 		date.toLocaleDateString('en-us', {
 			year: 'numeric',
 			month: 'short',
 			day: 'numeric',
+			timeZone: 'UTC',
 		})
 	}
 </time>

@@ -1,62 +1,37 @@
 /* ---------------------------------------------------------------------------
-   giscus custom theme — "Noir editorial"
-   Matches the site's ink / paper / oxblood / steel palette (see global.css).
+   giscus custom theme — "Longform"
+   Matches the site's ink / paper / brass palette (see src/styles/global.css).
 
    HOW THIS WORKS
    - giscus renders comments inside a cross-origin iframe served from giscus.app.
-     Your site's global.css cannot reach inside it, so this standalone file is
-     loaded *into* the iframe via the `data-theme` URL.
-   - It must be served over public HTTPS. Once deployed it lives at:
-       https://thebiglaskowski.com/giscus/noir.css
-   - It will NOT load from localhost (the giscus iframe can't reach your dev
-     server), so this theme only renders on the deployed site.
-
-   TO ACTIVATE
-   - In src/layouts/BlogPost.astro, change the data-theme line in mountGiscus():
-       script.setAttribute('data-theme', 'https://thebiglaskowski.com/giscus/noir.css');
-     (Leave it on 'transparent_dark' until this file is live in production.)
+     The site's CSS cannot reach inside it, so this standalone file is loaded
+     *into* the iframe via the `data-theme` URL set in src/layouts/BlogPost.astro.
+   - It must be served over public HTTPS, so it only applies on the deployed
+     site (https://thebiglaskowski.com/giscus/longform.css). Everywhere else
+     BlogPost.astro falls back to giscus's built-in `transparent_dark`.
 
    BASE
    - Forked from giscus's official transparent_dark.css (itself derived from
      GitHub Primer's dark theme, MIT). Only the identity-carrying color
      variables were recolored. Semantic status colors (success / attention /
-     danger) and code-syntax highlighting are intentionally left at GitHub
-     defaults for legibility.
+     danger) and code-syntax highlighting stay at GitHub defaults for legibility.
 
    PALETTE  (from src/styles/global.css :root)
-     --ink          #07070a   page background (kept transparent here)
-     --paper        #d8cebb   body text
-     --paper-bright #ede1c6   emphasis / headings
-     --paper-dim    #bcb098   neutral fills
-     --mute         #8a7f68   muted text / secondary borders
-     --rule         #3a2e1c   hairlines
-     --rule-dim     #2a221a   faint hairlines
-     --oxblood      #3a6ea8   accent (Prussian blue, despite the name)
-     --steel        #9bb0c0   links / hover
+     --bg           #0d0f13   page background (kept transparent here)
+     --text         #d6d0c4   body text
+     --text-bright  #ece7dd   emphasis / headings
+     --muted        #a19c91   muted text
+     --faint        #8f8a80   subtle text
+     --accent       #d4b483   brass — links, primary button
 --------------------------------------------------------------------------- */
 
-/* Site type, delivered into the iframe via CORS-enabled fontsource CDN.
-   These are the exact @fontsource families the site self-hosts. */
+/* Site UI face, delivered into the iframe via the CORS-enabled fontsource CDN. */
 @font-face {
-  font-family: 'IBM Plex Sans Iframe';
+  font-family: 'JetBrains Mono Iframe';
   font-style: normal;
   font-display: swap;
-  font-weight: 100 700;
-  src: url('https://cdn.jsdelivr.net/fontsource/fonts/ibm-plex-sans:vf@latest/latin-wght-normal.woff2') format('woff2-variations');
-}
-@font-face {
-  font-family: 'Newsreader Iframe';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 200 800;
-  src: url('https://cdn.jsdelivr.net/fontsource/fonts/newsreader:vf@latest/latin-opsz-normal.woff2') format('woff2-variations');
-}
-@font-face {
-  font-family: 'Newsreader Iframe';
-  font-style: italic;
-  font-display: swap;
-  font-weight: 200 800;
-  src: url('https://cdn.jsdelivr.net/fontsource/fonts/newsreader:vf@latest/latin-opsz-italic.woff2') format('woff2-variations');
+  font-weight: 100 800;
+  src: url('https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono:vf@latest/latin-wght-normal.woff2') format('woff2-variations');
 }
 
 main {
@@ -93,58 +68,58 @@ main {
   --color-prettylights-syntax-constant-other-reference-link: #a5d6ff;
 
   /* --- Buttons (reaction buttons, comment box chrome) --- */
-  --color-btn-text: #d8cebb;
-  --color-btn-bg: #1a140bcc;
-  --color-btn-border: #d8cebb1a;
+  --color-btn-text: #d6d0c4;
+  --color-btn-bg: #15181ecc;
+  --color-btn-border: #d6d0c41a;
   --color-btn-shadow: 0 0 #0000;
   --color-btn-inset-shadow: 0 0 #0000;
-  --color-btn-hover-bg: #241a0e80;
-  --color-btn-hover-border: #8a7f68;
-  --color-btn-active-bg: #1f160c80;
-  --color-btn-active-border: #6b6453;
-  --color-btn-selected-bg: #241a0e80;
+  --color-btn-hover-bg: #1a1d2480;
+  --color-btn-hover-border: #a19c91;
+  --color-btn-active-bg: #1a1d2480;
+  --color-btn-active-border: #8f8a80;
+  --color-btn-selected-bg: #1a1d2480;
 
-  /* Primary "Comment" submit button — oxblood instead of GitHub green */
-  --color-btn-primary-text: #ede1c6;
-  --color-btn-primary-bg: #3a6ea8;
-  --color-btn-primary-border: #ede1c61a;
+  /* Primary "Comment" submit button — brass instead of GitHub green */
+  --color-btn-primary-text: #0d0f13;
+  --color-btn-primary-bg: #d4b483;
+  --color-btn-primary-border: #ece7dd1a;
   --color-btn-primary-shadow: 0 0 #0000;
   --color-btn-primary-inset-shadow: 0 0 #0000;
-  --color-btn-primary-hover-bg: #4a7eb8;
-  --color-btn-primary-hover-border: #ede1c61a;
-  --color-btn-primary-selected-bg: #3a6ea8;
+  --color-btn-primary-hover-bg: #e6cb9c;
+  --color-btn-primary-hover-border: #ece7dd1a;
+  --color-btn-primary-selected-bg: #d4b483;
   --color-btn-primary-selected-shadow: 0 0 #0000;
-  --color-btn-primary-disabled-text: #ede1c680;
-  --color-btn-primary-disabled-bg: #3a6ea899;
-  --color-btn-primary-disabled-border: #ede1c61a;
+  --color-btn-primary-disabled-text: #ece7dd80;
+  --color-btn-primary-disabled-bg: #d4b48399;
+  --color-btn-primary-disabled-border: #ece7dd1a;
 
-  --color-action-list-item-default-hover-bg: #bcb0981f;
-  --color-segmented-control-bg: #bcb0981a;
+  --color-action-list-item-default-hover-bg: #bdb7ab1f;
+  --color-segmented-control-bg: #bdb7ab1a;
   --color-segmented-control-button-bg: #0000;
-  --color-segmented-control-button-selected-border: #6b6453;
+  --color-segmented-control-button-selected-border: #8f8a80;
 
   /* --- Foreground text --- */
-  --color-fg-default: #d8cebb;
-  --color-fg-muted: #8a7f68;
-  --color-fg-subtle: #6b6453;
+  --color-fg-default: #d6d0c4;
+  --color-fg-muted: #a19c91;
+  --color-fg-subtle: #8f8a80;
 
-  /* --- Canvas: transparent so the noir page shows through (the whole point) --- */
+  /* --- Canvas: transparent so the Longform page shows through (the whole point) --- */
   --color-canvas-default: #0000;
-  --color-canvas-overlay: #0e0c0aef;
+  --color-canvas-overlay: #0d0f13ef;
   --color-canvas-inset: #0000;
   --color-canvas-subtle: #0000;
 
   /* --- Borders → site hairlines --- */
-  --color-border-default: #3a2e1c;
-  --color-border-muted: #2a221a;
-  --color-neutral-muted: #bcb0980d;
-  --color-neutral-subtle: #bcb0981a;
+  --color-border-default: #2a2d33;
+  --color-border-muted: #1c1f25;
+  --color-neutral-muted: #bdb7ab0d;
+  --color-neutral-subtle: #bdb7ab1a;
 
-  /* --- Accent → oxblood / steel --- */
-  --color-accent-fg: #9bb0c0;
-  --color-accent-emphasis: #3a6ea8;
-  --color-accent-muted: #3a6ea866;
-  --color-accent-subtle: #3a6ea81a;
+  /* --- Accent → brass --- */
+  --color-accent-fg: #d4b483;
+  --color-accent-emphasis: #d4b483;
+  --color-accent-muted: #d4b48366;
+  --color-accent-subtle: #d4b4831a;
 
   /* --- Semantic status colors: kept at GitHub defaults for clarity --- */
   --color-success-fg: #3fb950;
@@ -156,15 +131,15 @@ main {
   --color-danger-subtle: #e5534b1a;
 
   --color-primer-shadow-inset: 0 0 #0000;
-  --color-scale-gray-7: #2a221a;
-  --color-scale-blue-8: #14233a;
+  --color-scale-gray-7: #1c1f25;
+  --color-scale-blue-8: #2a2418;
 
   /*! Extensions from @primer/css/alerts/flash.scss */
   --color-social-reaction-bg-hover: var(--color-scale-gray-7);
   --color-social-reaction-bg-reacted-hover: var(--color-scale-blue-8);
 
   /* Site type inside the iframe */
-  font-family: 'IBM Plex Sans Iframe', system-ui, -apple-system, sans-serif;
+  font-family: 'JetBrains Mono Iframe', ui-monospace, monospace;
 }
 
 main .pagination-loader-container {
@@ -175,10 +150,10 @@ main .pagination-loader-container {
   background-color: var(--color-btn-bg);
 }
 
-/* Empty-state gradient — retinted from giscus blues/purples to noir ink/oxblood */
+/* Empty-state gradient — retinted from giscus blues/purples to Longform ink/brass */
 .gsc-homepage-bg {
   animation: gradient 21s ease infinite;
-  background: linear-gradient(135deg, #0a1a24, #07101c, #120f0a);
+  background: linear-gradient(135deg, #15181e, #0d0f13, #1a1812);
   background-size: 600% 600%;
 }
 

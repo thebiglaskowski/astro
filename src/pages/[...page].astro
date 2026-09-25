@@ -1,23 +1,57 @@
 ---
 import type { GetStaticPathsOptions, Page } from 'astro';
 import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
-import { Image } from 'astro:assets';
 import { getPublishedPosts, readingTimeMinutes } from '../lib/blog';
 
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
 	const posts = await getPublishedPosts();
-	return paginate(posts, { pageSize: 10 });
+	// Small pages on purpose: the homepage streams older pages in as the reader
+	// scrolls (see the script below), and each page is also a real, crawlable
+	// URL. Inline because getStaticPaths cannot see module-scope constants.
+	return paginate(posts, { pageSize: 3 });
 }
 
 type Props = { page: Page<CollectionEntry<'blog'>> };
 const { page } = Astro.props;
 const isFirstPage = page.currentPage === 1;
 
+const all = await getPublishedPosts();
+const newest = all[0];
+const oldest = all[all.length - 1];
+
+const yearOf = (p: CollectionEntry<'blog'>) => String(p.data.pubDate.getUTCFullYear());
+const perYear = new Map<string, number>();
+for (const p of all) perYear.set(yearOf(p), (perYear.get(yearOf(p)) ?? 0) + 1);
+
+// Frontmatter dates are UTC midnight, so format in UTC or they slip a day.
+const longDate = (d: Date) =>
+	d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const monthYear = (d: Date) =>
+	d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+const items = page.data.map((post, i) => {
+	const year = yearOf(post);
+	const count = perYear.get(year) ?? 0;
+	return {
+		post,
+		year,
+		num: String(page.start + i + 1).padStart(2, '0'),
+		// Every page opens with its year so it stands alone at its own URL; the
+		// loader drops the duplicate when a page is stitched onto the previous one.
+		showYear: i === 0 || yearOf(page.data[i - 1]) !== year,
+		yearLabel: `${count} dispatch${count === 1 ? '' : 'es'}`,
+		minutes: readingTimeMinutes(post.body),
+	};
+});
+
+const loaded = page.start + page.data.length;
+
 const pageTitle = isFirstPage
 	? `${SITE_TITLE} — AI art, dev tutorials, and creative technology`
-	: `Page ${page.currentPage} | ${SITE_TITLE}`;
+	: `Archive, page ${page.currentPage} | ${SITE_TITLE}`;
 
 const websiteJsonLd = isFirstPage ? {
 	'@context': 'https://schema.org',
@@ -28,17 +62,7 @@ const websiteJsonLd = isFirstPage ? {
 	author: { '@type': 'Person', name: 'Joe Laskowski', url: new URL('/about/', Astro.site).toString() },
 } : null;
 
-const fmt = (d: Date) =>
-	d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-const romans = ['II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
-
-const [lead, ...rest] = page.data;
-
-const postTag = (p: CollectionEntry<'blog'>) =>
-	p.data.tag ?? p.data.tags?.[0] ?? 'Essay';
-const postRead = (p: CollectionEntry<'blog'>) =>
-	p.data.read ?? `${readingTimeMinutes(p.body)} min read`;
+const frameWidths = (w: number) => [480, 800, 1200].filter((x) => x < w).concat(Math.min(w, 1200));
 ---
 
 <BaseLayout title={pageTitle} description={SITE_DESCRIPTION}>
@@ -46,185 +70,449 @@ const postRead = (p: CollectionEntry<'blog'>) =>
 		<script is:inline type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
 	)}
 
-	{isFirstPage && lead ? (
-		<div class="issue-body">
-			<article>
-				<div class="lead-kicker">
-					<span class="manicule">☞</span>
-					<span>The Feature</span>
-					<span class="sep">§</span>
-					<span class="italic">filed under {postTag(lead)}</span>
-					<span class="sep">§</span>
-					<span>{postRead(lead)}</span>
+	{isFirstPage ? (
+		<section class="home-hero">
+			{newest?.data.heroImage && (
+				<Image
+					class="hero-backdrop"
+					src={newest.data.heroImage}
+					alt=""
+					widths={[768, 1280, 1920].filter((x) => x < newest.data.heroImage!.width).concat(Math.min(newest.data.heroImage.width, 1920))}
+					sizes="100vw"
+					loading="eager"
+					fetchpriority="high"
+				/>
+			)}
+			<div class="hero-shade"></div>
+			<div class="hero-copy">
+				<div class="hero-text">
+					<div class="eyebrow hero-in" style="animation-delay: .1s">The journal of Joe Laskowski · since {oldest.data.pubDate.getUTCFullYear()}</div>
+					<h1 class="hero-title hero-in" style="animation-delay: .25s">Notes from the<br /><span class="it">command line.</span></h1>
+					<p class="hero-sub hero-in" style="animation-delay: .45s">{SITE_DESCRIPTION}</p>
 				</div>
-
-				<h2 class="lead-title">
-					<a href={`/blog/${lead.id}/`}>{lead.data.title}</a>
-				</h2>
-
-				{lead.data.heroImage && (
-					<>
-						<figure class="plate">
-							<Image
-								src={lead.data.heroImage}
-								alt={lead.data.title}
-								width={800}
-								height={450}
-								widths={[480, 640, 800]}
-								sizes="(max-width: 720px) calc(100vw - 44px), (max-width: 900px) calc(100vw - 112px), 640px"
-								loading="eager"
-								fetchpriority="high"
-							/>
-							<span class="corner-bl"></span>
-							<span class="corner-br"></span>
-						</figure>
-						<div class="plate-cap">
-							<span>Pl. I — {lead.data.title}</span>
-							<span>{fmt(lead.data.pubDate)} · {postRead(lead)}</span>
-						</div>
-					</>
-				)}
-
-				{lead.data.excerpt ? (
-					<div class="prose with-drop-cap" set:html={lead.data.excerpt} />
-				) : (
-					<div class="prose with-drop-cap">
-						<p>{lead.data.description}</p>
-					</div>
-				)}
-
-				{lead.data.pullquote && (
-					<div class="pullquote">
-						<span class="mark">⁂</span>
-						{lead.data.pullquote}
-					</div>
-				)}
-
-				<div class="byline">
-					<span>By Joe Laskowski · Set in Newsreader &amp; IBM Plex Sans</span>
-					<a class="cont" href={`/blog/${lead.id}/`}>Continue reading ❧</a>
+				<div class="scroll-cue hero-in" style="animation-delay: .7s" aria-hidden="true">
+					<span>Scroll</span>
+					<span class="cue-line"></span>
 				</div>
-			</article>
-
-			<div class="col-divider"></div>
-
-			<aside>
-				<h3 class="rail-head"><span class="fleur">❦</span> Table of Contents</h3>
-				<div class="rail-sub">In this issue — {page.data.length} dispatch{page.data.length !== 1 ? 'es' : ''}</div>
-
-				{rest.map((p, i) => (
-					<a class="toc-row" href={`/blog/${p.id}/`}>
-						<div class="toc-num">{romans[i] ?? String(i + 2)}</div>
-						<div>
-							<h4 class="toc-title">{p.data.title}</h4>
-							<div class="toc-meta">{fmt(p.data.pubDate)} · {postTag(p)} · {postRead(p)}</div>
-						</div>
-						<div class="toc-page">p.{String(8 + i * 4).padStart(2, '0')}</div>
-					</a>
-				))}
-
-				{page.data.length > 0 && (
-					<div class="marginalia">
-						<span class="corner-bl"></span>
-						<span class="corner-br"></span>
-						<div class="marginalia-eyebrow">❦ Marginalia</div>
-						<div class="marginalia-body">
-							<em>Currently reading</em> — Meditations, Marcus Aurelius.<br/>
-							<em>Drinking</em> — Bell's Hopslam, Citrus.<br/>
-							<em>Running</em> — On Panic and String Cheese.
-						</div>
-					</div>
-				)}
-			</aside>
-		</div>
-	) : (
-		<div class="archive-page">
-			<div class="archive-head">
-				<h2>Archive — Page {page.currentPage}</h2>
-				<div class="archive-sub">{page.total} dispatches in the archive</div>
 			</div>
+		</section>
+	) : (
+		<header class="archive-head">
+			<div class="eyebrow">The archive · page {page.currentPage} of {page.lastPage}</div>
+			<h1>Older dispatches</h1>
+			{page.url.prev && <a class="readlink" href={page.url.prev} rel="prev">← Newer</a>}
+		</header>
+	)}
 
-			{page.data.map((post, i) => (
-				<a class="toc-row" href={`/blog/${post.id}/`}>
-					<div class="toc-num">{String((page.currentPage - 1) * 10 + i + 1)}</div>
-					<div>
-						<h4 class="toc-title">{post.data.title}</h4>
-						<div class="toc-meta">{fmt(post.data.pubDate)} · {postTag(post)} · {postRead(post)}</div>
+	<div class="feed">
+		{items.map((it) => (
+			<>
+				{it.showYear && (
+					<div class="year-divider" data-year={it.year}>
+						<div class="year-num it">{it.year}</div>
+						<div class="year-label">{it.yearLabel}</div>
 					</div>
-					<div class="toc-page">{fmt(post.data.pubDate)}</div>
-				</a>
-			))}
-		</div>
-	)}
+				)}
+				<article class="chapter hover-root" data-year={it.year}>
+					<div class="chapter-meta">
+						<div class="chapter-num it">{it.num}</div>
+						<div class="chapter-date">
+							<time datetime={it.post.data.pubDate.toISOString()}>{longDate(it.post.data.pubDate)}</time>
+							<span>{it.minutes} min read</span>
+						</div>
+						{it.post.data.tags && it.post.data.tags.length > 0 && (
+							<div class="chapter-tags">
+								{it.post.data.tags.slice(0, 2).map((t) => <span class="tag-pill">{t}</span>)}
+							</div>
+						)}
+					</div>
+					<div class="chapter-body">
+						{it.post.data.heroImage && (
+							<a class="frame parallax unveil" href={`/blog/${it.post.id}/`} tabindex="-1" aria-hidden="true">
+								<Image
+									src={it.post.data.heroImage}
+									alt=""
+									widths={frameWidths(it.post.data.heroImage.width)}
+									sizes="(max-width: 900px) calc(100vw - 40px), 960px"
+									loading={isFirstPage && it.num === '01' ? 'eager' : 'lazy'}
+								/>
+							</a>
+						)}
+						<h2 class="chapter-title rise"><a href={`/blog/${it.post.id}/`}><span class="ul">{it.post.data.title}</span></a></h2>
+						<p class="chapter-desc rise">{it.post.data.description}</p>
+						<div class="rise">
+							<a class="readlink" href={`/blog/${it.post.id}/`}>
+								Read the dispatch
+								<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+							</a>
+						</div>
+					</div>
+				</article>
+			</>
+		))}
+	</div>
 
-	{page.lastPage > 1 && (
-		<nav class="pagination" aria-label="Pagination">
-			{page.url.prev ? (
-				<a href={page.url.prev} rel="prev">← Newer</a>
-			) : (
-				<span class="disabled">← Newer</span>
-			)}
-			<span class="page-info">Page {page.currentPage} of {page.lastPage}</span>
-			{page.url.next ? (
-				<a href={page.url.next} rel="next">Older →</a>
-			) : (
-				<span class="disabled">Older →</span>
-			)}
-		</nav>
-	)}
+	<section class="feed-more" data-next={page.url.next ?? ''} data-loaded={loaded} aria-live="polite">
+		{page.url.next ? (
+			<div class="more">
+				<div class="more-skeleton" hidden>
+					<div class="sk" style="width: 88px; height: 56px"></div>
+					<div class="more-skeleton-body">
+						<div class="sk" style="aspect-ratio: 16 / 9"></div>
+						<div class="sk" style="width: 80%; height: 40px"></div>
+						<div class="sk" style="width: 55%; height: 18px"></div>
+						<div class="more-loading"><span class="dot"></span>Loading older dispatches</div>
+					</div>
+				</div>
+				<div class="more-prompt">
+					<p>Keep scrolling — older dispatches load as you go</p>
+					<a class="btn load-more" href={page.url.next} rel="next">Load older</a>
+				</div>
+			</div>
+		) : (
+			<div class="feed-end">
+				<div class="eyebrow">End of the archive</div>
+				<p class="feed-end-line">You've reached the beginning — <span class="it">{monthYear(oldest.data.pubDate)}.</span></p>
+				<a class="btn" href="/">
+					Back to the newest
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"></path></svg>
+				</a>
+			</div>
+		)}
+	</section>
+
+	<div class="rail" aria-hidden="true">
+		<span>{newest.data.pubDate.getUTCFullYear()}</span>
+		<div class="rail-track"><div class="rail-fill"></div></div>
+		<span>{oldest.data.pubDate.getUTCFullYear()}</span>
+		<span class="rail-count"><span class="rail-loaded">{loaded}</span>/{all.length}</span>
+	</div>
 </BaseLayout>
 
+<script>
+	let observer: IntersectionObserver | null = null;
+	let loading = false;
+
+	async function loadNext() {
+		const feed = document.querySelector<HTMLElement>('.feed');
+		const more = document.querySelector<HTMLElement>('.feed-more');
+		const next = more?.dataset.next;
+		if (!feed || !more || !next || loading) return;
+		loading = true;
+
+		more.querySelector<HTMLElement>('.more-skeleton')?.removeAttribute('hidden');
+		more.querySelector<HTMLElement>('.more-prompt')?.setAttribute('hidden', '');
+
+		try {
+			const res = await fetch(next);
+			if (!res.ok) throw new Error(`${res.status} fetching ${next}`);
+			const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+			const incoming = doc.querySelector('.feed');
+			const incomingMore = doc.querySelector('.feed-more');
+			if (!incoming || !incomingMore) throw new Error(`${next} has no feed`);
+
+			const nodes = Array.from(incoming.children) as HTMLElement[];
+			const lastYear = feed.querySelector<HTMLElement>('.chapter:last-of-type')?.dataset.year;
+			if (nodes[0]?.classList.contains('year-divider') && nodes[0].dataset.year === lastYear) {
+				nodes.shift();
+			}
+			for (const node of nodes) {
+				node.classList.add('arrive');
+				feed.appendChild(document.adoptNode(node));
+			}
+
+			const fresh = document.adoptNode(incomingMore) as HTMLElement;
+			more.replaceWith(fresh);
+			const count = document.querySelector('.rail-loaded');
+			if (count) count.textContent = fresh.dataset.loaded ?? count.textContent;
+			observer?.observe(fresh);
+		} catch (err) {
+			// Fall back to a normal page load rather than leaving a dead spinner.
+			console.error(err);
+			window.location.assign(next);
+		} finally {
+			loading = false;
+		}
+	}
+
+	// Delegated once for the whole session: ClientRouter keeps the document
+	// alive across navigations, so re-adding it per page would stack handlers.
+	document.addEventListener('click', (e) => {
+		const link = (e.target as HTMLElement).closest('.load-more');
+		if (!link) return;
+		e.preventDefault();
+		loadNext();
+	});
+
+	function initFeed() {
+		observer?.disconnect();
+		const more = document.querySelector<HTMLElement>('.feed-more');
+		if (!more) return;
+
+		observer = new IntersectionObserver((entries) => {
+			for (const entry of entries) {
+				if (entry.isIntersecting && (entry.target as HTMLElement).dataset.next) loadNext();
+			}
+		}, { rootMargin: '0px 0px 600px 0px' });
+		observer.observe(more);
+	}
+
+	document.addEventListener('astro:page-load', initFeed);
+</script>
+
 <style>
-	.archive-page {
-		padding: 28px var(--gutter) 0;
-		max-width: 800px;
-		margin: 0 auto;
+	/* ---- Hero (page 1) ---- */
+	.home-hero {
+		position: relative;
+		height: calc(100svh - var(--header-h));
+		min-height: 560px;
+		overflow: hidden;
+		display: flex;
+		align-items: flex-end;
+		margin-top: calc(-1 * var(--header-h));
+		padding-top: var(--header-h);
+		box-sizing: content-box;
 	}
-
-	.archive-head {
-		margin-bottom: 24px;
-		padding-bottom: 14px;
-		border-bottom: 1px double var(--rule);
+	.home-hero :global(.hero-backdrop) {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		opacity: .55;
 	}
-
-	.archive-head h2 {
-		font-family: var(--font-serif);
-		font-size: 28px;
-		color: var(--paper-bright);
+	.hero-shade {
+		position: absolute;
+		inset: 0;
+		background:
+			linear-gradient(to right, rgba(13, 15, 19, .7), transparent 65%),
+			linear-gradient(to top, var(--bg) 8%, rgba(13, 15, 19, .55) 55%, rgba(13, 15, 19, .25));
 	}
-
-	.archive-sub {
-		font-size: 10.5px;
-		letter-spacing: .28em;
-		text-transform: uppercase;
-		color: var(--mute);
-		margin-top: 6px;
-	}
-
-	.pagination {
+	.hero-copy {
+		position: relative;
+		width: 100%;
+		padding: 0 96px 88px;
 		display: flex;
 		justify-content: space-between;
+		align-items: flex-end;
+		gap: 48px;
+	}
+	.hero-text { display: flex; flex-direction: column; gap: 26px; }
+	.hero-title {
+		font-size: clamp(42px, 7.6vw, 108px);
+		line-height: .95;
+		letter-spacing: -0.05em;
+	}
+	.hero-title .it { color: var(--accent); }
+	.hero-sub { margin: 0; font-family: var(--font-text); font-size: 20px; color: var(--muted); }
+	.scroll-cue {
+		display: flex;
+		flex-direction: column;
 		align-items: center;
-		gap: 1rem;
-		padding: 20px var(--gutter);
-		margin-top: 28px;
-		border-top: 1px solid var(--rule);
+		gap: 16px;
 		font-size: 11px;
-		letter-spacing: .22em;
+		font-weight: 600;
+		letter-spacing: .2em;
 		text-transform: uppercase;
-		color: var(--mute);
+		color: var(--muted);
+	}
+	.scroll-cue span:first-child { writing-mode: vertical-rl; }
+	.cue-line { position: relative; width: 1px; height: 72px; background: var(--rule); overflow: hidden; }
+	.cue-line::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		top: -40%;
+		width: 1px;
+		height: 40%;
+		background: var(--accent);
+		animation: cue 1.8s cubic-bezier(.6, 0, .3, 1) infinite;
+	}
+	@keyframes cue { to { top: 100%; } }
+
+	/* ---- Archive header (page 2+) ---- */
+	.archive-head {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		padding: 88px 96px 0;
+	}
+	.archive-head h1 { font-size: clamp(36px, 6vw, 80px); line-height: 1; }
+
+	/* ---- Feed ---- */
+	.feed, .feed-more { padding: 0 96px; }
+	.year-divider {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 24px;
+		padding: 140px 0 24px;
+		border-bottom: 1px solid var(--rule);
+	}
+	.year-num {
+		font-family: var(--font-display);
+		font-size: clamp(88px, 15vw, 200px);
+		line-height: .8;
+		letter-spacing: -0.05em;
+		color: var(--text-bright);
+	}
+	.year-label {
+		padding-bottom: 16px;
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: .2em;
+		text-transform: uppercase;
+		color: var(--muted);
 	}
 
-	.pagination a {
-		color: var(--steel);
-		transition: color .15s;
+	.chapter {
+		display: grid;
+		grid-template-columns: repeat(12, minmax(0, 1fr));
+		gap: 32px;
+		padding: 96px 0;
+		border-bottom: 1px solid var(--rule-faint);
+	}
+	.chapter-meta {
+		grid-column: span 3;
+		position: sticky;
+		top: calc(var(--header-h) + 48px);
+		align-self: start;
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+	}
+	.chapter-num {
+		font-family: var(--font-display);
+		font-size: clamp(40px, 4.4vw, 64px);
+		line-height: .85;
+		color: var(--accent);
+	}
+	.chapter-date { display: flex; flex-direction: column; font-size: 13.5px; line-height: 1.7; color: var(--muted); }
+	.chapter-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+	.chapter-body { grid-column: 4 / span 9; display: flex; flex-direction: column; gap: 26px; }
+	.chapter-title { font-size: clamp(26px, 3.1vw, 44px); line-height: 1.1; }
+	.chapter-title a:hover { color: var(--text-bright); }
+	.chapter-desc {
+		margin: 0;
+		max-width: 64ch;
+		font-family: var(--font-text);
+		font-size: 19px;
+		line-height: 1.65;
+		color: var(--muted);
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
 	}
 
-	.pagination a:hover {
-		color: var(--paper-bright);
+	/* ---- Loader / end ---- */
+	.more { padding: 96px 0 40px; }
+	.more-prompt { display: flex; flex-direction: column; align-items: center; gap: 20px; font-size: 14px; color: var(--muted); }
+	.more-prompt p { margin: 0; }
+	.more-prompt[hidden], .more-skeleton[hidden] { display: none; }
+	.more-skeleton {
+		display: grid;
+		grid-template-columns: repeat(12, minmax(0, 1fr));
+		gap: 32px;
+	}
+	.more-skeleton > :first-child { grid-column: span 3; }
+	.more-skeleton-body { grid-column: 4 / span 9; display: flex; flex-direction: column; gap: 22px; }
+	.more-loading {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: .18em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+	.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+	@keyframes pulse { 50% { opacity: .25; } }
+
+	.feed-end {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		gap: 28px;
+		padding: 160px 0 80px;
+	}
+	.feed-end-line {
+		margin: 0;
+		max-width: 18ch;
+		font-family: var(--font-display);
+		font-size: clamp(30px, 4.4vw, 48px);
+		line-height: 1.1;
+		letter-spacing: -0.04em;
+		color: var(--text-bright);
 	}
 
-	.pagination .disabled {
-		opacity: 0.35;
+	/* ---- Timeline rail ---- */
+	.rail {
+		position: fixed;
+		right: 28px;
+		top: 50%;
+		transform: translateY(-50%);
+		z-index: 20;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 14px;
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: .12em;
+		color: var(--muted);
+		pointer-events: none;
+	}
+	.rail-track { position: relative; width: 2px; height: 240px; background: var(--rule); border-radius: 2px; overflow: hidden; }
+	.rail-fill { position: absolute; inset: 0; background: var(--accent); transform-origin: 50% 0; transform: scaleY(0); }
+	.rail-count { margin-top: 8px; color: var(--accent); }
+
+	@supports (animation-timeline: view()) {
+		@media (prefers-reduced-motion: no-preference) {
+			.rail-fill { animation-name: fill-y; animation-timing-function: linear; animation-fill-mode: both; animation-timeline: scroll(root); }
+			@keyframes fill-y { to { transform: scaleY(1); } }
+			.year-num {
+				animation-name: year-in;
+				animation-timing-function: linear;
+				animation-fill-mode: both;
+				animation-timeline: view();
+				animation-range: entry 0% cover 45%;
+			}
+			@keyframes year-in {
+				from { opacity: 0; transform: scale(.82); letter-spacing: .1em; }
+				to   { opacity: 1; transform: none; letter-spacing: -0.05em; }
+			}
+		}
+	}
+
+	@media (max-width: 1240px) {
+		.rail { display: none; }
+	}
+	@media (max-width: 900px) {
+		.hero-copy { padding: 0 var(--gutter) 56px; }
+		.scroll-cue { display: none; }
+		.hero-sub { font-size: 17px; }
+		.archive-head, .feed, .feed-more { padding-left: var(--gutter); padding-right: var(--gutter); }
+		.archive-head { padding-top: 48px; }
+		.year-divider { padding-top: 88px; flex-direction: column; align-items: flex-start; gap: 12px; }
+		.year-label { padding-bottom: 0; }
+		.chapter { grid-template-columns: 1fr; gap: 20px; padding: 56px 0; }
+		.chapter-meta {
+			grid-column: 1;
+			position: static;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 10px 16px;
+		}
+		.chapter-date { flex-direction: row; gap: 12px; }
+		.chapter-body { grid-column: 1; gap: 20px; }
+		.chapter-desc { font-size: 17px; }
+		.more-skeleton { grid-template-columns: 1fr; }
+		.more-skeleton > :first-child { display: none; }
+		.more-skeleton-body { grid-column: 1; }
+		.feed-end { padding-top: 96px; }
 	}
 </style>

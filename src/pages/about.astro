@@ -1,11 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { Image } from "astro:assets";
-import { SITE_TITLE } from '../consts';
+import { SITE_TITLE, CAREER_START_YEAR } from '../consts';
 import profileImage from "../assets/images/joe_laskowski.webp";
 import locationImage from "../assets/images/south-bend.webp";
 
-const CAREER_START_YEAR = 2001;
 const LINUX_START_YEAR = 2007;
 const yearsInIT = new Date().getFullYear() - CAREER_START_YEAR;
 const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
@@ -15,7 +14,7 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
   title={`About Me | ${SITE_TITLE}`}
   description={`Joe Laskowski — ${yearsInIT} years in IT, currently working in AI, writing here when I've got something worth saying.`}
 >
-  <div class="about-wrap">
+  <div class="page-shell about-wrap">
     <article class="about-content">
       <div class="hero-section">
         <Image
@@ -29,7 +28,8 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
           loading="eager"
         />
         <div class="hero-text">
-          <h1>About Joe Laskowski</h1>
+          <div class="eyebrow">About</div>
+          <h1>Joe Laskowski</h1>
           <p class="lead">
             {yearsInIT} years in IT, currently AI Quality Analyst at
             Aunalytics — a title I would have laughed at five years ago
@@ -113,12 +113,10 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
               sizes="(max-width: 720px) calc(100vw - 44px), 700px"
               loading="eager"
             />
-            <span class="corner-bl"></span>
-            <span class="corner-br"></span>
           </figure>
           <div class="plate-cap">
             <span>South Bend, Indiana</span>
-            <span>Fig. I</span>
+            <span>Fig. 01</span>
           </div>
         </div>
 
@@ -160,72 +158,31 @@ const linuxYears = new Date().getFullYear() - LINUX_START_YEAR;
   </div>
 
   <style>
-    .about-wrap {
-      padding: 28px var(--gutter) 0;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
     .hero-section {
       display: flex;
-      gap: 3rem;
+      gap: 48px;
       align-items: center;
-      margin: 3rem 0;
-      padding: 2rem 0;
-      border-bottom: 1px double var(--rule);
+      padding-bottom: 48px;
+      margin-bottom: 56px;
+      border-bottom: 1px solid var(--rule);
     }
-
     .profile-image {
       width: 180px;
       height: 180px;
       border-radius: 50%;
-      border: 3px solid var(--rule);
       flex-shrink: 0;
+      object-fit: cover;
+      box-shadow: 0 0 0 1px var(--rule), 0 0 0 8px var(--bg), 0 0 0 9px var(--accent);
     }
-
-    .hero-text h1 {
-      font-family: var(--font-serif);
-      font-size: clamp(26px, 5vw, 40px);
-      font-weight: 500;
-      color: var(--paper-bright);
-      letter-spacing: -0.02em;
-      margin: 0 0 1rem 0;
-    }
-
-    .lead {
-      font-family: var(--font-serif);
-      font-style: italic;
-      font-size: 1.05rem;
-      color: var(--paper-dim);
-      line-height: 1.65;
-      margin: 0;
-    }
-
-    .prose {
-      margin-top: 3rem;
-    }
-
-    .image-section {
-      margin: 3rem 0;
-      max-width: 700px;
-    }
-
-    .image-section :global(.plate img) {
-      aspect-ratio: unset;
-      height: auto;
-    }
+    .hero-text { display: flex; flex-direction: column; gap: 16px; }
+    .hero-text h1 { font-size: clamp(34px, 6vw, 60px); line-height: 1; }
+    .lead { margin: 0; font-family: var(--font-text); font-size: 21px; line-height: 1.6; color: var(--text-dim); }
+    .image-section { margin: 2.4em 0; }
+    .image-section :global(.plate img) { height: auto; }
 
     @media (max-width: 768px) {
-      .hero-section {
-        flex-direction: column;
-        text-align: center;
-        gap: 2rem;
-      }
-
-      .profile-image {
-        width: 150px;
-        height: 150px;
-      }
+      .hero-section { flex-direction: column; align-items: flex-start; gap: 28px; }
+      .profile-image { width: 140px; height: 140px; }
     }
   </style>
 </BaseLayout>

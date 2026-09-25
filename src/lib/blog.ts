@@ -64,29 +64,3 @@ export function readingTimeMinutes(body: string | undefined): number {
 	const words = text.split(/\s+/).filter(Boolean).length;
 	return Math.max(1, Math.round(words / WORDS_PER_MINUTE));
 }
-
-export function getRelatedPosts(
-	post: CollectionEntry<'blog'>,
-	all: CollectionEntry<'blog'>[],
-	limit = 3,
-): CollectionEntry<'blog'>[] {
-	const postTags = new Set((post.data.tags ?? []).map(slugifyTag));
-	if (postTags.size === 0) return [];
-
-	return all
-		.filter((p) => p.id !== post.id)
-		.map((p) => {
-			const overlap = (p.data.tags ?? []).reduce(
-				(n, t) => (postTags.has(slugifyTag(t)) ? n + 1 : n),
-				0,
-			);
-			return { post: p, overlap };
-		})
-		.filter((x) => x.overlap > 0)
-		.sort((a, b) =>
-			b.overlap - a.overlap ||
-			b.post.data.pubDate.valueOf() - a.post.data.pubDate.valueOf(),
-		)
-		.slice(0, limit)
-		.map((x) => x.post);
-}

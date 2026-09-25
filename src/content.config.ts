@@ -14,11 +14,6 @@ const blog = defineCollection({
 		heroImage: image().optional(),
 		tags: z.array(z.string()).optional(),
 		draft: z.boolean().default(false),
-		// Noir editorial fields (optional — enrich posts for homepage lead display)
-		tag: z.string().optional(),
-		read: z.string().optional(),
-		excerpt: z.string().optional(),
-		pullquote: z.string().optional(),
 	}),
 });
 

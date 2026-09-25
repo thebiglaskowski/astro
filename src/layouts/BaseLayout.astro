@@ -3,6 +3,7 @@ import BaseHead from '../components/BaseHead.astro';
 import { ClientRouter } from 'astro:transitions';
 import { getImage } from 'astro:assets';
 import defaultOgImage from '../assets/images/joe_laskowski.webp';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 
 interface Props {
 	title: string;
@@ -17,34 +18,28 @@ const { title, description = '', image, preloadImage, preloadImageSrcset, preloa
 const defaultOg = await getImage({ src: defaultOgImage, format: 'jpeg', width: 1200, height: 1200 });
 const ogImage = image ?? defaultOg.src;
 
-const SITE = {
-	handle:      'thebiglaskowski',
-	bio:         'neural network navigator · crypto enthusiast · command-line cowboy',
-	eyebrow:     '— A literary journal of machines, shells & sats —',
-	title:       'The Big Laskowski',
-	established: 'Established Anno Domini Two Thousand & Twenty-One',
-	issue:       'Vol. I · MMXXVI',
-	motto:       'Printed & transmitted from the command line',
-	socials: [
-		{ label: 'GH', href: 'https://github.com/thebiglaskowski' },
-		{ label: 'X',  href: 'https://x.com/thebiglaskowski' },
-		{ label: 'IN', href: 'https://www.linkedin.com/in/thebiglaskowski' },
-		{ label: 'YT', href: 'https://www.youtube.com/@JoeLaskowski' },
-	],
-	nav: [
-		{ label: 'Blog',    href: '/' },
-		{ label: 'About',   href: '/about/' },
-		{ label: 'Resume',  href: '/resume/' },
-		{ label: 'Contact', href: '/contact/' },
-		{ label: 'Tags',    href: '/tags/' },
-		{ label: 'RSS',     href: '/rss.xml' },
-	],
-};
+const SOCIALS = [
+	{ label: 'GitHub',   href: 'https://github.com/thebiglaskowski' },
+	{ label: 'X',        href: 'https://x.com/thebiglaskowski' },
+	{ label: 'LinkedIn', href: 'https://www.linkedin.com/in/thebiglaskowski' },
+	{ label: 'YouTube',  href: 'https://www.youtube.com/@JoeLaskowski' },
+];
+
+const NAV = [
+	{ label: 'Journal', href: '/' },
+	{ label: 'About',   href: '/about/' },
+	{ label: 'Resume',  href: '/resume/' },
+	{ label: 'Tags',    href: '/tags/' },
+	{ label: 'Games',   href: '/games/dead-signal/' },
+	{ label: 'Contact', href: '/contact/' },
+];
 
 const pathname = Astro.url.pathname;
+// Archive pages are /2/, /3/, … — numeric like /404/, which must not light up Journal.
+const isArchivePage = /^\/\d+\/$/.test(pathname) && pathname !== '/404/';
 const isActive = (href: string) =>
 	href === '/'
-		? pathname === '/' || pathname.startsWith('/blog/')
+		? pathname === '/' || isArchivePage || pathname.startsWith('/blog/')
 		: pathname.startsWith(href);
 ---
 
@@ -56,63 +51,42 @@ const isActive = (href: string) =>
 	</head>
 	<body>
 		<a href="#main-content" class="skip-link">Skip to content</a>
-		<div class="pagewrap">
-			<div class="running">
-				<span>{SITE.issue}</span>
-				<span class="star">✦</span>
-				<span style="text-align:right">{SITE.motto}</span>
+
+		<header class="site-header">
+			<a class="logo" href="/"><span class="it">{SITE_TITLE}</span></a>
+			<div class="header-meta">
+				<slot name="header-meta" />
 			</div>
-
-			<header class="masthead">
-				<div class="mast-eyebrow">{SITE.eyebrow}</div>
-				{(pathname === '/' || /^\/\d+\/$/.test(pathname))
-					? <h1 class="mast-title"><a href="/">{SITE.title}</a></h1>
-					: <p class="mast-title"><a href="/">{SITE.title}</a></p>
-				}
-				<div class="mast-sub">{SITE.established}</div>
-			</header>
-
-			<div class="fleur-rule">
-				<span class="line"></span>
-				<span class="fleur">❦ ❧ ❦</span>
-				<span class="line"></span>
-			</div>
-
-			<nav class="navrow">
-				<div class="links">
-					{SITE.nav.map(item => (
-						<a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
-							{item.label}
-						</a>
-					))}
-				</div>
-				<div class="links">
-					{SITE.socials.map(s => (
-						<a href={s.href} target="_blank" rel="noopener noreferrer">{s.label}</a>
-					))}
-					<button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="search-panel">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<circle cx="11" cy="11" r="8"></circle>
-							<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-						</svg>
-					</button>
-				</div>
+			<nav class="primary" aria-label="Primary">
+				{NAV.map(item => (
+					<a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>
+				))}
 			</nav>
-
+			<button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="search-panel">
+				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+			</button>
+			<div class="progress" aria-hidden="true"></div>
 			<div id="search-panel" class="search-panel" hidden>
 				<div id="search"></div>
 			</div>
+		</header>
 
-			<main id="main-content">
-				<slot />
-			</main>
+		<main id="main-content">
+			<slot />
+		</main>
 
-			<footer class="site-footer">
-				<span>{SITE.bio}</span>
-				<span class="ornament">⁂</span>
-				<span style="text-align:right">© {new Date().getFullYear()} {SITE.handle}</span>
-			</footer>
-		</div>
+		<footer class="site-footer">
+			<span>© {new Date().getFullYear()} Joe Laskowski — {SITE_DESCRIPTION}</span>
+			<nav class="footer-links" aria-label="Elsewhere">
+				{SOCIALS.map(s => (
+					<a href={s.href} target="_blank" rel="noopener noreferrer">{s.label}</a>
+				))}
+				<a href="/rss.xml">RSS</a>
+			</nav>
+		</footer>
 	</body>
 </html>
 
@@ -122,68 +96,139 @@ const isActive = (href: string) =>
 		left: -9999px;
 		top: 0;
 		z-index: 100;
-		background: var(--oxblood);
-		color: var(--paper-bright);
-		padding: 0.5rem 1rem;
-		font-family: var(--font-sans);
+		background: var(--accent);
+		color: var(--bg);
+		padding: 0.6rem 1rem;
 		font-size: 0.85rem;
-		text-decoration: none;
 		border-radius: 0 0 4px 4px;
 	}
+	.skip-link:focus { left: 50%; transform: translateX(-50%); }
 
-	.skip-link:focus {
-		left: 50%;
-		transform: translateX(-50%);
+	.site-header {
+		position: sticky;
+		top: 0;
+		z-index: 50;
+		height: var(--header-h);
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto auto;
+		align-items: center;
+		gap: 24px;
+		padding: 0 var(--gutter);
+		background: rgba(13, 15, 19, .88);
+		backdrop-filter: blur(16px) saturate(1.3);
+		-webkit-backdrop-filter: blur(16px) saturate(1.3);
+		border-bottom: 1px solid var(--rule-faint);
 	}
-
-	.search-toggle {
-		background: transparent;
-		border: none;
-		padding: 0;
-		color: var(--mute);
-		cursor: pointer;
+	.logo { font-family: var(--font-display); font-size: 19px; letter-spacing: -0.03em; color: var(--text-bright); white-space: nowrap; }
+	.header-meta { min-width: 0; display: flex; align-items: center; justify-content: center; }
+	.primary { display: flex; gap: 2px; }
+	.primary a {
 		display: inline-flex;
 		align-items: center;
-		font-size: 11.5px;
-		letter-spacing: .22em;
-		text-transform: uppercase;
-		transition: color 0.15s;
-		line-height: 1;
+		min-height: 44px;
+		padding: 0 12px;
+		font-size: 13.5px;
+		font-weight: 500;
+		color: var(--muted);
+		white-space: nowrap;
 	}
+	.primary a:hover, .primary a[aria-current="page"] { color: var(--text-bright); }
+	.primary a[aria-current="page"] { box-shadow: inset 0 -1px 0 var(--accent); }
+	.search-toggle {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		padding: 0;
+		border: 1px solid var(--rule);
+		border-radius: 50%;
+		background: transparent;
+		color: var(--muted);
+		cursor: pointer;
+		transition: color .2s, border-color .2s;
+	}
+	.search-toggle:hover, .search-toggle[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
 
-	.search-toggle:hover {
-		color: var(--steel);
+	.progress {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: -1px;
+		height: 2px;
+		background: var(--accent);
+		transform-origin: 0 50%;
+		transform: scaleX(0);
+	}
+	@supports (animation-timeline: scroll()) {
+		.progress { animation-name: progress; animation-timing-function: linear; animation-fill-mode: both; animation-timeline: scroll(root); }
+		@keyframes progress { to { transform: scaleX(1); } }
 	}
 
 	.search-panel {
-		padding: 20px var(--gutter);
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		padding: 24px var(--gutter) 32px;
+		background: var(--bg);
 		border-bottom: 1px solid var(--rule);
-		background: #0d0c0e;
+		max-height: calc(100vh - var(--header-h));
+		overflow-y: auto;
 	}
-
-	.search-panel[hidden] {
-		display: none;
-	}
+	.search-panel[hidden] { display: none; }
 
 	:global(#search) {
-		--pagefind-ui-primary: var(--oxblood);
-		--pagefind-ui-text: var(--paper);
-		--pagefind-ui-background: var(--ink);
+		--pagefind-ui-primary: var(--accent);
+		--pagefind-ui-text: var(--text);
+		--pagefind-ui-background: var(--surface);
 		--pagefind-ui-border: var(--rule);
-		--pagefind-ui-tag: var(--rule-dim);
+		--pagefind-ui-tag: var(--surface-2);
 		--pagefind-ui-border-width: 1px;
-		--pagefind-ui-border-radius: 2px;
-		--pagefind-ui-font: var(--font-sans);
-		max-width: var(--content-max);
+		--pagefind-ui-border-radius: 8px;
+		--pagefind-ui-font: var(--font-ui);
+		max-width: 900px;
+		margin: 0 auto;
 	}
+	:global(#search .pagefind-ui__search-input) { background: var(--surface); color: var(--text-bright); }
+	:global(#search .pagefind-ui__result-title a) { color: var(--accent); }
 
-	:global(#search .pagefind-ui__search-input) {
-		background: var(--ink);
-		color: var(--paper);
+	.site-footer {
+		margin-top: 80px;
+		padding: 40px var(--gutter);
+		border-top: 1px solid var(--rule-faint);
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 20px;
+		font-size: 13px;
+		color: var(--muted);
 	}
+	.footer-links { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+	.footer-links a { display: inline-flex; align-items: center; min-height: 44px; }
 
-	:global(#search .pagefind-ui__result-title a) {
-		color: var(--oxblood);
+	@media (max-width: 1180px) {
+		.header-meta { visibility: hidden; }
+	}
+	@media (max-width: 820px) {
+		.site-header {
+			grid-template-columns: minmax(0, 1fr) auto;
+			grid-template-rows: 60px 48px;
+			gap: 0 12px;
+			align-content: start;
+		}
+		.header-meta { display: none; }
+		.primary {
+			grid-column: 1 / -1;
+			grid-row: 2;
+			margin: 0 calc(-1 * var(--gutter));
+			padding: 0 calc(var(--gutter) - 12px);
+			overflow-x: auto;
+			scrollbar-width: none;
+			border-top: 1px solid var(--rule-faint);
+		}
+		.search-toggle { grid-column: 2; grid-row: 1; }
 	}
 </style>
 
