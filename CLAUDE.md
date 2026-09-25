@@ -162,4 +162,7 @@ cache entry (purge it) or genuinely absent (redeploy).
 - **Search**: Pagefind UI, lazy-loaded from `/pagefind/` when the search toggle is first opened
 - **Tag pills**: `.tag-pill` utility in `global.css` — reused on post pages and the tag index
 - **Analytics**: GA loads only in production and only when `PUBLIC_GA_ID` is set; honors `navigator.doNotTrack`
-- **RSS/Sitemap/robots**: Auto-generated (`rss.xml`, `sitemap-index.xml`); `public/robots.txt` points crawlers at the sitemap. Site URL: `https://thebiglaskowski.com`
+- **RSS/Sitemap/robots**: Auto-generated (`rss.xml`, `sitemap-index.xml`); `public/robots.txt` points crawlers at the sitemap, and `public/_redirects` sends `/sitemap.xml` there too. Site URL: `https://thebiglaskowski.com`
+- **SEO head**: `BaseLayout`/`BaseHead` take `noindex` (emits `noindex, follow`) and `article` (`og:type=article` + `article:published_time` / `modified_time` / `tag`). Meta descriptions are trimmed to ~155 chars at a word boundary; post `<title>`s get the " — thebiglaskowski" suffix only when the result fits in 60 chars. Tag pages with a single post are `noindex`
+- **Sitemap reads the build**: the `@astrojs/sitemap` filter/serialize in `astro.config.mjs` read each built page's HTML — pages with a robots `noindex` meta are dropped, and `lastmod` comes from `article:modified_time`/`published_time`. So a page's own head is the single source of truth for both
+- **Fonts**: Source Serif 4 is the weight-axis build (`wght.css`), not `opsz` — the opsz files are ~2.5x larger and create a font instance per size, which measurably slowed first render on mobile

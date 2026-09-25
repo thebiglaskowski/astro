@@ -13,9 +13,11 @@ interface Props {
 	preloadImage?: string;
 	preloadImageSrcset?: string;
 	preloadImageSizes?: string;
+	noindex?: boolean;
+	article?: { published: Date; modified?: Date; tags?: string[] };
 }
 
-const { title, description = '', image, preloadImage, preloadImageSrcset, preloadImageSizes } = Astro.props;
+const { title, description = '', image, preloadImage, preloadImageSrcset, preloadImageSizes, noindex, article } = Astro.props;
 const defaultOg = await getImage({ src: defaultOgImage, format: 'jpeg', width: 1200, height: 1200 });
 const ogImage = image ?? defaultOg.src;
 
@@ -46,7 +48,7 @@ const isActive = (href: string) =>
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} image={ogImage} preloadImage={preloadImage} preloadImageSrcset={preloadImageSrcset} preloadImageSizes={preloadImageSizes} />
+		<BaseHead title={title} description={description} image={ogImage} preloadImage={preloadImage} preloadImageSrcset={preloadImageSrcset} preloadImageSizes={preloadImageSizes} noindex={noindex} article={article} />
 		<ClientRouter />
 	</head>
 	<body>

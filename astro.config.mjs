@@ -4,8 +4,26 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import partytown from '@astrojs/partytown';
 import { unified } from '@astrojs/markdown-remark';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const SITE = 'https://thebiglaskowski.com';
+
+/**
+ * The sitemap is built after the pages are written, so it can read each
+ * page's own head instead of re-deriving page state here: pages that say
+ * noindex are left out, and articles report their modified/published date.
+ */
+const DIST = fileURLToPath(new URL('./dist/', import.meta.url));
+const builtHtml = (/** @type {string} */ url) => {
+    try {
+        return readFileSync(`${DIST}${new URL(url).pathname.replace(/^\//, '')}index.html`, 'utf8');
+    } catch {
+        return '';
+    }
+};
+const metaContent = (/** @type {string} */ html, /** @type {string} */ property) =>
+    html.match(new RegExp(`<meta property="${property}" content="([^"]+)"`))?.[1];
 
 /**
  * Wrap each standalone markdown image (a paragraph whose only content is one
@@ -146,8 +164,16 @@ export default defineConfig({
     },
     integrations: [
         mdx(),
-        // /games/ is personal and unlinked — keep it out of search results.
-        sitemap({ filter: (page) => !page.includes('/games/') }),
+        sitemap({
+            // /games/ is personal and unlinked; noindex pages (thin tag
+            // archives) would contradict their own robots meta if listed.
+            filter: (page) => !page.includes('/games/') && !/<meta name="robots" content="noindex/.test(builtHtml(page)),
+            serialize(item) {
+                const html = builtHtml(item.url);
+                const lastmod = metaContent(html, 'article:modified_time') ?? metaContent(html, 'article:published_time');
+                return lastmod ? { ...item, lastmod } : item;
+            },
+        }),
         partytown({
             config: {
                 forward: ['dataLayer.push'],

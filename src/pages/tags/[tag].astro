@@ -18,11 +18,14 @@ type Props = { tagName: string; count: number };
 const { tag: tagSlug } = Astro.params;
 const { tagName, count } = Astro.props;
 const posts = await getPostsByTag(tagSlug!);
+// A tag with one post is a thin page that repeats that post, so it stays out
+// of search results (noindex, links still followed) and out of the sitemap.
 ---
 
 <BaseLayout
 	title={`${tagName} | ${SITE_TITLE}`}
-	description={`Posts tagged ${tagName}.`}
+	description={`${count} ${count === 1 ? 'dispatch' : 'dispatches'} tagged ${tagName} on ${SITE_TITLE} — notes on AI, the command line, and whatever Joe Laskowski is building next.`}
+	noindex={count < 2}
 >
 	<div class="page-shell tag-wrap">
 		<section class="page-head">

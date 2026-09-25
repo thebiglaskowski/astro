@@ -6,8 +6,10 @@
 
 @import '@fontsource-variable/jetbrains-mono/wght.css';
 @import '@fontsource-variable/jetbrains-mono/wght-italic.css';
-@import '@fontsource-variable/source-serif-4/opsz.css';
-@import '@fontsource-variable/source-serif-4/opsz-italic.css';
+/* Weight axis only: the opsz build is ~2.5x the bytes and makes the browser
+   build a separate instance per font size, which slowed first render. */
+@import '@fontsource-variable/source-serif-4/wght.css';
+@import '@fontsource-variable/source-serif-4/wght-italic.css';
 
 :root {
   /* Surfaces */

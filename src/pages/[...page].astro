@@ -526,8 +526,9 @@ const bannerPreload = isFirstPage
 				animation-range: entry 0% cover 45%;
 			}
 			@keyframes year-in {
-				from { opacity: 0; transform: translateX(calc(-1 * var(--slide))) scale(.82); letter-spacing: .1em; }
-				to   { opacity: 1; transform: none; letter-spacing: -0.05em; }
+				/* transform + opacity only, so it runs on the compositor */
+				from { opacity: 0; transform: translateX(calc(-1 * var(--slide))) scale(.82); }
+				to   { opacity: 1; transform: none; }
 			}
 
 			/* Scroll reveal: the meta column slides in from the left, the image

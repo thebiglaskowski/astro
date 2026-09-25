@@ -6,7 +6,7 @@ import BaseLayout from './BaseLayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import ShareLinks from '../components/ShareLinks.astro';
 import { slugifyTag, readingTimeMinutes, getPublishedPosts } from '../lib/blog';
-import { CAREER_START_YEAR } from '../consts';
+import { CAREER_START_YEAR, SITE_TITLE } from '../consts';
 import authorImage from '../assets/images/joe_laskowski.webp';
 import 'glightbox/dist/css/glightbox.min.css';
 
@@ -49,6 +49,11 @@ const upNext = allPosts[index + 1] ?? (allPosts[0]?.id !== post.id ? allPosts[0]
 const upNextMinutes = upNext ? readingTimeMinutes(upNext.body) : 0;
 
 const sections = headings.filter((h) => h.depth === 2);
+
+// Brand the <title> when it still fits in the ~60 characters search results
+// show; long post titles go out bare rather than truncated mid-brand.
+const brandedTitle = `${title} — ${SITE_TITLE}`;
+const pageTitle = brandedTitle.length <= 60 ? brandedTitle : title;
 
 const canonicalUrl = new URL(`/blog/${post.id}/`, Astro.site);
 const heroAbsoluteUrl = heroFullUrl ? new URL(heroFullUrl, Astro.site).toString() : undefined;
@@ -97,7 +102,7 @@ const breadcrumbJsonLd = {
 };
 ---
 
-<BaseLayout title={title} description={description} image={ogImage} preloadImageSrcset={heroResponsive?.srcSet.attribute} preloadImageSizes={heroSizes}>
+<BaseLayout title={pageTitle} description={description} image={ogImage} preloadImageSrcset={heroResponsive?.srcSet.attribute} preloadImageSizes={heroSizes} article={{ published: pubDate, modified: updatedDate, tags }}>
 	<div slot="header-meta" class="header-post">
 		<span class="header-title">{title}</span>
 		<svg class="ring" width="26" height="26" viewBox="0 0 36 36" aria-hidden="true">
@@ -115,7 +120,7 @@ const breadcrumbJsonLd = {
 				<Image
 					class="hero-backdrop"
 					src={heroImage}
-					alt=""
+					alt={title}
 					widths={heroWidths}
 					sizes={heroSizes}
 					format="webp"

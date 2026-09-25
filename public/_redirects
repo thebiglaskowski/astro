@@ -1,0 +1,2 @@
+# Crawlers often guess /sitemap.xml; the real index is sitemap-index.xml.
+/sitemap.xml /sitemap-index.xml 301
