@@ -3,7 +3,7 @@ import BaseHead from '../components/BaseHead.astro';
 import { ClientRouter } from 'astro:transitions';
 import { getImage } from 'astro:assets';
 import defaultOgImage from '../assets/images/joe_laskowski.webp';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { SITE_TITLE } from '../consts';
 
 interface Props {
 	title: string;
@@ -78,7 +78,7 @@ const isActive = (href: string) =>
 		</main>
 
 		<footer class="site-footer">
-			<span>© {new Date().getFullYear()} Joe Laskowski — {SITE_DESCRIPTION}</span>
+			<span>© {new Date().getFullYear()} Joe Laskowski</span>
 			<nav class="footer-links" aria-label="Elsewhere">
 				{SOCIALS.map(s => (
 					<a href={s.href} target="_blank" rel="noopener noreferrer">{s.label}</a>
