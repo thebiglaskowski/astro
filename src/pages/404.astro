@@ -1,27 +1,129 @@
 ---
+import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import FormattedDate from '../components/FormattedDate.astro';
 import { SITE_TITLE } from '../consts';
+import { getPublishedPosts } from '../lib/blog';
+
+const recent = (await getPublishedPosts()).slice(0, 3);
 ---
 
 <BaseLayout title={`Page Not Found | ${SITE_TITLE}`} description="The page you're looking for doesn't exist.">
 	<section class="page-shell not-found">
-		<div class="eyebrow">Error 404</div>
-		<h1><span class="prompt">$</span> cd ./this-page</h1>
-		<p class="err">No such file or directory — the page you're looking for doesn't exist.</p>
-		<a href="/" class="btn">Back to the journal</a>
+		<div class="nf-head">
+			<div class="eyebrow">Error 404</div>
+			<h1 class="nf-title">No such file <span class="it">or directory.</span></h1>
+			<p class="nf-lede">Whatever lived at this address has moved, or never existed. The shell remembers the rest.</p>
+		</div>
+
+		<div class="term" role="group" aria-label="Terminal session">
+			<p class="line" style="--d: .2s"><span class="ps1">joe@thebiglaskowski:~$</span> cd <span data-path>/this-page</span></p>
+			<p class="line err" style="--d: .7s">bash: cd: <span data-path>/this-page</span>: No such file or directory</p>
+			<p class="line" style="--d: 1.3s"><span class="ps1">joe@thebiglaskowski:~$</span> ls -t ~/dispatches | head -3</p>
+			{recent.map((post, i) => (
+				<p class="line" style={`--d: ${1.7 + i * 0.2}s`}><a href={`/blog/${post.id}/`}>{post.filePath?.split('/').pop() ?? post.id}</a></p>
+			))}
+			<p class="line" style="--d: 2.5s"><span class="ps1">joe@thebiglaskowski:~$</span> <span class="cursor" aria-hidden="true"></span></p>
+		</div>
+
+		<div class="nf-actions">
+			<a href="/" class="btn">Back to the journal</a>
+			<button type="button" class="btn btn-quiet" data-open-search>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+				Search the site
+			</button>
+			<a href="/tags/" class="readlink">Browse by tag →</a>
+		</div>
+
+		<section class="nf-recent" aria-labelledby="nf-recent-heading">
+			<div class="eyebrow" id="nf-recent-heading">Latest dispatches</div>
+			<div class="nf-grid">
+				{recent.map((post) => (
+					<a class="nf-card hover-root" href={`/blog/${post.id}/`}>
+						{post.data.heroImage && (
+							<span class="frame">
+								<Image src={post.data.heroImage} alt="" width={480} height={270} widths={[320, 480]} sizes="(max-width: 820px) calc(100vw - 40px), 280px" loading="lazy" />
+							</span>
+						)}
+						<span class="nf-date"><FormattedDate date={post.data.pubDate} /></span>
+						<span class="nf-card-title"><span class="ul">{post.data.title}</span></span>
+					</a>
+				))}
+			</div>
+		</section>
 	</section>
 
-	<style>
-		.not-found {
-			min-height: 60vh;
-			display: flex;
-			flex-direction: column;
-			align-items: flex-start;
-			justify-content: center;
-			gap: 24px;
+	<script>
+		// The page is prerendered at /404/, so the path the reader actually asked
+		// for is only known in the browser.
+		function init404() {
+			const path = decodeURIComponent(location.pathname);
+			document.querySelectorAll<HTMLElement>('[data-path]').forEach((el) => {
+				el.textContent = path;
+			});
 		}
-		.not-found h1 { font-size: clamp(28px, 5vw, 56px); line-height: 1.1; word-break: break-all; }
-		.prompt { color: var(--accent); }
-		.err { margin: 0; font-family: var(--font-text); font-size: 20px; color: var(--muted); }
+		document.addEventListener('astro:page-load', init404);
+
+		document.addEventListener('click', (e) => {
+			if (!(e.target as HTMLElement).closest('[data-open-search]')) return;
+			document.querySelector<HTMLButtonElement>('.search-toggle')?.click();
+		});
+	</script>
+
+	<style>
+		.not-found { display: flex; flex-direction: column; gap: 40px; max-width: 980px; }
+		.nf-head { display: flex; flex-direction: column; gap: 18px; }
+		.nf-title { font-size: clamp(38px, 6.4vw, 84px); line-height: 1; letter-spacing: -0.05em; }
+		.nf-title .it { color: var(--accent); }
+		.nf-lede { margin: 0; max-width: 46ch; font-family: var(--font-text); font-size: 21px; line-height: 1.55; color: var(--muted); }
+
+		.term {
+			padding: 26px 28px;
+			border: 1px solid var(--rule);
+			border-radius: 8px;
+			background: var(--surface);
+			font-size: 14.5px;
+			line-height: 1.9;
+			color: var(--text);
+			font-variant-ligatures: none;
+			overflow-x: auto;
+		}
+		.line {
+			margin: 0;
+			white-space: pre-wrap;
+			word-break: break-all;
+			animation: line-in .01s steps(1) both;
+			animation-delay: var(--d);
+		}
+		@keyframes line-in { from { visibility: hidden; } to { visibility: visible; } }
+		.ps1 { color: var(--accent); }
+		.err { color: #e39a8a; }
+		.term a { color: var(--text-bright); box-shadow: inset 0 -1px 0 var(--rule); }
+		.term a:hover { color: var(--accent); box-shadow: inset 0 -1px 0 var(--accent); }
+		.cursor {
+			display: inline-block;
+			width: .6em;
+			height: 1.1em;
+			vertical-align: -.2em;
+			background: var(--accent);
+			animation: blink 1s steps(1) infinite;
+		}
+		@keyframes blink { 50% { opacity: 0; } }
+
+		.nf-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+		.btn-quiet { border-color: var(--rule); color: var(--text-dim); }
+		.btn-quiet:hover { border-color: var(--accent); background: transparent; color: var(--accent); }
+
+		.nf-recent { display: flex; flex-direction: column; gap: 22px; padding-top: 40px; border-top: 1px solid var(--rule-faint); }
+		.nf-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+		.nf-card { display: flex; flex-direction: column; gap: 12px; }
+		.nf-card:hover { color: inherit; }
+		.nf-date { font-size: 12.5px; color: var(--faint); }
+		.nf-card-title { font-family: var(--font-display); font-size: 17px; line-height: 1.3; letter-spacing: -0.03em; color: var(--text-bright); }
+
+		@media (max-width: 820px) {
+			.nf-grid { grid-template-columns: 1fr; }
+			.term { padding: 20px; font-size: 13px; }
+		}
 	</style>
 </BaseLayout>
