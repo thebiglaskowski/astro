@@ -352,7 +352,7 @@ const bannerPreload = isFirstPage
 	.feed, .feed-more { padding: 0 96px; }
 	/* Slide-ins start off to the side; clip (not hidden) keeps them from
 	   widening the page without breaking the sticky chapter meta. */
-	.feed { overflow-x: clip; --slide: 140px; }
+	.feed { overflow-x: clip; --slide: 180px; }
 	.year-divider {
 		display: flex;
 		align-items: flex-end;
@@ -500,11 +500,14 @@ const bannerPreload = isFirstPage
 			/* Scroll reveal: the meta column slides in from the left, the image
 			   and copy from the right, and the eased timing makes each settle
 			   rather than stop dead. Longhands only — see global.css. */
+			/* Range runs from the element entering the bottom edge until it is
+			   about halfway up the screen, so the travel happens where the reader
+			   is looking; a tighter range finished it in the bottom 100px. */
 			.slide-l, .slide-r {
-				animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+				animation-timing-function: cubic-bezier(.3, .6, .35, 1);
 				animation-fill-mode: both;
 				animation-timeline: view();
-				animation-range: entry 5% cover 30%;
+				animation-range: entry 0% cover 50%;
 			}
 			.slide-l { animation-name: slide-l; }
 			.slide-r { animation-name: slide-r; }
@@ -519,10 +522,10 @@ const bannerPreload = isFirstPage
 			/* The image slides in from the right while it unveils (global keyframes) */
 			.frame-in {
 				animation-name: slide-r, unveil;
-				animation-timing-function: cubic-bezier(.2, .8, .2, 1), linear;
+				animation-timing-function: cubic-bezier(.3, .6, .35, 1), linear;
 				animation-fill-mode: both, both;
 				animation-timeline: view(), view();
-				animation-range: entry 0% cover 30%, entry 0% cover 40%;
+				animation-range: entry 0% cover 45%, entry 0% cover 45%;
 			}
 		}
 	}
@@ -541,7 +544,7 @@ const bannerPreload = isFirstPage
 		.archive-head { padding-top: 48px; }
 		.year-divider { padding-top: 88px; flex-direction: column; align-items: flex-start; gap: 12px; }
 		.year-label { padding-bottom: 0; }
-		.feed { --slide: 56px; }
+		.feed { --slide: 72px; }
 		.chapter { grid-template-columns: 1fr; gap: 20px; padding: 56px 0; }
 		.chapter-meta {
 			grid-column: 1;
