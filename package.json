@@ -21,13 +21,16 @@
     "@fontsource-variable/source-serif-4": "^5.3.0",
     "astro": "^7.3.4",
     "glightbox": "^3.3.1",
-    "three": "^0.186.0"
+    "three": "^0.187.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "@types/three": "^0.186.0",
+    "@types/three": "^0.187.0",
     "marked": "^18.0.1",
     "pagefind": "^1.5.2",
     "typescript": "^6.0.3"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
   }
 }
