@@ -31,3 +31,6 @@ pnpm-debug.log*
 
 # Scratch / reference workspace
 .temp/
+
+# Claude desktop output drafts
+Claude outputs/
